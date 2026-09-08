@@ -1,0 +1,12 @@
+import os
+
+from dotenv import load_dotenv
+
+
+load_dotenv()
+
+DATABASE_URL = os.getenv(
+    "DATABASE_URL",
+    "postgresql+psycopg2://postgres:postgres@localhost:5432/raindrop",
+)
+ML_API_URL = os.getenv("ML_API_URL", "http://127.0.0.1:8000")

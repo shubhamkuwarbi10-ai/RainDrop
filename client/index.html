@@ -1,219 +1,98 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" data-theme="corporate">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>AquaSight RainDrop Nowcasting</title>
-    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
-    <style>
-        body { margin: 0; padding: 0; font-family: 'Inter', sans-serif; }
-        #map { height: 100vh; width: 100vw; }
-        #search-box {
-            position: absolute;
-            top: 20px;
-            left: 60px;
-            z-index: 1000;
-            background: rgba(255, 255, 255, 0.95);
-            padding: 15px;
-            border-radius: 12px;
-            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
-            display: flex;
-            gap: 10px;
-            backdrop-filter: blur(5px);
-        }
-        input { 
-            padding: 10px 15px; 
-            font-size: 16px; 
-            width: 280px;
-            border: 1px solid #ccc;
-            border-radius: 8px;
-            outline: none;
-            transition: border-color 0.2s;
-        }
-        input:focus {
-            border-color: #3b82f6;
-        }
-        button { 
-            padding: 10px 20px; 
-            font-size: 16px; 
-            cursor: pointer;
-            background: #3b82f6;
-            color: white;
-            border: none;
-            border-radius: 8px;
-            font-weight: 600;
-            transition: background 0.2s;
-        }
-        button:hover {
-            background: #2563eb;
-        }
-        .popup-content {
-            font-family: 'Inter', sans-serif;
-        }
-        .rain-yes { color: #ef4444; font-weight: bold; }
-        .rain-no { color: #10b981; font-weight: bold; }
-        .timeseries-list {
-            margin-top: 10px;
-            padding-left: 0;
-            list-style: none;
-            max-height: 150px;
-            overflow-y: auto;
-            border-top: 1px solid #eee;
-            padding-top: 10px;
-        }
-        .timeseries-list li {
-            padding: 4px 0;
-            border-bottom: 1px dashed #eee;
-            display: flex;
-            justify-content: space-between;
-        }
-    </style>
-</head>
-<body>
-    <div id="search-box">
-        <input type="text" id="location-input" placeholder="Search location in Tamil Nadu (e.g. Chennai, Madurai)..." onkeypress="if(event.key === 'Enter') searchLocation()">
-        <button onclick="searchLocation()">Search</button>
-    </div>
-    <div id="map"></div>
-
-    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    <title>RainDrop · Multi-City GIS Urban Flood Nowcasting</title>
+    <script>try{localStorage.clear();sessionStorage.clear();}catch(e){}</script>
+    
+    <!-- Google Fonts & Icons -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
+    
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
     <script>
-        // Tamil Nadu Bounding Box: [South-West Lat/Lon], [North-East Lat/Lon]
-        const tnBounds = L.latLngBounds([8.0, 76.0], [13.6, 80.6]);
-
-        // Default location: 13°04′57″N 80°16′30″E (13.0825° N, 80.2750° E - Chennai, Tamil Nadu)
-        const defaultLat = 13.0825;
-        const defaultLon = 80.2750;
-
-        // Initialize map restricted strictly to Tamil Nadu state bounds
-        const map = L.map('map', {
-            zoomControl: false,
-            maxBounds: tnBounds,
-            maxBoundsViscosity: 1.0,
-            minZoom: 7,
-            maxZoom: 18
-        }).setView([defaultLat, defaultLon], 9);
-
-        L.control.zoom({position: 'bottomright'}).addTo(map);
-
-        L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png', {
-            attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors &copy; <a href="https://carto.com/attributions">CARTO</a>',
-            subdomains: 'abcd',
-            maxZoom: 20
-        }).addTo(map);
-
-        let marker = null;
-
-        map.on('click', async function(e) {
-            if (tnBounds.contains(e.latlng)) {
-                getPrediction(e.latlng.lat, e.latlng.lng);
-            } else {
-                alert('Please select a location within Tamil Nadu state.');
-            }
-        });
-
-        async function searchLocation() {
-            const query = document.getElementById('location-input').value;
-            if (!query) return;
-
-            try {
-                // Restrict Nominatim search to Tamil Nadu bounding box & India country code
-                const searchUrl = `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(query + ', Tamil Nadu')}&countrycodes=in&viewbox=76.0,8.0,80.6,13.6&bounded=1`;
-                const response = await fetch(searchUrl);
-                const data = await response.json();
-                
-                if (data && data.length > 0) {
-                    const lat = parseFloat(data[0].lat);
-                    const lon = parseFloat(data[0].lon);
-                    
-                    if (tnBounds.contains([lat, lon])) {
-                        map.setView([lat, lon], 12);
-                        getPrediction(lat, lon);
-                    } else {
-                        alert('Location found outside Tamil Nadu state boundaries.');
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['Inter', 'sans-serif'],
+                        mono: ['JetBrains Mono', 'monospace'],
                     }
-                } else {
-                    alert('Location not found in Tamil Nadu!');
                 }
-            } catch (err) {
-                console.error(err);
-                alert('Error searching location');
             }
         }
+    </script>
+    
+    <!-- Leaflet CSS -->
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    
+    <!-- DaisyUI CDN -->
+    <link href="https://cdn.jsdelivr.net/npm/daisyui@latest/dist/full.min.css" rel="stylesheet" type="text/css" />
+    
+    <!-- Custom Application CSS -->
+    <link rel="stylesheet" href="/static/styles.css" />
 
-        // Auto-fetch prediction for target coordinates (13°04′57″N 80°16′30″E) on page load
-        window.addEventListener('DOMContentLoaded', () => {
-            getPrediction(defaultLat, defaultLon);
-        });
+    <!-- React 18 & ReactDOM 18 UMD (cdnjs) -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/react/18.2.0/umd/react.production.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/react-dom/18.2.0/umd/react-dom.production.min.js"></script>
 
-        async function getPrediction(lat, lon) {
-            if (marker) map.removeLayer(marker);
-            
-            marker = L.marker([lat, lon]).addTo(map).bindPopup("<div class='popup-content'>Loading prediction...</div>").openPopup();
+    <!-- Leaflet JS -->
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 
-            try {
-                const response = await fetch(`/api/predict?lat=${lat}&lon=${lon}`);
-                const data = await response.json();
+    <!-- Babel Standalone for Browser JSX Transpilation -->
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+</head>
+<body class="bg-base-200 text-base-content min-h-screen font-sans">
+    <div id="root">
+        <!-- React Mounting Point -->
+        <div style="display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100vh; font-family: sans-serif; background-color: #f8fafc; color: #1e3a8a;">
+            <div style="font-size: 24px; font-weight: 800; color: #0284c7; margin-bottom: 8px;">RainDrop GIS</div>
+            <div>Loading Public Safety Urban Flood Intelligence Workspace...</div>
+        </div>
+    </div>
 
-                if (response.ok) {
-                    let popupContent = `<div class='popup-content' style="min-width: 250px;">`;
-                    popupContent += `<h3 style="margin: 0 0 4px 0; color: #1e293b;">Rainfall Prediction</h3>`;
-                    popupContent += `<div style="font-size: 0.8em; color: #64748b; margin-bottom: 8px;">Lat: ${lat.toFixed(4)}, Lon: ${lon.toFixed(4)}</div>`;
-                    
-                    if (data.source) {
-                        popupContent += `<div style="font-size: 0.75em; background: #e0f2fe; color: #0369a1; padding: 2px 8px; border-radius: 4px; display: inline-block; margin-bottom: 10px; font-weight: 500;">🌐 Source: ${data.source}</div>`;
-                    }
-
-                    if (data.current_weather) {
-                        const cur = data.current_weather;
-                        popupContent += `<div style="margin-bottom: 10px; padding: 8px 10px; background: #f1f5f9; border-radius: 6px; font-size: 0.85em; display: grid; grid-template-columns: 1fr 1fr; gap: 4px;">
-                            <div><strong>Temp:</strong> ${cur.temperature_c !== null ? cur.temperature_c + '°C' : 'N/A'}</div>
-                            <div><strong>Humidity:</strong> ${cur.humidity_pct !== null ? cur.humidity_pct + '%' : 'N/A'}</div>
-                            <div><strong>Wind:</strong> ${cur.wind_speed_kmh !== null ? cur.wind_speed_kmh + ' km/h' : 'N/A'}</div>
-                            <div><strong>Status:</strong> ${cur.weather_description}</div>
-                        </div>`;
-                    }
-
-                    if (data.error) {
-                        popupContent += `<div style="color:#ef4444; padding: 10px; background: #fee2e2; border-radius: 6px;">${data.error}</div>`;
-                    } else {
-                        const forecast = data.forecast;
-                        let riskColor = '#10b981'; // Green
-                        if (forecast.risk_level === 'SEVERE') riskColor = '#991b1b'; // Dark Red
-                        else if (forecast.risk_level === 'HIGH') riskColor = '#ef4444'; // Red
-                        else if (forecast.risk_level === 'MODERATE') riskColor = '#f59e0b'; // Orange
-                        else if (forecast.risk_level === 'LOW') riskColor = '#3b82f6'; // Blue
-                        
-                        popupContent += `<div style="margin-bottom: 10px; padding: 10px; background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 6px;">
-                            <div style="margin-bottom: 4px;"><strong>Flood Risk:</strong> <span style="color: ${riskColor}; font-weight: bold; padding: 2px 6px; background: ${riskColor}15; border-radius: 4px;">${forecast.risk_level}</span></div>
-                            <div><strong>Total Rainfall:</strong> ${forecast.total_rainfall_mm} mm</div>
-                            <div><strong>Peak Intensity:</strong> ${forecast.peak_intensity_mm_hr} mm/hr</div>
-                        </div>`;
-                        
-                        popupContent += `<div style="font-weight: 600; margin-bottom: 6px;">Rain Expected: ${forecast.rain_predicted ? '<span class="rain-yes">🌧️ YES</span>' : '<span class="rain-no">☀️ NO</span>'}</div>`;
-                        
-                        if (forecast.timeseries_mm_hr && forecast.timeseries_mm_hr.length > 0) {
-                            popupContent += `<div style="font-size: 0.8em; font-weight: bold; color: #475569; margin-top: 8px;">Precipitation Timeline:</div>`;
-                            popupContent += `<ul class="timeseries-list">`;
-                            const labels = forecast.timeseries_labels || [];
-                            forecast.timeseries_mm_hr.forEach((val, idx) => {
-                                const label = labels[idx] || `T+${idx+1}`;
-                                popupContent += `<li><span>${label}</span> <strong>${val.toFixed(2)} mm</strong></li>`;
-                            });
-                            popupContent += `</ul>`;
+    <!-- Application Script Loader -->
+    <script>
+        (function() {
+            function loadApp() {
+                fetch('/static/frontend.jsx?t=' + Date.now())
+                    .then(function(res) {
+                        if (!res.ok) throw new Error("HTTP error " + res.status);
+                        return res.text();
+                    })
+                    .then(function(source) {
+                        try {
+                            var transpiled = Babel.transform(source, {
+                                presets: [
+                                    ['react', { runtime: 'classic' }]
+                                ]
+                            }).code;
+                            
+                            // Execute in global scope
+                            var fn = new Function('React', 'ReactDOM', transpiled);
+                            fn(window.React, window.ReactDOM);
+                        } catch (err) {
+                            console.error("RainDrop script error:", err);
+                            var root = document.getElementById('root');
+                            if (root) {
+                                root.innerHTML = '<div style="padding:24px;background:#fef2f2;border:1px solid #f87171;border-radius:12px;margin:20px;color:#991b1b;font-family:sans-serif;"><h3 style="margin-top:0;">RainDrop Initialization Error:</h3><pre style="white-space:pre-wrap;font-size:12px;">' + err.stack + '</pre></div>';
+                            }
                         }
-                    }
-                    popupContent += `</div>`;
-                    
-                    marker.setPopupContent(popupContent);
-                } else {
-                    marker.setPopupContent(`<div class='popup-content'><span class="rain-yes">Error: ${data.detail || 'Failed to fetch'}</span></div>`);
-                }
-            } catch (err) {
-                console.error(err);
-                marker.setPopupContent(`<div class='popup-content'><span class="rain-yes">Network error fetching prediction.</span></div>`);
+                    })
+                    .catch(function(err) {
+                        console.error("Failed to load frontend.jsx:", err);
+                    });
             }
-        }
+
+            if (document.readyState === 'loading') {
+                document.addEventListener('DOMContentLoaded', loadApp);
+            } else {
+                loadApp();
+            }
+        })();
     </script>
 </body>
 </html>
