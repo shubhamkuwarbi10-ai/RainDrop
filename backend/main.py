@@ -8,6 +8,7 @@ from app.api.ingestion import router as ingestion_router
 from app.api.map import router as map_router
 from app.api.nowcast import router as nowcast_router
 from app.api.processing import router as processing_router
+from app.api.surrogate import router as surrogate_router
 from app.api.rainfall import router as rainfall_router
 from app.db.session import initialize_database
 
@@ -26,3 +27,4 @@ app.include_router(ingestion_router)
 app.include_router(map_router)
 app.include_router(nowcast_router)
 app.include_router(processing_router)
+app.include_router(surrogate_router)

@@ -213,6 +213,32 @@ class FloodEstimateResponse(BaseModel):
     risk_level: Literal["low", "moderate", "high", "critical"]
 
 
+class SurrogatePredictionCreate(BaseModel):
+    city: Literal["chennai", "mumbai", "delhi"]
+    location: GeoPoint
+    total_precip_mm: float = Field(ge=0)
+    peak_intensity_mm_hr: float = Field(ge=0)
+    impermeability_pct: float = Field(ge=0, le=100)
+    predicted_at: datetime | None = None
+    valid_until: datetime | None = None
+    road_id: int | None = Field(default=None, ge=1)
+
+
+class SurrogatePredictionResponse(BaseModel):
+    prediction_id: int
+    city: Literal["chennai", "mumbai", "delhi"]
+    location: GeoPoint
+    total_precip_mm: float
+    peak_intensity_mm_hr: float
+    elevation_m: float
+    slope_deg: float
+    impermeability_pct: float
+    water_depth_cm: float
+    risk_level: Literal["low", "moderate", "high", "critical"]
+    predicted_at: datetime
+    valid_until: datetime | None = None
+
+
 class RoadCreate(BaseModel):
     name: str | None = Field(default=None, max_length=255)
     road_class: str | None = Field(default=None, max_length=100)
