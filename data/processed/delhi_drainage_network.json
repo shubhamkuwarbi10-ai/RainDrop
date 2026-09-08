@@ -1,0 +1,815 @@
+{
+  "type": "FeatureCollection",
+  "city": "Delhi",
+  "city_key": "delhi",
+  "features": [
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            76.80094,
+            28.99933
+          ],
+          [
+            77.13356,
+            28.99447
+          ],
+          [
+            76.91981,
+            28.98935
+          ],
+          [
+            77.19394,
+            28.9845
+          ],
+          [
+            76.95189,
+            28.97938
+          ],
+          [
+            77.25323,
+            28.97453
+          ],
+          [
+            77.00606,
+            28.96941
+          ],
+          [
+            77.28396,
+            28.96456
+          ],
+          [
+            76.97102,
+            28.95943
+          ],
+          [
+            77.26968,
+            28.95458
+          ],
+          [
+            77.02817,
+            28.94946
+          ],
+          [
+            77.26078,
+            28.94461
+          ],
+          [
+            77.00175,
+            28.93949
+          ],
+          [
+            77.22143,
+            28.93464
+          ],
+          [
+            76.93814,
+            28.92951
+          ],
+          [
+            77.20202,
+            28.92466
+          ]
+        ]
+      },
+      "properties": {
+        "name": "Delhi Topographical Drain",
+        "type": "topographical_drain",
+        "source": "30m CartoDEM Hydro-Analysis"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            77.20202,
+            28.92466
+          ],
+          [
+            76.97453,
+            28.91954
+          ],
+          [
+            77.29043,
+            28.91469
+          ],
+          [
+            76.8783,
+            28.90957
+          ],
+          [
+            77.19501,
+            28.90472
+          ],
+          [
+            76.83949,
+            28.8996
+          ],
+          [
+            77.14245,
+            28.89474
+          ],
+          [
+            76.84784,
+            28.88962
+          ],
+          [
+            77.24488,
+            28.88477
+          ],
+          [
+            77.02412,
+            28.87965
+          ],
+          [
+            77.37884,
+            28.8748
+          ],
+          [
+            77.02978,
+            28.86968
+          ],
+          [
+            77.25943,
+            28.86482
+          ],
+          [
+            76.9252,
+            28.8597
+          ],
+          [
+            77.27965,
+            28.85485
+          ],
+          [
+            76.98962,
+            28.84973
+          ]
+        ]
+      },
+      "properties": {
+        "name": "Delhi Topographical Drain",
+        "type": "topographical_drain",
+        "source": "30m CartoDEM Hydro-Analysis"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            76.98962,
+            28.84973
+          ],
+          [
+            77.31658,
+            28.84488
+          ],
+          [
+            77.08854,
+            28.83976
+          ],
+          [
+            77.34407,
+            28.83491
+          ],
+          [
+            77.08046,
+            28.82978
+          ],
+          [
+            76.80876,
+            28.82466
+          ],
+          [
+            77.16159,
+            28.81981
+          ],
+          [
+            76.90364,
+            28.81469
+          ],
+          [
+            77.19178,
+            28.80984
+          ],
+          [
+            76.8996,
+            28.80472
+          ],
+          [
+            77.11146,
+            28.79987
+          ],
+          [
+            76.82035,
+            28.79474
+          ],
+          [
+            77.07965,
+            28.78989
+          ],
+          [
+            77.36752,
+            28.78504
+          ],
+          [
+            76.99582,
+            28.77992
+          ],
+          [
+            77.19717,
+            28.77507
+          ]
+        ]
+      },
+      "properties": {
+        "name": "Delhi Topographical Drain",
+        "type": "topographical_drain",
+        "source": "30m CartoDEM Hydro-Analysis"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            77.19717,
+            28.77507
+          ],
+          [
+            76.95916,
+            28.76995
+          ],
+          [
+            77.26941,
+            28.76509
+          ],
+          [
+            76.95916,
+            28.75997
+          ],
+          [
+            77.27911,
+            28.75512
+          ],
+          [
+            77.03032,
+            28.75
+          ],
+          [
+            77.31631,
+            28.74515
+          ],
+          [
+            77.00094,
+            28.74003
+          ],
+          [
+            77.30364,
+            28.73518
+          ],
+          [
+            77.06429,
+            28.73005
+          ],
+          [
+            77.36294,
+            28.7252
+          ],
+          [
+            76.98423,
+            28.72008
+          ],
+          [
+            77.32089,
+            28.71523
+          ],
+          [
+            77.03032,
+            28.71011
+          ],
+          [
+            77.38747,
+            28.70526
+          ],
+          [
+            77.0624,
+            28.70013
+          ]
+        ]
+      },
+      "properties": {
+        "name": "Delhi Topographical Drain",
+        "type": "topographical_drain",
+        "source": "30m CartoDEM Hydro-Analysis"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            77.0624,
+            28.70013
+          ],
+          [
+            77.29043,
+            28.69528
+          ],
+          [
+            77.09474,
+            28.69016
+          ],
+          [
+            77.31199,
+            28.68531
+          ],
+          [
+            76.97264,
+            28.68019
+          ],
+          [
+            76.82736,
+            28.67507
+          ],
+          [
+            77.13059,
+            28.67022
+          ],
+          [
+            76.90526,
+            28.66509
+          ],
+          [
+            77.21819,
+            28.66024
+          ],
+          [
+            76.9403,
+            28.65512
+          ],
+          [
+            77.28477,
+            28.65027
+          ],
+          [
+            76.93113,
+            28.64515
+          ],
+          [
+            77.21927,
+            28.6403
+          ],
+          [
+            76.93113,
+            28.63518
+          ],
+          [
+            77.3252,
+            28.63032
+          ],
+          [
+            77.12709,
+            28.6252
+          ]
+        ]
+      },
+      "properties": {
+        "name": "Delhi Topographical Drain",
+        "type": "topographical_drain",
+        "source": "30m CartoDEM Hydro-Analysis"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            77.12709,
+            28.6252
+          ],
+          [
+            76.90957,
+            28.62008
+          ],
+          [
+            77.20957,
+            28.61523
+          ],
+          [
+            76.90741,
+            28.61011
+          ],
+          [
+            77.18962,
+            28.60526
+          ],
+          [
+            76.9535,
+            28.60013
+          ],
+          [
+            77.2341,
+            28.59528
+          ],
+          [
+            76.97776,
+            28.59016
+          ],
+          [
+            77.19205,
+            28.58531
+          ],
+          [
+            76.9066,
+            28.58019
+          ],
+          [
+            77.21253,
+            28.57534
+          ],
+          [
+            76.92682,
+            28.57022
+          ],
+          [
+            77.2872,
+            28.56536
+          ],
+          [
+            77.05296,
+            28.56024
+          ],
+          [
+            77.32628,
+            28.55539
+          ],
+          [
+            77.09394,
+            28.55027
+          ]
+        ]
+      },
+      "properties": {
+        "name": "Delhi Topographical Drain",
+        "type": "topographical_drain",
+        "source": "30m CartoDEM Hydro-Analysis"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            77.09394,
+            28.55027
+          ],
+          [
+            77.39933,
+            28.54542
+          ],
+          [
+            77.14811,
+            28.5403
+          ],
+          [
+            76.83329,
+            28.53518
+          ],
+          [
+            77.18261,
+            28.53032
+          ],
+          [
+            76.89367,
+            28.5252
+          ],
+          [
+            77.21712,
+            28.52035
+          ],
+          [
+            76.86482,
+            28.51523
+          ],
+          [
+            77.19636,
+            28.51038
+          ],
+          [
+            76.87022,
+            28.50526
+          ],
+          [
+            77.14353,
+            28.5004
+          ],
+          [
+            76.84111,
+            28.49528
+          ],
+          [
+            77.14973,
+            28.49043
+          ],
+          [
+            76.99178,
+            28.48531
+          ],
+          [
+            77.25916,
+            28.48046
+          ],
+          [
+            76.93086,
+            28.47534
+          ]
+        ]
+      },
+      "properties": {
+        "name": "Delhi Topographical Drain",
+        "type": "topographical_drain",
+        "source": "30m CartoDEM Hydro-Analysis"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            76.93086,
+            28.47534
+          ],
+          [
+            77.20984,
+            28.47049
+          ],
+          [
+            76.88666,
+            28.46536
+          ],
+          [
+            77.16186,
+            28.46051
+          ],
+          [
+            76.86105,
+            28.45539
+          ],
+          [
+            77.08477,
+            28.45054
+          ],
+          [
+            77.37264,
+            28.44569
+          ],
+          [
+            77.07075,
+            28.44057
+          ],
+          [
+            76.85674,
+            28.43544
+          ],
+          [
+            77.2624,
+            28.43059
+          ],
+          [
+            76.90957,
+            28.42547
+          ],
+          [
+            77.22844,
+            28.42062
+          ],
+          [
+            76.9907,
+            28.4155
+          ],
+          [
+            77.3562,
+            28.41065
+          ],
+          [
+            77.12736,
+            28.40553
+          ],
+          [
+            77.3907,
+            28.40067
+          ]
+        ]
+      },
+      "properties": {
+        "name": "Delhi Topographical Drain",
+        "type": "topographical_drain",
+        "source": "30m CartoDEM Hydro-Analysis"
+      }
+    }
+  ],
+  "outburst_hotspots": {
+    "type": "FeatureCollection",
+    "features": [
+      {
+        "type": "Feature",
+        "geometry": {
+          "type": "Point",
+          "coordinates": [
+            76.80148,
+            28.99933
+          ]
+        },
+        "properties": {
+          "risk_level": "CRITICAL",
+          "depression_depth_m": 0.84,
+          "elevation_m": 251.36,
+          "flow_accumulation_score": 5.0,
+          "description": "Drainage bottleneck & potential outburst zone (0.8m depression)"
+        }
+      },
+      {
+        "type": "Feature",
+        "geometry": {
+          "type": "Point",
+          "coordinates": [
+            77.13086,
+            28.93976
+          ]
+        },
+        "properties": {
+          "risk_level": "CRITICAL",
+          "depression_depth_m": 1.18,
+          "elevation_m": 229.96,
+          "flow_accumulation_score": 5.0,
+          "description": "Drainage bottleneck & potential outburst zone (1.2m depression)"
+        }
+      },
+      {
+        "type": "Feature",
+        "geometry": {
+          "type": "Point",
+          "coordinates": [
+            77.2597,
+            28.87992
+          ]
+        },
+        "properties": {
+          "risk_level": "HIGH",
+          "depression_depth_m": 0.38,
+          "elevation_m": 218.83,
+          "flow_accumulation_score": 5.0,
+          "description": "Drainage bottleneck & potential outburst zone (0.4m depression)"
+        }
+      },
+      {
+        "type": "Feature",
+        "geometry": {
+          "type": "Point",
+          "coordinates": [
+            77.26213,
+            28.82008
+          ]
+        },
+        "properties": {
+          "risk_level": "CRITICAL",
+          "depression_depth_m": 0.96,
+          "elevation_m": 217.54,
+          "flow_accumulation_score": 5.0,
+          "description": "Drainage bottleneck & potential outburst zone (1.0m depression)"
+        }
+      },
+      {
+        "type": "Feature",
+        "geometry": {
+          "type": "Point",
+          "coordinates": [
+            76.96024,
+            28.75997
+          ]
+        },
+        "properties": {
+          "risk_level": "CRITICAL",
+          "depression_depth_m": 0.91,
+          "elevation_m": 241.47,
+          "flow_accumulation_score": 5.0,
+          "description": "Drainage bottleneck & potential outburst zone (0.9m depression)"
+        }
+      },
+      {
+        "type": "Feature",
+        "geometry": {
+          "type": "Point",
+          "coordinates": [
+            77.39016,
+            28.70013
+          ]
+        },
+        "properties": {
+          "risk_level": "HIGH",
+          "depression_depth_m": 0.55,
+          "elevation_m": 212.74,
+          "flow_accumulation_score": 5.0,
+          "description": "Drainage bottleneck & potential outburst zone (0.6m depression)"
+        }
+      },
+      {
+        "type": "Feature",
+        "geometry": {
+          "type": "Point",
+          "coordinates": [
+            77.21469,
+            28.64003
+          ]
+        },
+        "properties": {
+          "risk_level": "HIGH",
+          "depression_depth_m": 0.25,
+          "elevation_m": 222.6,
+          "flow_accumulation_score": 5.0,
+          "description": "Drainage bottleneck & potential outburst zone (0.2m depression)"
+        }
+      },
+      {
+        "type": "Feature",
+        "geometry": {
+          "type": "Point",
+          "coordinates": [
+            76.86482,
+            28.57992
+          ]
+        },
+        "properties": {
+          "risk_level": "CRITICAL",
+          "depression_depth_m": 0.87,
+          "elevation_m": 249.3,
+          "flow_accumulation_score": 5.0,
+          "description": "Drainage bottleneck & potential outburst zone (0.9m depression)"
+        }
+      },
+      {
+        "type": "Feature",
+        "geometry": {
+          "type": "Point",
+          "coordinates": [
+            77.38774,
+            28.52035
+          ]
+        },
+        "properties": {
+          "risk_level": "HIGH",
+          "depression_depth_m": 0.55,
+          "elevation_m": 215.29,
+          "flow_accumulation_score": 5.0,
+          "description": "Drainage bottleneck & potential outburst zone (0.5m depression)"
+        }
+      },
+      {
+        "type": "Feature",
+        "geometry": {
+          "type": "Point",
+          "coordinates": [
+            76.90094,
+            28.46024
+          ]
+        },
+        "properties": {
+          "risk_level": "HIGH",
+          "depression_depth_m": 0.21,
+          "elevation_m": 248.02,
+          "flow_accumulation_score": 5.0,
+          "description": "Drainage bottleneck & potential outburst zone (0.2m depression)"
+        }
+      },
+      {
+        "type": "Feature",
+        "geometry": {
+          "type": "Point",
+          "coordinates": [
+            77.39771,
+            28.40067
+          ]
+        },
+        "properties": {
+          "risk_level": "HIGH",
+          "depression_depth_m": 0.32,
+          "elevation_m": 213.8,
+          "flow_accumulation_score": 5.0,
+          "description": "Drainage bottleneck & potential outburst zone (0.3m depression)"
+        }
+      }
+    ]
+  }
+}
