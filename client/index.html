@@ -71,15 +71,29 @@
 </head>
 <body>
     <div id="search-box">
-        <input type="text" id="location-input" placeholder="Search location (e.g., Mumbai)..." onkeypress="if(event.key === 'Enter') searchLocation()">
+        <input type="text" id="location-input" placeholder="Search location in Tamil Nadu (e.g. Chennai, Madurai)..." onkeypress="if(event.key === 'Enter') searchLocation()">
         <button onclick="searchLocation()">Search</button>
     </div>
     <div id="map"></div>
 
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
     <script>
-        // Initialize map centered on Mumbai
-        const map = L.map('map', {zoomControl: false}).setView([19.0760, 72.8777], 11);
+        // Tamil Nadu Bounding Box: [South-West Lat/Lon], [North-East Lat/Lon]
+        const tnBounds = L.latLngBounds([8.0, 76.0], [13.6, 80.6]);
+
+        // Default location: 13°04′57″N 80°16′30″E (13.0825° N, 80.2750° E - Chennai, Tamil Nadu)
+        const defaultLat = 13.0825;
+        const defaultLon = 80.2750;
+
+        // Initialize map restricted strictly to Tamil Nadu state bounds
+        const map = L.map('map', {
+            zoomControl: false,
+            maxBounds: tnBounds,
+            maxBoundsViscosity: 1.0,
+            minZoom: 7,
+            maxZoom: 18
+        }).setView([defaultLat, defaultLon], 9);
+
         L.control.zoom({position: 'bottomright'}).addTo(map);
 
         L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png', {
@@ -91,7 +105,11 @@
         let marker = null;
 
         map.on('click', async function(e) {
-            getPrediction(e.latlng.lat, e.latlng.lng);
+            if (tnBounds.contains(e.latlng)) {
+                getPrediction(e.latlng.lat, e.latlng.lng);
+            } else {
+                alert('Please select a location within Tamil Nadu state.');
+            }
         });
 
         async function searchLocation() {
@@ -99,22 +117,34 @@
             if (!query) return;
 
             try {
-                const response = await fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(query)}`);
+                // Restrict Nominatim search to Tamil Nadu bounding box & India country code
+                const searchUrl = `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(query + ', Tamil Nadu')}&countrycodes=in&viewbox=76.0,8.0,80.6,13.6&bounded=1`;
+                const response = await fetch(searchUrl);
                 const data = await response.json();
                 
                 if (data && data.length > 0) {
                     const lat = parseFloat(data[0].lat);
                     const lon = parseFloat(data[0].lon);
-                    map.setView([lat, lon], 12);
-                    getPrediction(lat, lon);
+                    
+                    if (tnBounds.contains([lat, lon])) {
+                        map.setView([lat, lon], 12);
+                        getPrediction(lat, lon);
+                    } else {
+                        alert('Location found outside Tamil Nadu state boundaries.');
+                    }
                 } else {
-                    alert('Location not found!');
+                    alert('Location not found in Tamil Nadu!');
                 }
             } catch (err) {
                 console.error(err);
                 alert('Error searching location');
             }
         }
+
+        // Auto-fetch prediction for target coordinates (13°04′57″N 80°16′30″E) on page load
+        window.addEventListener('DOMContentLoaded', () => {
+            getPrediction(defaultLat, defaultLon);
+        });
 
         async function getPrediction(lat, lon) {
             if (marker) map.removeLayer(marker);
