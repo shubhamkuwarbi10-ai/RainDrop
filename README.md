@@ -1,30 +1,33 @@
 # AquaSight: AI-Coupled Urban Flood Nowcasting & Safe-Routing Engine
 
-AquaSight couples atmospheric precipitation nowcasting (optical-flow radar/satellite tracking) with urban drainage network modeling (EPA-SWMM) and a machine-learning surrogate model to deliver street-level flood depth forecasts (0–3 hours) and flood-resilient routing.
+AquaSight couples atmospheric precipitation nowcasting (optical-flow radar/satellite tracking) with 30m ISRO Bhuvan CartoDEM surface hydrology and a machine-learning surrogate model to deliver street-level flood depth forecasts (0–3 hours), water level increase predictions ($\text{cm}$), and flood-resilient routing.
+
+---
+
+## 🗺️ 30m CartoDEM Flood Water Level Increase Engine
+> **Detailed Documentation**: See [DEM Flood Prediction Guide](file:///c:/Users/Tpaha/OneDrive/Documents/RainDrop/RainDrop/docs/DEM_FLOOD_PREDICTION_README.md)
+
+AquaSight ingests 30m ISRO Bhuvan CartoDEM v3 elevation tiles to compute surface hydrology (slope, D8 flow direction, flow accumulation, and depression sinks). The **XGBoost / Random Forest Hydrodynamic Surrogate Model** predicts real-time **water level increase ($\text{cm}$)** based on rainfall intensity, terrain slope, elevation, and urban surface impermeability.
 
 ---
 
 ## Architecture Overview
 
 ```
-[ NASA GPM IMERG / IMD Radar ]
-               │
-               ▼
-   [ Step 1: Ingestion & Spatial Slicing ]
-               │
-               ▼
-   [ Step 2: pySTEPS Optical-Flow Nowcasting ] ──► (0-3h Rain Grids)
-               │
-               ├──► [ Offline: EPA-SWMM Physics Solver ] ──► [ Synthetic Flood Database ]
-               │                                                          │
-               ▼                                                          ▼
-   [ Step 3: XGBoost Surrogate Model ] ◄────────────────────── [ Model Training ]
-               │ (Real-time depth prediction < 300ms)
-               ▼
-   [ Step 4: PostGIS + FastAPI Backend ]
-               │
-               ▼
-   [ Step 5: OSRM Routing Engine (Dynamic Edge Penalty) & React Mapbox UI ]
+[ NASA GPM IMERG / IMD Radar ]        [ 30m ISRO Bhuvan CartoDEM Tiles ]
+               │                                      │
+               ▼                                      ▼
+   [ Step 1: Ingestion & Nowcasting ]     [ Step 2: D8 Surface Hydrology ]
+   (pySTEPS Optical-Flow 0-3h Rain)       (Slope, Flow Accumulation, Sinks)
+               │                                      │
+               └──────────────────┬───────────────────┘
+                                  ▼
+                [ Step 3: XGBoost Surrogate Model ]
+                (Predicts Water Level Increase cm < 2ms)
+                                  │
+                                  ▼
+                [ Step 4: FastAPI Backend & Map UI ]
+                (Multi-City GIS Grid: Chennai, Mumbai, Delhi)
 ```
 
 ---
