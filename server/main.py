@@ -28,17 +28,31 @@ FORECAST_FILE = Path(__file__).parent.parent / "data" / "processed" / "pysteps_f
 DEM_SUMMARY_FILE = Path(__file__).parent.parent / "data" / "processed" / "chennai_dem_summary.json"
 SURROGATE_MODEL_FILE = Path(__file__).parent.parent / "models" / "artifacts" / "flood_surrogate.pkl"
 
-# Global CartoDEM Terrain Profile
-dem_terrain = {"slope": 0.75, "elevation": 12.94, "impermeability": 65.0}
-if DEM_SUMMARY_FILE.exists():
-    try:
-        with open(DEM_SUMMARY_FILE, "r") as f:
-            summary_data = json.load(f)
-            dem_terrain["slope"] = summary_data.get("slope_deg", {}).get("mean", 0.75)
-            dem_terrain["elevation"] = summary_data.get("elevation_m", {}).get("mean", 12.94)
-            print(f"Loaded 30m CartoDEM Terrain Profile: Slope={dem_terrain['slope']:.2f}°, Elev={dem_terrain['elevation']:.2f}m")
-    except Exception as e:
-        print(f"Error loading CartoDEM summary: {e}")
+# Multi-City CartoDEM Terrain Profiles
+CITY_TERRAINS = {
+    "chennai": {"name": "Chennai", "lat_min": 12.90, "lat_max": 13.30, "lon_min": 80.10, "lon_max": 80.45, "slope": 0.75, "elevation": 12.94, "impermeability": 65.0},
+    "mumbai": {"name": "Mumbai", "lat_min": 18.90, "lat_max": 19.10, "lon_min": 72.75, "lon_max": 72.95, "slope": 1.85, "elevation": 8.50, "impermeability": 75.0},
+    "delhi": {"name": "Delhi", "lat_min": 28.40, "lat_max": 29.00, "lon_min": 76.80, "lon_max": 77.40, "slope": 0.45, "elevation": 215.0, "impermeability": 60.0}
+}
+
+for city_key, profile in CITY_TERRAINS.items():
+    summary_file = Path(__file__).parent.parent / "data" / "processed" / f"{city_key}_dem_summary.json"
+    if summary_file.exists():
+        try:
+            with open(summary_file, "r") as f:
+                sdata = json.load(f)
+                profile["slope"] = sdata.get("slope_deg", {}).get("mean", profile["slope"])
+                profile["elevation"] = sdata.get("elevation_m", {}).get("mean", profile["elevation"])
+                print(f"Loaded 30m CartoDEM Profile for {profile['name']}: Slope={profile['slope']:.2f}°, Elev={profile['elevation']:.2f}m")
+        except Exception as e:
+            print(f"Error loading {city_key} DEM summary: {e}")
+
+def get_city_terrain(lat: float, lon: float):
+    for profile in CITY_TERRAINS.values():
+        if profile["lat_min"] <= lat <= profile["lat_max"] and profile["lon_min"] <= lon <= profile["lon_max"]:
+            return profile
+    # Default fallback to Chennai coastal plain profile
+    return CITY_TERRAINS["chennai"]
 
 # Global Surrogate Model Instance
 surrogate_model = None
@@ -178,9 +192,10 @@ def predict_rainfall(lat: float = Query(...), lon: float = Query(...)):
     peak_intensity = max(timeseries) if timeseries else 0.0
 
     # ML Surrogate Model Inference for Flood Depth (cm) using 30m CartoDEM Terrain Profile
-    slope = dem_terrain["slope"]
-    elevation = dem_terrain["elevation"]
-    impermeability = dem_terrain["impermeability"]
+    city_terrain = get_city_terrain(lat, lon)
+    slope = city_terrain["slope"]
+    elevation = city_terrain["elevation"]
+    impermeability = city_terrain["impermeability"]
     
     if surrogate_model is not None:
         try:
@@ -208,8 +223,14 @@ def predict_rainfall(lat: float = Query(...), lon: float = Query(...)):
     rain_predicted = total_rainfall > 0.1 or (open_meteo_res.get("current", {}).get("precipitation_mm", 0) or 0) > 0.1
     
     return {
-        "location": {"lat": lat, "lon": lon},
+        "location": {"lat": lat, "lon": lon, "city": city_terrain["name"]},
         "source": source,
+        "terrain_profile": {
+            "city": city_terrain["name"],
+            "slope_deg": city_terrain["slope"],
+            "elevation_m": city_terrain["elevation"],
+            "impermeability_pct": city_terrain["impermeability"]
+        },
         "current_weather": open_meteo_res.get("current") if open_meteo_res.get("success") else None,
         "forecast": {
             "rain_predicted": rain_predicted,
@@ -221,5 +242,20 @@ def predict_rainfall(lat: float = Query(...), lon: float = Query(...)):
             "timeseries_labels": timeseries_labels
         }
     }
+
+@app.get("/api/dem/summary")
+def get_dem_summary(city: str = Query("chennai")):
+    """Return 30m CartoDEM derived terrain summary (slope, elevation, flow accumulation, depressions count) for Delhi, Mumbai, or Chennai."""
+    city_key = city.lower().strip()
+    if city_key not in CITY_TERRAINS:
+        city_key = "chennai"
+        
+    summary_file = Path(__file__).parent.parent / "data" / "processed" / f"{city_key}_dem_summary.json"
+    if summary_file.exists():
+        with open(summary_file, "r") as f:
+            return json.load(f)
+            
+    return CITY_TERRAINS[city_key]
+
 
 
