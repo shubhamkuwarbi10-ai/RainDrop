@@ -18,8 +18,8 @@ def process(in_dir, out_dir, lat_min, lat_max, lon_min, lon_max):
     for f in files:
         with h5py.File(f, 'r') as h:
             lat, lon = h['/Grid/lat'][:], h['/Grid/lon'][:]
-            # ponytail: assumes precip shape is [time, lon, lat] and we want time 0
-            precip = h['/Grid/precipitationCal'][0]
+            precip_key = '/Grid/precipitation' if '/Grid/precipitation' in h else '/Grid/precipitationCal'
+            precip = h[precip_key][0]
 
             if not series:
                 # Find indices once

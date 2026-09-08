@@ -1,0 +1,23 @@
+{
+  "aoi": {
+    "lon_min": 80.1,
+    "lon_max": 80.45,
+    "lat_min": 12.9,
+    "lat_max": 13.3
+  },
+  "grid_resolution_m": 30.0,
+  "dimensions": {
+    "rows": 1484,
+    "cols": 1298
+  },
+  "elevation_m": {
+    "min": 0.5,
+    "max": 28.791654434501005,
+    "mean": 12.940465110131568
+  },
+  "slope_deg": {
+    "max": 4.3006369239187805,
+    "mean": 0.7531992372150149
+  },
+  "depressions_count": 398275
+}
