@@ -1,0 +1,15 @@
+services:
+  db:
+    image: postgis/postgis:16-3.4
+    container_name: raindrop-postgis
+    environment:
+      POSTGRES_DB: raindrop
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+    ports:
+      - "5432:5432"
+    volumes:
+      - raindrop_pgdata:/var/lib/postgresql/data
+
+volumes:
+  raindrop_pgdata:
