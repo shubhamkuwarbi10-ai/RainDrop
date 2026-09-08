@@ -1366,6 +1366,7 @@ function InteractiveVectorMap(props) {
         activeRoute,
         isSimulatingRoute,
         routeProgress,
+        routeCheckResult,
     } = props;
 
     const mapRef = useRef(null);

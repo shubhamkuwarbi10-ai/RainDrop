@@ -1547,7 +1547,8 @@ function InteractiveVectorMap(props) {
     layers,
     activeRoute,
     isSimulatingRoute,
-    routeProgress
+    routeProgress,
+    routeCheckResult
   } = props;
   const mapRef = useRef(null);
   const mapInstanceRef = useRef(null);
