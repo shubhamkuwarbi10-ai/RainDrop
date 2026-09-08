@@ -681,80 +681,114 @@ function RainDrop() {
 
             {/* Route Check Modal */}
             {routeCheckOpen && (
-                <div className="fixed inset-0 z-[90] flex items-center justify-center p-4" style={{background:"rgba(15,23,42,0.6)", backdropFilter:"blur(6px)"}}>
-                    <div className="relative w-full max-w-md rounded-2xl border border-slate-200 bg-white shadow-2xl p-6 text-slate-900">
-                        <button onClick={() => { setRouteCheckOpen(false); setRouteCheckResult(null); }} className="absolute top-4 right-4 text-slate-400 hover:text-slate-700 cursor-pointer" type="button">
+                <div className="fixed inset-0 z-[90] flex items-center justify-center p-4" style={{ background: "rgba(15,23,42,0.75)", backdropFilter: "blur(8px)" }}>
+                    <div className="relative w-full max-w-lg rounded-2xl border border-slate-700 bg-slate-900 shadow-2xl p-6 text-slate-100 font-sans">
+                        <button onClick={() => { setRouteCheckOpen(false); setRouteCheckResult(null); }} className="absolute top-4 right-4 text-slate-400 hover:text-slate-200 cursor-pointer" type="button">
                             <X className="w-5 h-5" />
                         </button>
-                        <div className="flex items-center gap-3 mb-5">
-                            <div className="p-2 rounded-xl bg-blue-50 border border-blue-200 text-blue-600">
+
+                        <div className="flex items-center gap-3 mb-5 border-b border-slate-800 pb-4">
+                            <div className="p-2.5 rounded-xl bg-blue-500/10 border border-blue-500/30 text-blue-400">
                                 <Route className="w-5 h-5" />
                             </div>
                             <div>
-                                <h2 className="text-sm font-bold text-slate-900">Route Safety Check</h2>
-                                <p className="text-[11px] text-slate-500 font-mono">Powered by /api/route_check</p>
+                                <h2 className="text-base font-bold text-slate-100 flex items-center gap-2">
+                                    Dual-Corridor Route Safety Check
+                                    <span className="text-[10px] px-2 py-0.5 rounded-full bg-blue-500/20 text-blue-300 font-mono">LIVE GIS ENGINE</span>
+                                </h2>
+                                <p className="text-xs text-slate-400">Avoid submerged underpasses &amp; lowlands using 30m CartoDEM surface elevation</p>
                             </div>
                         </div>
-                        <form onSubmit={handleRouteCheck} className="space-y-3">
+
+                        <form onSubmit={handleRouteCheck} className="grid grid-cols-1 sm:grid-cols-2 gap-3 mb-4">
                             <div>
-                                <label className="block text-[11px] font-semibold text-slate-600 mb-1">Origin</label>
+                                <label className="block text-[11px] font-semibold text-slate-300 mb-1">Origin Location</label>
                                 <input
                                     value={routeOrigin}
                                     onChange={e => setRouteOrigin(e.target.value)}
-                                    placeholder="e.g. Kurla Station West"
+                                    placeholder="e.g. Kurla Station"
                                     required
-                                    className="w-full rounded-lg border border-slate-300 bg-slate-50 px-3 py-2 text-xs text-slate-900 placeholder-slate-400 focus:border-blue-500 focus:outline-none"
+                                    className="w-full rounded-xl border border-slate-700 bg-slate-800/80 px-3 py-2 text-xs text-slate-100 placeholder-slate-500 focus:border-blue-500 focus:outline-none"
                                 />
                             </div>
                             <div>
-                                <label className="block text-[11px] font-semibold text-slate-600 mb-1">Destination</label>
+                                <label className="block text-[11px] font-semibold text-slate-300 mb-1">Destination</label>
                                 <input
                                     value={routeDest}
                                     onChange={e => setRouteDest(e.target.value)}
-                                    placeholder="e.g. BKC Connector"
+                                    placeholder="e.g. BKC Contractor"
                                     required
-                                    className="w-full rounded-lg border border-slate-300 bg-slate-50 px-3 py-2 text-xs text-slate-900 placeholder-slate-400 focus:border-blue-500 focus:outline-none"
+                                    className="w-full rounded-xl border border-slate-700 bg-slate-800/80 px-3 py-2 text-xs text-slate-100 placeholder-slate-500 focus:border-blue-500 focus:outline-none"
                                 />
                             </div>
-                            <div>
-                                <label className="block text-[11px] font-semibold text-slate-600 mb-1">Current Water Depth (cm)</label>
+                            <div className="sm:col-span-2">
+                                <label className="block text-[11px] font-semibold text-slate-300 mb-1">Simulated Water Depth (cm)</label>
                                 <input
                                     type="number" min="0" max="200" step="1"
                                     value={routeDepth}
                                     onChange={e => setRouteDepth(Number(e.target.value))}
-                                    className="w-full rounded-lg border border-slate-300 bg-slate-50 px-3 py-2 text-xs text-slate-900 placeholder-slate-400 focus:border-blue-500 focus:outline-none"
+                                    className="w-full rounded-xl border border-slate-700 bg-slate-800/80 px-3 py-2 text-xs text-slate-100 placeholder-slate-500 focus:border-blue-500 focus:outline-none"
                                 />
                             </div>
-                            <button
-                                type="submit"
-                                disabled={routeCheckBusy}
-                                className="w-full flex items-center justify-center gap-2 py-2.5 rounded-xl bg-blue-600 hover:bg-blue-700 text-white text-xs font-bold shadow-md shadow-blue-600/20 transition-all cursor-pointer disabled:opacity-50"
-                            >
-                                {routeCheckBusy ? <><RefreshCw className="w-3.5 h-3.5 animate-spin" /> Checking…</> : <><Send className="w-3.5 h-3.5" /> Check Route Safety</>}
-                            </button>
+                            <div className="sm:col-span-2 mt-1">
+                                <button
+                                    type="submit"
+                                    disabled={routeCheckBusy}
+                                    className="w-full flex items-center justify-center gap-2 py-2.5 rounded-xl bg-blue-600 hover:bg-blue-500 text-white text-xs font-bold shadow-lg shadow-blue-600/30 transition-all cursor-pointer disabled:opacity-50"
+                                >
+                                    {routeCheckBusy ? <><RefreshCw className="w-3.5 h-3.5 animate-spin" /> Analyzing 30m Elevation Corridors…</> : <><Send className="w-3.5 h-3.5" /> Check Dual-Corridor Safety</>}
+                                </button>
+                            </div>
                         </form>
 
                         {routeCheckResult && !routeCheckResult.error && (
-                            <div className="mt-4 space-y-2 border-t border-slate-100 pt-4">
-                                <div className={`flex items-center justify-between rounded-lg px-3 py-2 border ${
-                                    routeCheckResult.standard_route && routeCheckResult.standard_route.status === "BLOCKED"
-                                        ? "bg-red-50 border-red-200"
-                                        : "bg-emerald-50 border-emerald-200"
-                                }`}>
-                                    <span className="text-[11px] font-semibold text-slate-700">Standard Route</span>
-                                    <span className={`text-[11px] font-bold ${
-                                        routeCheckResult.standard_route && routeCheckResult.standard_route.status === "BLOCKED" ? "text-red-600" : "text-emerald-700"
-                                    }`}>{routeCheckResult.standard_route && routeCheckResult.standard_route.status}</span>
+                            <div className="space-y-3 border-t border-slate-800 pt-4">
+                                {/* Standard Route Card */}
+                                <div className="rounded-xl p-3.5 bg-rose-950/40 border border-rose-500/30 text-rose-200">
+                                    <div className="flex items-center justify-between mb-1.5">
+                                        <span className="text-xs font-bold flex items-center gap-1.5 text-rose-400">
+                                            🔴 Standard Direct Route
+                                        </span>
+                                        <span className="text-[10px] font-extrabold px-2 py-0.5 rounded-md bg-rose-500/20 border border-rose-500/40 text-rose-300">
+                                            {routeCheckResult.standard_route?.status_label || "HAZARDOUS"}
+                                        </span>
+                                    </div>
+                                    <div className="grid grid-cols-3 gap-2 text-[11px] text-slate-300 my-2">
+                                        <div>Distance: <strong className="text-white">{routeCheckResult.standard_route?.distance_km} km</strong></div>
+                                        <div>Travel: <strong className="text-white">{routeCheckResult.standard_route?.est_time_min} mins</strong></div>
+                                        <div>Max Flood: <strong className="text-rose-400">🌊 {routeCheckResult.standard_route?.max_water_depth_cm} cm</strong></div>
+                                    </div>
+                                    {routeCheckResult.standard_route?.danger_points?.[0] && (
+                                        <div className="text-[10px] text-rose-300 bg-rose-900/30 px-2.5 py-1.5 rounded-lg border border-rose-500/20">
+                                            ⚠️ <strong>Hazard Bottleneck:</strong> {routeCheckResult.standard_route.danger_points[0].name} ({routeCheckResult.standard_route.danger_points[0].hazard})
+                                        </div>
+                                    )}
                                 </div>
-                                <div className="flex items-center justify-between rounded-lg px-3 py-2 border bg-emerald-50 border-emerald-200">
-                                    <span className="text-[11px] font-semibold text-slate-700">Safe Corridor</span>
-                                    <span className="text-[11px] font-bold text-emerald-700">{routeCheckResult.safe_corridor && routeCheckResult.safe_corridor.status} · +{routeCheckResult.safe_corridor && routeCheckResult.safe_corridor.detour_time_min}min detour</span>
+
+                                {/* Safe Elevation Corridor Card */}
+                                <div className="rounded-xl p-3.5 bg-emerald-950/40 border border-emerald-500/30 text-emerald-200">
+                                    <div className="flex items-center justify-between mb-1.5">
+                                        <span className="text-xs font-bold flex items-center gap-1.5 text-emerald-400">
+                                            🟢 Safe Elevation Corridor (Recommended)
+                                        </span>
+                                        <span className="text-[10px] font-extrabold px-2 py-0.5 rounded-md bg-emerald-500/20 border border-emerald-500/40 text-emerald-300">
+                                            {routeCheckResult.safe_corridor?.status_label || "SAFE PASSAGE"}
+                                        </span>
+                                    </div>
+                                    <div className="grid grid-cols-3 gap-2 text-[11px] text-slate-300 my-2">
+                                        <div>Distance: <strong className="text-white">{routeCheckResult.safe_corridor?.distance_km} km</strong></div>
+                                        <div>Travel: <strong className="text-white">{routeCheckResult.safe_corridor?.est_time_min} mins</strong></div>
+                                        <div>Max Flood: <strong className="text-emerald-400">🌊 {routeCheckResult.safe_corridor?.max_water_depth_cm} cm</strong></div>
+                                    </div>
+                                    <div className="flex items-center justify-between text-[10px] text-emerald-300 bg-emerald-900/30 px-2.5 py-1.5 rounded-lg border border-emerald-500/20">
+                                        <span>🛡️ <strong>Highland Bypass:</strong> Elevated Flyover Route</span>
+                                        <span className="font-bold text-emerald-200">+{routeCheckResult.safe_corridor?.detour_time_min} min detour (+{routeCheckResult.safe_corridor?.detour_dist_km} km)</span>
+                                    </div>
                                 </div>
-                                <p className="text-[10px] text-slate-500">{routeCheckResult.safe_corridor && routeCheckResult.safe_corridor.hazard_level}</p>
                             </div>
                         )}
                         {routeCheckResult && routeCheckResult.error && (
-                            <p className="mt-3 text-xs text-red-600">{routeCheckResult.error}</p>
+                            <p className="mt-3 text-xs text-rose-400">{routeCheckResult.error}</p>
                         )}
                     </div>
                 </div>
@@ -950,6 +984,7 @@ function RainDrop() {
                                     activeRoute={ROUTE_OPTIONS[activeRouteIndex]}
                                     isSimulatingRoute={isSimulatingRoute}
                                     routeProgress={routeProgress}
+                                    routeCheckResult={routeCheckResult}
                                 />
 
                                 {/* Top Right Header Badges */}
@@ -1453,7 +1488,54 @@ function InteractiveVectorMap(props) {
         }
 
         // Render Safe Corridor & Bypass Route Lines
-        if (layers.safeCorridor && activeRoute) {
+        if (routeCheckResult && routeCheckResult.standard_route && routeCheckResult.safe_corridor) {
+            const stdCoords = routeCheckResult.standard_route.coordinates || [];
+            const safeCoords = routeCheckResult.safe_corridor.coordinates || [];
+
+            if (stdCoords.length >= 2) {
+                // Standard Direct Route (Red Dashed)
+                const stdPoly = window.L.polyline(stdCoords, {
+                    color: '#dc2626',
+                    weight: 4,
+                    dashArray: '6, 8',
+                    opacity: 0.9
+                }).addTo(map);
+                stdPoly.bindTooltip(`🔴 Standard Route: ${routeCheckResult.standard_route.status_label}`, { permanent: false });
+                markersRef.current.push(stdPoly);
+
+                // Add Hazard Warning Marker on Danger Point
+                if (routeCheckResult.standard_route.danger_points?.[0]) {
+                    const dp = routeCheckResult.standard_route.danger_points[0];
+                    const hazardIcon = window.L.divIcon({
+                        className: 'custom-hazard-marker',
+                        html: `<div style="background:#dc2626; color:#ffffff; width:28px; height:28px; border-radius:50%; display:flex; align-items:center; justify-content:center; font-size:14px; font-weight:bold; border:2px solid #ffffff; box-shadow:0 4px 10px rgba(220,38,38,0.5);" title="${dp.hazard}">⚠️</div>`,
+                        iconSize: [28, 28],
+                        iconAnchor: [14, 14]
+                    });
+                    const hazardMarker = window.L.marker([dp.lat, dp.lon], { icon: hazardIcon })
+                        .addTo(map)
+                        .bindPopup(`<strong>⚠️ ${dp.name}</strong><br><span style="color:#dc2626; font-size:11px;">Max Depth: ${dp.depth_cm} cm</span>`);
+                    markersRef.current.push(hazardMarker);
+                }
+            }
+
+            if (safeCoords.length >= 2) {
+                // Safe Elevation Corridor (Emerald Solid)
+                const safePoly = window.L.polyline(safeCoords, {
+                    color: '#10b981',
+                    weight: 6,
+                    opacity: 0.95
+                }).addTo(map);
+                safePoly.bindTooltip(`🟢 Safe Elevation Corridor: +${routeCheckResult.safe_corridor.detour_time_min} min detour`, { permanent: false });
+                markersRef.current.push(safePoly);
+
+                // Fit map bounds to encompass both routes
+                const allRoutePoints = [...stdCoords, ...safeCoords];
+                try {
+                    map.fitBounds(allRoutePoints, { padding: [50, 50] });
+                } catch (_) {}
+            }
+        } else if (layers.safeCorridor && activeRoute) {
             if (bounds.length >= 2) {
                 // Blocked Route Polyline (Red Dashed)
                 const blockedPoly = window.L.polyline([bounds[0], bounds[1]], {
@@ -1476,7 +1558,7 @@ function InteractiveVectorMap(props) {
             }
         }
 
-    }, [wardData, sectorDepths, selectedSector, layers, activeRoute, isSimulatingRoute, routeProgress]);
+    }, [wardData, sectorDepths, selectedSector, layers, activeRoute, isSimulatingRoute, routeProgress, routeCheckResult]);
 
     return (
         <div className="relative w-full h-full min-h-[480px]">

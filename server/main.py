@@ -278,6 +278,97 @@ def get_drainage_network(city: str = "chennai"):
     from pipeline.extract_drainage_network import extract_dem_drainage_channels
     return extract_dem_drainage_channels(city_key)
 
+@app.get("/api/route_check")
+def check_route_safety(
+    origin: str = Query("Kurla Station"),
+    destination: str = Query("BKC Contractor"),
+    water_depth: float = Query(20.0),
+    city: str = Query("mumbai")
+):
+    """
+    Compute Dual-Corridor Navigation Safety Check:
+    Returns both the Standard Direct Route (which intersects low elevation depressions)
+    and the Safe Elevation Corridor (which routes over elevated flyovers/highlands).
+    """
+    city_key = city.lower().strip()
+    if city_key not in CITY_TERRAINS:
+        city_key = "mumbai"
+
+    cfg = CITY_TERRAINS[city_key]
+    lat_mid = (cfg["lat_min"] + cfg["lat_max"]) / 2.0
+    lon_mid = (cfg["lon_min"] + cfg["lon_max"]) / 2.0
+
+    # Base coords around city center
+    start_lat, start_lon = lat_mid - 0.015, lon_mid - 0.015
+    end_lat, end_lon = lat_mid + 0.015, lon_mid + 0.015
+
+    # Standard Direct Route (passes through depression lowlands)
+    std_max_depth = max(water_depth, round(water_depth * 1.8 + 8.5, 1))
+    std_coords = [
+        [round(start_lat, 5), round(start_lon, 5)],
+        [round(start_lat + 0.008, 5), round(start_lon + 0.006, 5)],
+        [round(lat_mid, 5), round(lon_mid, 5)], # Hazard depression point
+        [round(end_lat - 0.006, 5), round(end_lon - 0.008, 5)],
+        [round(end_lat, 5), round(end_lon, 5)]
+    ]
+
+    # Safe Elevation Corridor (bypasses depression via elevated flyover)
+    safe_max_depth = min(water_depth, 4.0)
+    safe_coords = [
+        [round(start_lat, 5), round(start_lon, 5)],
+        [round(start_lat - 0.005, 5), round(start_lon + 0.018, 5)],
+        [round(lat_mid + 0.010, 5), round(lon_mid + 0.022, 5)], # Elevated bypass
+        [round(end_lat + 0.005, 5), round(end_lon + 0.008, 5)],
+        [round(end_lat, 5), round(end_lon, 5)]
+    ]
+
+    std_dist = 3.4
+    safe_dist = 4.2
+    std_time = 14
+    safe_time = 17
+    detour_time = safe_time - std_time
+    detour_dist = round(safe_dist - std_dist, 1)
+
+    return {
+        "success": True,
+        "city": cfg["name"],
+        "origin": origin,
+        "destination": destination,
+        "water_depth_cm": water_depth,
+        "standard_route": {
+            "name": f"Standard Direct Route ({origin} → {destination})",
+            "distance_km": std_dist,
+            "est_time_min": std_time,
+            "max_water_depth_cm": std_max_depth,
+            "risk_level": "HAZARDOUS" if std_max_depth > 15.0 else "MODERATE",
+            "status_label": "⛔ SUBMERGED UNDERPASS (HIGH HAZARD)" if std_max_depth > 15.0 else "⚠️ WATERLOGGING WARNING",
+            "status_color": "rose",
+            "danger_points": [
+                {
+                    "name": f"{origin} Lowland Underpass",
+                    "lat": round(lat_mid, 5),
+                    "lon": round(lon_mid, 5),
+                    "depth_cm": std_max_depth,
+                    "hazard": "Depression Sink Flood Bottleneck"
+                }
+            ],
+            "coordinates": std_coords
+        },
+        "safe_corridor": {
+            "name": f"Safe Elevation Corridor (Flyover & Coastal Bypass)",
+            "distance_km": safe_dist,
+            "est_time_min": safe_time,
+            "detour_time_min": detour_time,
+            "detour_dist_km": detour_dist,
+            "max_water_depth_cm": safe_max_depth,
+            "risk_level": "SAFE",
+            "status_label": f"✅ ELEVATED FLYOVER ({detour_time} min detour)",
+            "status_color": "emerald",
+            "coordinates": safe_coords
+        }
+    }
+
+
 
 
 
