@@ -642,7 +642,7 @@ function StatusPill({
       className: "inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-indigo-500/10 border border-indigo-500/30 text-[11px] font-medium text-indigo-300"
     }, /*#__PURE__*/React.createElement("span", {
       className: "w-1.5 h-1.5 rounded-full bg-indigo-400 animate-ping"
-    }), "Processing\u2026");
+    }), "Processing…");
   }
   return /*#__PURE__*/React.createElement("span", {
     className: "inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-emerald-500/10 border border-emerald-500/30 text-[11px] font-medium text-emerald-300"
@@ -1025,7 +1025,7 @@ function RainDrop() {
     className: "w-full flex items-center justify-center gap-2 py-2.5 rounded-xl bg-blue-600 hover:bg-blue-700 text-white text-xs font-bold shadow-md shadow-blue-600/20 transition-all cursor-pointer disabled:opacity-50"
   }, routeCheckBusy ? /*#__PURE__*/React.createElement(React.Fragment, null, /*#__PURE__*/React.createElement(RefreshCw, {
     className: "w-3.5 h-3.5 animate-spin"
-  }), " Checking\u2026") : /*#__PURE__*/React.createElement(React.Fragment, null, /*#__PURE__*/React.createElement(Send, {
+  }), " Checking…") : /*#__PURE__*/React.createElement(React.Fragment, null, /*#__PURE__*/React.createElement(Send, {
     className: "w-3.5 h-3.5"
   }), " Check Route Safety"))), routeCheckResult && !routeCheckResult.error && /*#__PURE__*/React.createElement("div", {
     className: "mt-4 space-y-2 border-t border-slate-100 pt-4"
@@ -1041,7 +1041,7 @@ function RainDrop() {
     className: "text-[11px] font-semibold text-slate-700"
   }, "Safe Corridor"), /*#__PURE__*/React.createElement("span", {
     className: "text-[11px] font-bold text-emerald-700"
-  }, routeCheckResult.safe_corridor && routeCheckResult.safe_corridor.status, " \xB7 +", routeCheckResult.safe_corridor && routeCheckResult.safe_corridor.detour_time_min, "min detour")), /*#__PURE__*/React.createElement("p", {
+  }, routeCheckResult.safe_corridor && routeCheckResult.safe_corridor.status, " · +", routeCheckResult.safe_corridor && routeCheckResult.safe_corridor.detour_time_min, "min detour")), /*#__PURE__*/React.createElement("p", {
     className: "text-[10px] text-slate-500"
   }, routeCheckResult.safe_corridor && routeCheckResult.safe_corridor.hazard_level)), routeCheckResult && routeCheckResult.error && /*#__PURE__*/React.createElement("p", {
     className: "mt-3 text-xs text-red-600"
@@ -1089,7 +1089,7 @@ function RainDrop() {
     className: "flex items-center gap-2 px-4 py-2 rounded-xl bg-blue-600 hover:bg-blue-700 text-white text-xs font-bold shadow-md shadow-blue-600/20 transition-all cursor-pointer disabled:opacity-50"
   }, nowcastBusy ? /*#__PURE__*/React.createElement(React.Fragment, null, /*#__PURE__*/React.createElement(RefreshCw, {
     className: "w-3.5 h-3.5 animate-spin"
-  }), " Running Nowcast\u2026") : /*#__PURE__*/React.createElement(React.Fragment, null, /*#__PURE__*/React.createElement(Zap, {
+  }), " Running Nowcast…") : /*#__PURE__*/React.createElement(React.Fragment, null, /*#__PURE__*/React.createElement(Zap, {
     className: "w-3.5 h-3.5"
   }), " Refresh Nowcast")), nowcastResult && /*#__PURE__*/React.createElement("span", {
     className: `text-[11px] font-mono px-2.5 py-1 rounded-full border ${nowcastResult.status === "SUCCESS" ? "bg-emerald-50 border-emerald-200 text-emerald-700" : "bg-red-50 border-red-200 text-red-700"}`
@@ -1107,15 +1107,15 @@ function RainDrop() {
     className: "text-emerald-700 font-bold"
   }, telemetry.services && telemetry.services.imd_radar), /*#__PURE__*/React.createElement("span", {
     className: "text-slate-300"
-  }, "\xB7"), /*#__PURE__*/React.createElement("span", {
+  }, "·"), /*#__PURE__*/React.createElement("span", {
     className: "text-blue-700 font-bold"
   }, telemetry.services && telemetry.services.pysteps_nowcast), /*#__PURE__*/React.createElement("span", {
     className: "text-slate-300"
-  }, "\xB7"), /*#__PURE__*/React.createElement("span", {
+  }, "·"), /*#__PURE__*/React.createElement("span", {
     className: "text-amber-700 font-bold"
   }, telemetry.latency_ms, "ms"), /*#__PURE__*/React.createElement("span", {
     className: "text-slate-300"
-  }, "\xB7"), /*#__PURE__*/React.createElement(Wifi, {
+  }, "·"), /*#__PURE__*/React.createElement(Wifi, {
     className: "w-3 h-3 text-slate-400"
   }), /*#__PURE__*/React.createElement("span", {
     className: "text-slate-600"
@@ -1363,7 +1363,7 @@ function MapStandbyDeck({
     type: "button"
   }, /*#__PURE__*/React.createElement(Power, {
     className: "w-4 h-4 fill-current text-zinc-950"
-  }), /*#__PURE__*/React.createElement("span", null, "\uD83D\uDDFA\uFE0F View Interactive Map"), /*#__PURE__*/React.createElement(ArrowRight, {
+  }), /*#__PURE__*/React.createElement("span", null, "🗺️ View Interactive Map"), /*#__PURE__*/React.createElement(ArrowRight, {
     className: "w-4 h-4 transition-transform group-hover:translate-x-1"
   }))), /*#__PURE__*/React.createElement("div", {
     className: "relative z-10 mt-8 grid grid-cols-3 gap-3 w-full max-w-md border-t border-zinc-800 pt-5 text-xs"
@@ -1499,7 +1499,7 @@ function EmergencyBanner({
     className: "flex items-center gap-1 text-[11px] font-bold px-3 py-1.5 rounded-xl bg-blue-600 hover:bg-blue-700 text-white transition-colors cursor-pointer border border-blue-700 shadow-sm"
   }, /*#__PURE__*/React.createElement(Eye, {
     className: "w-3.5 h-3.5 text-white"
-  }), /*#__PURE__*/React.createElement("span", null, "\uD83D\uDDFA\uFE0F Open Interactive Map"))));
+  }), /*#__PURE__*/React.createElement("span", null, "🗺️ Open Interactive Map"))));
 }
 
 // ============================================================================
@@ -1669,7 +1669,7 @@ function InteractiveVectorMap(props) {
     className: "flex items-center gap-2"
   }, /*#__PURE__*/React.createElement("span", {
     className: "w-3 h-3 rounded-full bg-red-600 border border-white"
-  }), /*#__PURE__*/React.createElement("span", null, "\u226530cm Critical Flooding")), /*#__PURE__*/React.createElement("div", {
+  }), /*#__PURE__*/React.createElement("span", null, "≥30cm Critical Flooding")), /*#__PURE__*/React.createElement("div", {
     className: "flex items-center gap-2"
   }, /*#__PURE__*/React.createElement("span", {
     className: "w-3 h-3 rounded-full bg-amber-500 border border-white"
@@ -1699,11 +1699,11 @@ function SectorDrawer({
     className: "flex items-start justify-between pb-4 border-b border-slate-800"
   }, /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("span", {
     className: "text-[10px] uppercase font-bold tracking-widest text-indigo-400"
-  }, wardName, " \xB7 Hotspot Telemetry"), /*#__PURE__*/React.createElement("h3", {
+  }, wardName, " · Hotspot Telemetry"), /*#__PURE__*/React.createElement("h3", {
     className: "text-base font-bold text-white mt-0.5"
   }, sector.name), /*#__PURE__*/React.createElement("p", {
     className: "text-[11px] font-mono text-slate-400"
-  }, sector.coords, " \xB7 Elevation: ", sector.elevation, "m MSL")), /*#__PURE__*/React.createElement("button", {
+  }, sector.coords, " · Elevation: ", sector.elevation, "m MSL")), /*#__PURE__*/React.createElement("button", {
     onClick: onClose,
     className: "p-1.5 rounded-lg text-slate-400 hover:text-white hover:bg-slate-800 transition-colors cursor-pointer"
   }, /*#__PURE__*/React.createElement(X, {
@@ -1748,25 +1748,25 @@ function SectorDrawer({
     className: "flex items-center justify-between py-1 border-b border-slate-800/60"
   }, /*#__PURE__*/React.createElement("span", {
     className: "text-slate-400"
-  }, "\uD83D\uDEB6 Pedestrians"), /*#__PURE__*/React.createElement("span", {
+  }, "🚶 Pedestrians"), /*#__PURE__*/React.createElement("span", {
     className: `font-semibold ${depth >= 15 ? "text-rose-400" : "text-emerald-400"}`
   }, depth >= 15 ? "Hazardous (No cross)" : "Passable")), /*#__PURE__*/React.createElement("div", {
     className: "flex items-center justify-between py-1 border-b border-slate-800/60"
   }, /*#__PURE__*/React.createElement("span", {
     className: "text-slate-400"
-  }, "\uD83D\uDEF5 Two-Wheelers"), /*#__PURE__*/React.createElement("span", {
+  }, "🛵 Two-Wheelers"), /*#__PURE__*/React.createElement("span", {
     className: `font-semibold ${depth >= 20 ? "text-rose-400" : "text-emerald-400"}`
   }, depth >= 20 ? "Stall Risk" : "Passable")), /*#__PURE__*/React.createElement("div", {
     className: "flex items-center justify-between py-1 border-b border-slate-800/60"
   }, /*#__PURE__*/React.createElement("span", {
     className: "text-slate-400"
-  }, "\uD83D\uDE97 Sedans & Hatchbacks"), /*#__PURE__*/React.createElement("span", {
+  }, "🚗 Sedans & Hatchbacks"), /*#__PURE__*/React.createElement("span", {
     className: `font-semibold ${depth >= 25 ? "text-rose-400" : "text-emerald-400"}`
   }, depth >= 25 ? "Impassable" : "Passable with caution")), /*#__PURE__*/React.createElement("div", {
     className: "flex items-center justify-between py-1"
   }, /*#__PURE__*/React.createElement("span", {
     className: "text-slate-400"
-  }, "\uD83D\uDE92 Emergency Trucks / Buses"), /*#__PURE__*/React.createElement("span", {
+  }, "🚒 Emergency Trucks / Buses"), /*#__PURE__*/React.createElement("span", {
     className: `font-semibold ${depth >= 45 ? "text-amber-400" : "text-emerald-400"}`
   }, depth >= 45 ? "High Clearance Only" : "Passable")))), /*#__PURE__*/React.createElement("div", {
     className: "rounded-xl border border-slate-800 bg-slate-900/80 p-3 mb-4"
@@ -1945,7 +1945,7 @@ function HotspotTelemetryDeck({
     className: "font-bold text-white"
   }, sec.name)), /*#__PURE__*/React.createElement("span", {
     className: "text-[10px] text-zinc-400 font-mono"
-  }, "Elev: ", sec.elevation, "m \xB7 ", sec.coords)), /*#__PURE__*/React.createElement("div", {
+  }, "Elev: ", sec.elevation, "m · ", sec.coords)), /*#__PURE__*/React.createElement("div", {
     className: "text-right"
   }, /*#__PURE__*/React.createElement("span", {
     className: "font-mono font-bold text-sm block text-white"
@@ -2010,7 +2010,7 @@ function ScenarioSandbox({
     className: "text-sm font-bold text-white flex items-center gap-2"
   }, /*#__PURE__*/React.createElement(Play, {
     className: "w-4 h-4 text-white"
-  }), "Simulate Run \u2014 Real-Time Flood Timeline"), /*#__PURE__*/React.createElement("span", {
+  }), "Simulate Run — Real-Time Flood Timeline"), /*#__PURE__*/React.createElement("span", {
     className: "text-[10px] font-mono px-2 py-0.5 rounded bg-zinc-900 text-zinc-200 border border-white/20"
   }, "Event Simulator")), /*#__PURE__*/React.createElement("p", {
     className: "text-[11px] text-zinc-400 mt-1"
@@ -2122,12 +2122,12 @@ function SafeRoutingPanel(props) {
     className: "text-xs font-bold text-red-300 flex items-center gap-1.5 mb-1.5"
   }, /*#__PURE__*/React.createElement(AlertTriangle, {
     className: "w-3.5 h-3.5 text-red-400"
-  }), "\u26D4 Currently Flooded Regions to Avoid (", floodedSectors.length, " Active Hazards)"), /*#__PURE__*/React.createElement("div", {
+  }), "⛔ Currently Flooded Regions to Avoid (", floodedSectors.length, " Active Hazards)"), /*#__PURE__*/React.createElement("div", {
     className: "flex flex-wrap gap-1.5"
   }, floodedSectors.slice(0, 4).map(s => /*#__PURE__*/React.createElement("span", {
     key: s.id,
     className: "text-[10px] font-bold px-2 py-0.5 rounded border bg-red-500/20 border-red-500/50 text-red-300 font-mono"
-  }, "\uD83D\uDED1 ", s.name, " (", s.depth, "cm)")), floodedSectors.length === 0 && /*#__PURE__*/React.createElement("span", {
+  }, "🛑 ", s.name, " (", s.depth, "cm)")), floodedSectors.length === 0 && /*#__PURE__*/React.createElement("span", {
     className: "text-[11px] text-emerald-400"
   }, "All primary road sectors clear."))), /*#__PURE__*/React.createElement("div", {
     className: "flex gap-2"
@@ -2139,7 +2139,7 @@ function SafeRoutingPanel(props) {
     className: "block text-[9px] uppercase font-mono text-zinc-400"
   }, "Corridor ", idx + 1), /*#__PURE__*/React.createElement("span", {
     className: "truncate block font-bold"
-  }, r.origin, " \u2192 ", r.destination)))), /*#__PURE__*/React.createElement("div", {
+  }, r.origin, " → ", r.destination)))), /*#__PURE__*/React.createElement("div", {
     className: "space-y-3"
   }, /*#__PURE__*/React.createElement("div", {
     className: "rounded-md border border-red-500/40 bg-zinc-900 p-3"
@@ -2147,25 +2147,25 @@ function SafeRoutingPanel(props) {
     className: "flex items-center justify-between mb-1"
   }, /*#__PURE__*/React.createElement("span", {
     className: "text-xs font-bold text-red-400 flex items-center gap-1"
-  }, "\u274C Standard Direct Route"), /*#__PURE__*/React.createElement("span", {
+  }, "❌ Standard Direct Route"), /*#__PURE__*/React.createElement("span", {
     className: "text-[10px] font-mono font-bold text-red-300 bg-red-500/20 px-1.5 py-0.5 rounded border border-red-500/30"
   }, "BLOCKED BY FLOOD")), /*#__PURE__*/React.createElement("p", {
     className: "text-[11px] text-zinc-300 font-mono"
-  }, currentRoute.standard.dist, " \xB7 ", currentRoute.standard.time), /*#__PURE__*/React.createElement("p", {
+  }, currentRoute.standard.dist, " · ", currentRoute.standard.time), /*#__PURE__*/React.createElement("p", {
     className: "text-[10.5px] text-red-300 mt-1 font-sans"
-  }, "\u26A0\uFE0F ", currentRoute.standard.blockReason)), /*#__PURE__*/React.createElement("div", {
+  }, "⚠️ ", currentRoute.standard.blockReason)), /*#__PURE__*/React.createElement("div", {
     className: "rounded-md border border-emerald-500/50 bg-zinc-900 p-3"
   }, /*#__PURE__*/React.createElement("div", {
     className: "flex items-center justify-between mb-1"
   }, /*#__PURE__*/React.createElement("span", {
     className: "text-xs font-bold text-emerald-400 flex items-center gap-1"
-  }, "\uD83D\uDFE2 Smart Safe Elevation Route"), /*#__PURE__*/React.createElement("span", {
+  }, "🟢 Smart Safe Elevation Route"), /*#__PURE__*/React.createElement("span", {
     className: "text-[10px] font-mono font-bold text-emerald-300 bg-emerald-500/20 px-1.5 py-0.5 rounded border border-emerald-500/30"
   }, "100% CLEAR & SAFE")), /*#__PURE__*/React.createElement("p", {
     className: "text-[11px] text-zinc-200 font-mono"
-  }, currentRoute.safeRoute.dist, " \xB7 ", currentRoute.safeRoute.time, " \xB7 ", currentRoute.safeRoute.elevation), /*#__PURE__*/React.createElement("p", {
+  }, currentRoute.safeRoute.dist, " · ", currentRoute.safeRoute.time, " · ", currentRoute.safeRoute.elevation), /*#__PURE__*/React.createElement("p", {
     className: "text-[10.5px] text-emerald-300 mt-1 font-sans"
-  }, "\u2705 ", currentRoute.safeRoute.corridor))), /*#__PURE__*/React.createElement("button", {
+  }, "✅ ", currentRoute.safeRoute.corridor))), /*#__PURE__*/React.createElement("button", {
     onClick: onStartSimulation,
     disabled: isSimulatingRoute,
     className: "w-full flex items-center justify-center gap-2 py-3 px-4 rounded-md bg-white hover:bg-zinc-200 text-zinc-950 text-xs font-bold border border-white shadow transition-all cursor-pointer"
@@ -2218,23 +2218,23 @@ function TacticalMapControls({
   }), /*#__PURE__*/React.createElement("span", null, isMapEnabled ? "Map: Active" : "Enable Map"))), /*#__PURE__*/React.createElement("div", {
     className: "space-y-1 divide-y divide-slate-800/60"
   }, /*#__PURE__*/React.createElement(ToggleRow, {
-    label: "\uD83C\uDF0A Flood Inundation Heatmap",
+    label: "🌊 Flood Inundation Heatmap",
     checked: layers.heatmap,
     onChange: () => toggleLayer("heatmap", "Flood Inundation")
   }), /*#__PURE__*/React.createElement(ToggleRow, {
-    label: "\u26A1 Drainage Pumps & Sluice Gates",
+    label: "⚡ Drainage Pumps & Sluice Gates",
     checked: layers.pumps,
     onChange: () => toggleLayer("pumps", "Drainage Pumps")
   }), /*#__PURE__*/React.createElement(ToggleRow, {
-    label: "\uD83C\uDFE5 Evacuation Shelters & Relief Camps",
+    label: "🏥 Evacuation Shelters & Relief Camps",
     checked: layers.shelters,
     onChange: () => toggleLayer("shelters", "Emergency Shelters")
   }), /*#__PURE__*/React.createElement(ToggleRow, {
-    label: "\uD83D\uDE97 Dynamic Safe Navigation Path",
+    label: "🚗 Dynamic Safe Navigation Path",
     checked: layers.safeCorridor,
     onChange: () => toggleLayer("safeCorridor", "Safe Route Corridor")
   }), /*#__PURE__*/React.createElement(ToggleRow, {
-    label: "\uD83D\uDCD0 Topographical Elevation Contours",
+    label: "📐 Topographical Elevation Contours",
     checked: layers.elevationContours,
     onChange: () => toggleLayer("elevationContours", "Elevation Contours")
   })));
@@ -2445,11 +2445,11 @@ function SitRepModal({
     className: "w-5 h-5"
   })), /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("span", {
     className: "text-[10px] uppercase font-bold tracking-wider text-indigo-400"
-  }, "Official Incident Log \xB7 BMC / NDRF"), /*#__PURE__*/React.createElement("h2", {
+  }, "Official Incident Log · BMC / NDRF"), /*#__PURE__*/React.createElement("h2", {
     className: "text-lg font-bold text-white"
   }, "AquaSight Situation Report (SitRep)"), /*#__PURE__*/React.createElement("p", {
     className: "text-xs text-slate-400 font-mono"
-  }, ward, " \xB7 ", wardData.code, " \xB7 Generated ", new Date().toLocaleTimeString()))), /*#__PURE__*/React.createElement("button", {
+  }, ward, " · ", wardData.code, " · Generated ", new Date().toLocaleTimeString()))), /*#__PURE__*/React.createElement("button", {
     onClick: onClose,
     className: "p-1.5 rounded-lg text-slate-400 hover:text-white hover:bg-slate-800 cursor-pointer"
   }, /*#__PURE__*/React.createElement(X, {
@@ -2525,7 +2525,7 @@ function HeroView({
     className: "badge badge-primary gap-2 p-3 font-semibold mb-4 shadow-sm"
   }, /*#__PURE__*/React.createElement(Waves, {
     className: "w-4 h-4"
-  }), /*#__PURE__*/React.createElement("span", null, "RainDrop \u2014 Municipal GIS Urban Flood Intelligence Platform")), /*#__PURE__*/React.createElement("h1", {
+  }), /*#__PURE__*/React.createElement("span", null, "RainDrop — Municipal GIS Urban Flood Intelligence Platform")), /*#__PURE__*/React.createElement("h1", {
     className: "text-5xl font-extrabold md:text-7xl tracking-tight text-base-content"
   }, "Rain", /*#__PURE__*/React.createElement("span", {
     className: "text-primary"

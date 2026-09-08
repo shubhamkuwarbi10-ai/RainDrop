@@ -41,9 +41,6 @@
 
     <!-- Leaflet JS -->
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
-
-    <!-- Babel Standalone for Browser JSX Transpilation -->
-    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
 </head>
 <body class="bg-base-200 text-base-content min-h-screen font-sans">
     <div id="root">
@@ -58,33 +55,28 @@
     <script>
         (function() {
             function loadApp() {
-                fetch('/static/frontend.jsx?t=' + Date.now())
-                    .then(function(res) {
-                        if (!res.ok) throw new Error("HTTP error " + res.status);
-                        return res.text();
-                    })
-                    .then(function(source) {
-                        try {
-                            var transpiled = Babel.transform(source, {
-                                presets: [
-                                    ['react', { runtime: 'classic' }]
-                                ]
-                            }).code;
-                            
-                            // Execute in global scope
-                            var fn = new Function('React', 'ReactDOM', transpiled);
-                            fn(window.React, window.ReactDOM);
-                        } catch (err) {
-                            console.error("RainDrop script error:", err);
-                            var root = document.getElementById('root');
-                            if (root) {
-                                root.innerHTML = '<div style="padding:24px;background:#fef2f2;border:1px solid #f87171;border-radius:12px;margin:20px;color:#991b1b;font-family:sans-serif;"><h3 style="margin-top:0;">RainDrop Initialization Error:</h3><pre style="white-space:pre-wrap;font-size:12px;">' + err.stack + '</pre></div>';
-                            }
-                        }
-                    })
-                    .catch(function(err) {
-                        console.error("Failed to load frontend.jsx:", err);
-                    });
+                // First try loading pre-transpiled frontend.js for instant execution
+                var script = document.createElement('script');
+                script.src = '/static/frontend.js?v=' + Date.now();
+                script.onload = function() {
+                    console.log("RainDrop pre-compiled JS loaded successfully.");
+                };
+                script.onerror = function() {
+                    console.warn("frontend.js unavailable, falling back to runtime JSX transpilation...");
+                    var babelScript = document.createElement('script');
+                    babelScript.src = 'https://unpkg.com/@babel/standalone/babel.min.js';
+                    babelScript.onload = function() {
+                        fetch('/static/frontend.jsx?t=' + Date.now())
+                            .then(function(res) { return res.text(); })
+                            .then(function(source) {
+                                var transpiled = Babel.transform(source, { presets: [['react', { runtime: 'classic' }]] }).code;
+                                var fn = new Function('React', 'ReactDOM', transpiled);
+                                fn(window.React, window.ReactDOM);
+                            });
+                    };
+                    document.head.appendChild(babelScript);
+                };
+                document.body.appendChild(script);
             }
 
             if (document.readyState === 'loading') {
