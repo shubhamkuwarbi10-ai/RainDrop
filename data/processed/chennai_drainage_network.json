@@ -1,0 +1,815 @@
+{
+  "type": "FeatureCollection",
+  "city": "Chennai",
+  "city_key": "chennai",
+  "features": [
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            80.10067,
+            13.29933
+          ],
+          [
+            80.26678,
+            13.2969
+          ],
+          [
+            80.22849,
+            13.2942
+          ],
+          [
+            80.16269,
+            13.29151
+          ],
+          [
+            80.14031,
+            13.28881
+          ],
+          [
+            80.1751,
+            13.28612
+          ],
+          [
+            80.22498,
+            13.28342
+          ],
+          [
+            80.2568,
+            13.28073
+          ],
+          [
+            80.30237,
+            13.27803
+          ],
+          [
+            80.27163,
+            13.27534
+          ],
+          [
+            80.26408,
+            13.27264
+          ],
+          [
+            80.2994,
+            13.26995
+          ],
+          [
+            80.29293,
+            13.26725
+          ],
+          [
+            80.24979,
+            13.26456
+          ],
+          [
+            80.13114,
+            13.26186
+          ],
+          [
+            80.2301,
+            13.25943
+          ]
+        ]
+      },
+      "properties": {
+        "name": "Chennai Topographical Drain",
+        "type": "topographical_drain",
+        "source": "30m CartoDEM Hydro-Analysis"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            80.2301,
+            13.25943
+          ],
+          [
+            80.1724,
+            13.25674
+          ],
+          [
+            80.24359,
+            13.25404
+          ],
+          [
+            80.26651,
+            13.25135
+          ],
+          [
+            80.18076,
+            13.24865
+          ],
+          [
+            80.31235,
+            13.24623
+          ],
+          [
+            80.19856,
+            13.24353
+          ],
+          [
+            80.12117,
+            13.24084
+          ],
+          [
+            80.31585,
+            13.23841
+          ],
+          [
+            80.24817,
+            13.23571
+          ],
+          [
+            80.21473,
+            13.23302
+          ],
+          [
+            80.14139,
+            13.23032
+          ],
+          [
+            80.30318,
+            13.2279
+          ],
+          [
+            80.2239,
+            13.2252
+          ],
+          [
+            80.16054,
+            13.22251
+          ],
+          [
+            80.10283,
+            13.21981
+          ]
+        ]
+      },
+      "properties": {
+        "name": "Chennai Topographical Drain",
+        "type": "topographical_drain",
+        "source": "30m CartoDEM Hydro-Analysis"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            80.10283,
+            13.21981
+          ],
+          [
+            80.22282,
+            13.21739
+          ],
+          [
+            80.27352,
+            13.21496
+          ],
+          [
+            80.2239,
+            13.21253
+          ],
+          [
+            80.10903,
+            13.20984
+          ],
+          [
+            80.10607,
+            13.20714
+          ],
+          [
+            80.12926,
+            13.20445
+          ],
+          [
+            80.22849,
+            13.20175
+          ],
+          [
+            80.14678,
+            13.19879
+          ],
+          [
+            80.13815,
+            13.19582
+          ],
+          [
+            80.14732,
+            13.19286
+          ],
+          [
+            80.263,
+            13.19016
+          ],
+          [
+            80.23442,
+            13.18747
+          ],
+          [
+            80.26839,
+            13.18477
+          ],
+          [
+            80.30426,
+            13.18208
+          ],
+          [
+            80.30264,
+            13.17911
+          ]
+        ]
+      },
+      "properties": {
+        "name": "Chennai Topographical Drain",
+        "type": "topographical_drain",
+        "source": "30m CartoDEM Hydro-Analysis"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            80.30264,
+            13.17911
+          ],
+          [
+            80.28538,
+            13.17615
+          ],
+          [
+            80.30156,
+            13.17318
+          ],
+          [
+            80.12009,
+            13.16995
+          ],
+          [
+            80.21608,
+            13.16698
+          ],
+          [
+            80.1209,
+            13.16375
+          ],
+          [
+            80.17483,
+            13.16051
+          ],
+          [
+            80.10499,
+            13.15701
+          ],
+          [
+            80.25545,
+            13.15404
+          ],
+          [
+            80.11793,
+            13.15081
+          ],
+          [
+            80.22606,
+            13.14784
+          ],
+          [
+            80.20799,
+            13.14488
+          ],
+          [
+            80.19559,
+            13.14191
+          ],
+          [
+            80.15083,
+            13.13895
+          ],
+          [
+            80.22579,
+            13.13598
+          ],
+          [
+            80.26354,
+            13.13302
+          ]
+        ]
+      },
+      "properties": {
+        "name": "Chennai Topographical Drain",
+        "type": "topographical_drain",
+        "source": "30m CartoDEM Hydro-Analysis"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            80.26354,
+            13.13302
+          ],
+          [
+            80.14058,
+            13.12978
+          ],
+          [
+            80.10499,
+            13.12655
+          ],
+          [
+            80.26138,
+            13.12358
+          ],
+          [
+            80.15703,
+            13.12035
+          ],
+          [
+            80.13492,
+            13.11712
+          ],
+          [
+            80.17995,
+            13.11388
+          ],
+          [
+            80.13654,
+            13.11038
+          ],
+          [
+            80.21366,
+            13.10687
+          ],
+          [
+            80.18211,
+            13.10337
+          ],
+          [
+            80.28538,
+            13.10013
+          ],
+          [
+            80.22121,
+            13.09663
+          ],
+          [
+            80.13384,
+            13.09313
+          ],
+          [
+            80.19397,
+            13.08962
+          ],
+          [
+            80.13923,
+            13.08612
+          ],
+          [
+            80.24628,
+            13.08288
+          ]
+        ]
+      },
+      "properties": {
+        "name": "Chennai Topographical Drain",
+        "type": "topographical_drain",
+        "source": "30m CartoDEM Hydro-Analysis"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            80.24628,
+            13.08288
+          ],
+          [
+            80.24601,
+            13.07965
+          ],
+          [
+            80.1697,
+            13.07642
+          ],
+          [
+            80.16107,
+            13.07318
+          ],
+          [
+            80.11362,
+            13.06995
+          ],
+          [
+            80.287,
+            13.06698
+          ],
+          [
+            80.11577,
+            13.06348
+          ],
+          [
+            80.20341,
+            13.06024
+          ],
+          [
+            80.15137,
+            13.05674
+          ],
+          [
+            80.26705,
+            13.0535
+          ],
+          [
+            80.26624,
+            13.05027
+          ],
+          [
+            80.28295,
+            13.04704
+          ],
+          [
+            80.19694,
+            13.04353
+          ],
+          [
+            80.10957,
+            13.04003
+          ],
+          [
+            80.25761,
+            13.03679
+          ],
+          [
+            80.2204,
+            13.03302
+          ]
+        ]
+      },
+      "properties": {
+        "name": "Chennai Topographical Drain",
+        "type": "topographical_drain",
+        "source": "30m CartoDEM Hydro-Analysis"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            80.2204,
+            13.03302
+          ],
+          [
+            80.2479,
+            13.02925
+          ],
+          [
+            80.15919,
+            13.0252
+          ],
+          [
+            80.30453,
+            13.0217
+          ],
+          [
+            80.1848,
+            13.01792
+          ],
+          [
+            80.22282,
+            13.01361
+          ],
+          [
+            80.22444,
+            13.0093
+          ],
+          [
+            80.112,
+            13.00472
+          ],
+          [
+            80.16458,
+            13.00067
+          ],
+          [
+            80.19963,
+            12.99636
+          ],
+          [
+            80.23037,
+            12.99205
+          ],
+          [
+            80.13735,
+            12.98747
+          ],
+          [
+            80.13411,
+            12.98288
+          ],
+          [
+            80.19505,
+            12.97884
+          ],
+          [
+            80.18426,
+            12.9748
+          ],
+          [
+            80.11254,
+            12.97049
+          ]
+        ]
+      },
+      "properties": {
+        "name": "Chennai Topographical Drain",
+        "type": "topographical_drain",
+        "source": "30m CartoDEM Hydro-Analysis"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            80.11254,
+            12.97049
+          ],
+          [
+            80.20314,
+            12.96644
+          ],
+          [
+            80.20988,
+            12.96213
+          ],
+          [
+            80.17698,
+            12.95755
+          ],
+          [
+            80.12602,
+            12.95296
+          ],
+          [
+            80.12791,
+            12.94865
+          ],
+          [
+            80.11604,
+            12.94407
+          ],
+          [
+            80.10202,
+            12.93949
+          ],
+          [
+            80.20826,
+            12.93518
+          ],
+          [
+            80.10202,
+            12.93032
+          ],
+          [
+            80.21473,
+            12.92601
+          ],
+          [
+            80.11281,
+            12.92089
+          ],
+          [
+            80.20368,
+            12.91604
+          ],
+          [
+            80.16215,
+            12.91092
+          ],
+          [
+            80.10553,
+            12.9058
+          ],
+          [
+            80.20368,
+            12.90067
+          ]
+        ]
+      },
+      "properties": {
+        "name": "Chennai Topographical Drain",
+        "type": "topographical_drain",
+        "source": "30m CartoDEM Hydro-Analysis"
+      }
+    }
+  ],
+  "outburst_hotspots": {
+    "type": "FeatureCollection",
+    "features": [
+      {
+        "type": "Feature",
+        "geometry": {
+          "type": "Point",
+          "coordinates": [
+            80.1031,
+            13.29933
+          ]
+        },
+        "properties": {
+          "risk_level": "HIGH",
+          "depression_depth_m": 0.63,
+          "elevation_m": 189.0,
+          "flow_accumulation_score": 5.0,
+          "description": "Drainage bottleneck & potential outburst zone (0.6m depression)"
+        }
+      },
+      {
+        "type": "Feature",
+        "geometry": {
+          "type": "Point",
+          "coordinates": [
+            80.11362,
+            13.27156
+          ]
+        },
+        "properties": {
+          "risk_level": "HIGH",
+          "depression_depth_m": 0.16,
+          "elevation_m": 139.39,
+          "flow_accumulation_score": 5.0,
+          "description": "Drainage bottleneck & potential outburst zone (0.2m depression)"
+        }
+      },
+      {
+        "type": "Feature",
+        "geometry": {
+          "type": "Point",
+          "coordinates": [
+            80.30426,
+            13.24407
+          ]
+        },
+        "properties": {
+          "risk_level": "HIGH",
+          "depression_depth_m": 0.45,
+          "elevation_m": 14.7,
+          "flow_accumulation_score": 5.0,
+          "description": "Drainage bottleneck & potential outburst zone (0.4m depression)"
+        }
+      },
+      {
+        "type": "Feature",
+        "geometry": {
+          "type": "Point",
+          "coordinates": [
+            80.26354,
+            13.20876
+          ]
+        },
+        "properties": {
+          "risk_level": "HIGH",
+          "depression_depth_m": 0.1,
+          "elevation_m": 47.59,
+          "flow_accumulation_score": 5.0,
+          "description": "Drainage bottleneck & potential outburst zone (0.1m depression)"
+        }
+      },
+      {
+        "type": "Feature",
+        "geometry": {
+          "type": "Point",
+          "coordinates": [
+            80.27082,
+            13.17129
+          ]
+        },
+        "properties": {
+          "risk_level": "CRITICAL",
+          "depression_depth_m": 1.47,
+          "elevation_m": 7.5,
+          "flow_accumulation_score": 5.0,
+          "description": "Drainage bottleneck & potential outburst zone (1.5m depression)"
+        }
+      },
+      {
+        "type": "Feature",
+        "geometry": {
+          "type": "Point",
+          "coordinates": [
+            80.1147,
+            13.13221
+          ]
+        },
+        "properties": {
+          "risk_level": "CRITICAL",
+          "depression_depth_m": 1.82,
+          "elevation_m": 174.23,
+          "flow_accumulation_score": 5.0,
+          "description": "Drainage bottleneck & potential outburst zone (1.8m depression)"
+        }
+      },
+      {
+        "type": "Feature",
+        "geometry": {
+          "type": "Point",
+          "coordinates": [
+            80.21419,
+            13.09259
+          ]
+        },
+        "properties": {
+          "risk_level": "CRITICAL",
+          "depression_depth_m": 1.8,
+          "elevation_m": 51.07,
+          "flow_accumulation_score": 5.0,
+          "description": "Drainage bottleneck & potential outburst zone (1.8m depression)"
+        }
+      },
+      {
+        "type": "Feature",
+        "geometry": {
+          "type": "Point",
+          "coordinates": [
+            80.14975,
+            13.05728
+          ]
+        },
+        "properties": {
+          "risk_level": "HIGH",
+          "depression_depth_m": 0.62,
+          "elevation_m": 96.09,
+          "flow_accumulation_score": 5.0,
+          "description": "Drainage bottleneck & potential outburst zone (0.6m depression)"
+        }
+      },
+      {
+        "type": "Feature",
+        "geometry": {
+          "type": "Point",
+          "coordinates": [
+            80.23361,
+            13.01792
+          ]
+        },
+        "properties": {
+          "risk_level": "CRITICAL",
+          "depression_depth_m": 1.15,
+          "elevation_m": 2.99,
+          "flow_accumulation_score": 5.0,
+          "description": "Drainage bottleneck & potential outburst zone (1.1m depression)"
+        }
+      },
+      {
+        "type": "Feature",
+        "geometry": {
+          "type": "Point",
+          "coordinates": [
+            80.16081,
+            12.96456
+          ]
+        },
+        "properties": {
+          "risk_level": "CRITICAL",
+          "depression_depth_m": 2.15,
+          "elevation_m": 49.36,
+          "flow_accumulation_score": 5.0,
+          "description": "Drainage bottleneck & potential outburst zone (2.1m depression)"
+        }
+      },
+      {
+        "type": "Feature",
+        "geometry": {
+          "type": "Point",
+          "coordinates": [
+            80.20503,
+            12.90067
+          ]
+        },
+        "properties": {
+          "risk_level": "HIGH",
+          "depression_depth_m": 0.58,
+          "elevation_m": 9.01,
+          "flow_accumulation_score": 5.0,
+          "description": "Drainage bottleneck & potential outburst zone (0.6m depression)"
+        }
+      }
+    ]
+  }
+}

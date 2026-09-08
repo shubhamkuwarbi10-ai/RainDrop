@@ -262,5 +262,22 @@ def get_dem_summary(city: str = Query("chennai")):
             
     return CITY_TERRAINS[city_key]
 
+@app.get("/api/drainage/{city}")
+def get_drainage_network(city: str = "chennai"):
+    """Return actual storm drains, canals, and outburst risk hotspots for Chennai, Mumbai, or Delhi."""
+    city_key = city.lower().strip()
+    if city_key not in CITY_TERRAINS:
+        city_key = "chennai"
+
+    net_file = Path(__file__).parent.parent / "data" / "processed" / f"{city_key}_drainage_network.json"
+    if net_file.exists():
+        with open(net_file, "r", encoding="utf-8") as f:
+            return json.load(f)
+
+    # Fallback if network JSON is building
+    from pipeline.extract_drainage_network import extract_dem_drainage_channels
+    return extract_dem_drainage_channels(city_key)
+
+
 
 

@@ -34,6 +34,10 @@ data/processed/
 ├── delhi_dem_terrain.tif             # Delhi Master 5-Band GeoTIFF Raster
 ├── delhi_dem_summary.json            # Delhi Terrain Summary Statistics
 │
+├── chennai_drainage_network.json     # Chennai Canal/Drain Geometries & Outburst Hotspots
+├── mumbai_drainage_network.json      # Mumbai Canal/Drain Geometries & Outburst Hotspots
+├── delhi_drainage_network.json       # Delhi Canal/Drain Geometries & Outburst Hotspots
+│
 ├── forecast.tif                      # NASA IMERG 3D Sliced Precipitation Array
 ├── pysteps_forecast.tif              # pySTEPS Optical Flow 0-3h Precipitation Nowcast
 └── README.md                         # Processed Datasets Documentation
