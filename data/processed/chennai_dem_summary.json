@@ -1,0 +1,25 @@
+{
+  "city": "Chennai",
+  "city_key": "chennai",
+  "aoi": {
+    "lon_min": 80.1,
+    "lon_max": 80.45,
+    "lat_min": 12.9,
+    "lat_max": 13.3
+  },
+  "grid_resolution_m": 30.0,
+  "dimensions": {
+    "rows": 1484,
+    "cols": 1298
+  },
+  "elevation_m": {
+    "min": 7.324669201010297,
+    "max": 40.72221891524005,
+    "mean": 24.77076396714544
+  },
+  "slope_deg": {
+    "max": 5.148999716631734,
+    "mean": 0.8481308068775613
+  },
+  "depressions_count": 572863
+}

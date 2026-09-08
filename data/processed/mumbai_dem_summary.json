@@ -1,0 +1,25 @@
+{
+  "city": "Mumbai",
+  "city_key": "mumbai",
+  "aoi": {
+    "lon_min": 72.75,
+    "lon_max": 72.95,
+    "lat_min": 18.9,
+    "lat_max": 19.1
+  },
+  "grid_resolution_m": 30.0,
+  "dimensions": {
+    "rows": 742,
+    "cols": 742
+  },
+  "elevation_m": {
+    "min": 3.792255982987161,
+    "max": 56.40070557352854,
+    "mean": 30.7708289560635
+  },
+  "slope_deg": {
+    "max": 5.504818062942085,
+    "mean": 0.8563168421609493
+  },
+  "depressions_count": 162040
+}

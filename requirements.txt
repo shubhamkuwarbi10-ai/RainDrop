@@ -1,0 +1,23 @@
+# Core Data Science & Satellite Processing
+h5py>=3.9.0
+numpy>=1.24.0
+pandas>=2.0.0
+scipy>=1.10.0
+rasterio>=1.3.0
+shapely>=2.0.0
+geopandas>=0.13.0
+pysteps>=1.7.0
+
+# Machine Learning & Surrogate Model
+scikit-learn>=1.3.0
+xgboost>=2.0.0
+
+# Backend Web Server & PostGIS Database
+fastapi>=0.100.0
+uvicorn>=0.22.0
+requests>=2.31.0
+sqlalchemy>=2.0.0
+geoalchemy2>=0.14.0
+psycopg2-binary>=2.9.0
+python-dotenv>=1.0.0
+
