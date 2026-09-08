@@ -61,7 +61,7 @@ class FloodPrediction(Base):
     water_depth_cm: Mapped[float] = mapped_column(Float, nullable=False, default=0)
     valid_until: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
     road_id: Mapped[int | None] = mapped_column(ForeignKey("roads.id"))
-    geometry: Mapped[str | None] = mapped_column(Geometry("POLYGON", srid=4326))
+    geometry: Mapped[str | None] = mapped_column(Geometry("POINT", srid=4326))
 
 
 class Alert(Base):

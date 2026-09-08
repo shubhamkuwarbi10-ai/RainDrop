@@ -1,6 +1,6 @@
 from fastapi import APIRouter, Depends, Query, status
 from geoalchemy2.elements import WKTElement
-from sqlalchemy import select
+from sqlalchemy import func, select
 from sqlalchemy.orm import Session
 
 from app.db.session import get_db
@@ -46,15 +46,27 @@ def list_rainfall(
     limit: int = Query(default=100, ge=1, le=1000),
     db: Session = Depends(get_db),
 ):
-    records = db.scalars(select(Rainfall).order_by(Rainfall.observed_at.desc()).limit(limit)).all()
+    records = db.execute(
+        select(
+            Rainfall,
+            func.ST_Y(Rainfall.location).label("latitude"),
+            func.ST_X(Rainfall.location).label("longitude"),
+        )
+        .order_by(Rainfall.observed_at.desc())
+        .limit(limit)
+    ).all()
     return [
         RainfallResponse(
             id=record.id,
             observed_at=record.observed_at,
             amount_mm=record.amount_mm,
-            location=None,
+            location=(
+                GeoPoint(latitude=latitude, longitude=longitude)
+                if latitude is not None and longitude is not None
+                else None
+            ),
         )
-        for record in records
+        for record, latitude, longitude in records
     ]
 
 
@@ -78,7 +90,15 @@ def list_forecasts(
     limit: int = Query(default=100, ge=1, le=1000),
     db: Session = Depends(get_db),
 ):
-    records = db.scalars(select(Forecast).order_by(Forecast.forecast_at.desc()).limit(limit)).all()
+    records = db.execute(
+        select(
+            Forecast,
+            func.ST_Y(Forecast.location).label("latitude"),
+            func.ST_X(Forecast.location).label("longitude"),
+        )
+        .order_by(Forecast.forecast_at.desc())
+        .limit(limit)
+    ).all()
     return [
         ForecastResponse(
             id=record.id,
@@ -86,9 +106,13 @@ def list_forecasts(
             rainfall_mm=record.rainfall_mm,
             source=record.source,
             confidence=record.confidence,
-            location=None,
+            location=(
+                GeoPoint(latitude=latitude, longitude=longitude)
+                if latitude is not None and longitude is not None
+                else None
+            ),
         )
-        for record in records
+        for record, latitude, longitude in records
     ]
 
 

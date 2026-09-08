@@ -28,5 +28,11 @@ def initialize_database() -> None:
         connection.execute(text("ALTER TABLE flood_predictions ADD COLUMN IF NOT EXISTS water_depth_cm FLOAT NOT NULL DEFAULT 0"))
         connection.execute(text("ALTER TABLE flood_predictions ADD COLUMN IF NOT EXISTS valid_until TIMESTAMP WITH TIME ZONE"))
         connection.execute(text("ALTER TABLE flood_predictions ADD COLUMN IF NOT EXISTS road_id INTEGER REFERENCES roads(id)"))
+        connection.execute(text(
+            "ALTER TABLE flood_predictions "
+            "ALTER COLUMN geometry TYPE geometry(POINT, 4326) "
+            "USING CASE WHEN GeometryType(geometry) IN ('POLYGON', 'MULTIPOLYGON') "
+            "THEN ST_Centroid(geometry) ELSE geometry END"
+        ))
         connection.execute(text("ALTER TABLE alerts ADD COLUMN IF NOT EXISTS expires_at TIMESTAMP WITH TIME ZONE"))
         connection.execute(text("ALTER TABLE alerts ADD COLUMN IF NOT EXISTS geometry geometry(POINT, 4326)"))

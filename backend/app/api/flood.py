@@ -1,6 +1,6 @@
 from fastapi import APIRouter, Depends, Query, status
 from geoalchemy2.elements import WKTElement
-from sqlalchemy import select
+from sqlalchemy import func, select
 from sqlalchemy.orm import Session
 
 from app.db.session import get_db
@@ -10,6 +10,7 @@ from app.schemas.common import (
     AlertResponse,
     FloodPredictionCreate,
     FloodPredictionResponse,
+    GeoPoint,
 )
 
 
@@ -52,10 +53,14 @@ def list_flood_predictions(
     limit: int = Query(default=100, ge=1, le=1000),
     db: Session = Depends(get_db),
 ):
-    query = select(FloodPrediction).order_by(FloodPrediction.predicted_at.desc()).limit(limit)
+    query = select(
+        FloodPrediction,
+        func.ST_Y(FloodPrediction.geometry).label("latitude"),
+        func.ST_X(FloodPrediction.geometry).label("longitude"),
+    ).order_by(FloodPrediction.predicted_at.desc()).limit(limit)
     if risk_level:
         query = query.where(FloodPrediction.risk_level == risk_level)
-    records = db.scalars(query).all()
+    records = db.execute(query).all()
     return [
         FloodPredictionResponse(
             id=record.id,
@@ -64,9 +69,13 @@ def list_flood_predictions(
             risk_level=record.risk_level,
             valid_until=record.valid_until,
             road_id=record.road_id,
-            location=None,
+            location=(
+                GeoPoint(latitude=latitude, longitude=longitude)
+                if latitude is not None and longitude is not None
+                else None
+            ),
         )
-        for record in records
+        for record, latitude, longitude in records
     ]
 
 
@@ -94,10 +103,14 @@ def list_alerts(
     limit: int = Query(default=100, ge=1, le=1000),
     db: Session = Depends(get_db),
 ):
-    query = select(Alert).order_by(Alert.created_at.desc()).limit(limit)
+    query = select(
+        Alert,
+        func.ST_Y(Alert.geometry).label("latitude"),
+        func.ST_X(Alert.geometry).label("longitude"),
+    ).order_by(Alert.created_at.desc()).limit(limit)
     if severity:
         query = query.where(Alert.severity == severity)
-    records = db.scalars(query).all()
+    records = db.execute(query).all()
     return [
         AlertResponse(
             id=record.id,
@@ -105,7 +118,11 @@ def list_alerts(
             message=record.message,
             created_at=record.created_at,
             expires_at=record.expires_at,
-            location=None,
+            location=(
+                GeoPoint(latitude=latitude, longitude=longitude)
+                if latitude is not None and longitude is not None
+                else None
+            ),
         )
-        for record in records
+        for record, latitude, longitude in records
     ]
