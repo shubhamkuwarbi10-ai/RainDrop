@@ -5,7 +5,9 @@ from app.models.tables import (
     FloodPrediction,
     Forecast,
     Rainfall,
+    RadarRainfallGrid,
     Road,
+    TerrainDataset,
 )
 
 __all__ = [
@@ -15,5 +17,7 @@ __all__ = [
     "FloodPrediction",
     "Forecast",
     "Rainfall",
+    "RadarRainfallGrid",
     "Road",
+    "TerrainDataset",
 ]
