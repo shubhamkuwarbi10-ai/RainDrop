@@ -48,6 +48,7 @@ const X = getIcon("X");
 const Clock = getIcon("Clock");
 const Droplets = getIcon("Droplets");
 const ChevronDown = getIcon("ChevronDown");
+const ChevronUp = getIcon("ChevronUp");
 const ArrowLeft = getIcon("ArrowLeft");
 const Waves = getIcon("Waves");
 const AlertTriangle = getIcon("AlertTriangle");
