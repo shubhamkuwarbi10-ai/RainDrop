@@ -196,6 +196,9 @@
                 const res = await fetch(`/api/dem/summary?city=${cityKey}`);
                 const data = await res.json();
                 
+                const isReal = data.dem_source ? data.dem_source.is_real_dem : false;
+                const sourceLabel = data.dem_source ? data.dem_source.label : (isReal ? "Real ISRO Bhuvan CartoDEM 30m" : "Synthetic / Fitted 30m Baseline");
+
                 document.getElementById('legend-title').innerText = `🗺️ CartoDEM 30m: ${data.city || cityKey.toUpperCase()}`;
                 let infoHtml = `
                     <div style="display:grid; grid-template-columns:1fr 1fr; gap:6px; margin-top:6px;">
@@ -205,6 +208,9 @@
                         <div>Grid Cells: <strong>${data.dimensions ? data.dimensions.rows + '×' + data.dimensions.cols : 'N/A'}</strong></div>
                     </div>
                     <div style="margin-top:6px; color:#a5f3fc;">Depression Sinks: <strong>${data.depressions_count ? data.depressions_count.toLocaleString() : 'N/A'}</strong></div>
+                    <div style="margin-top:8px; padding:4px 8px; border-radius:6px; font-size:0.78em; font-weight:600; background:${isReal ? '#065f46' : '#854d0e'}; color:${isReal ? '#a7f3d0' : '#fef08a'};">
+                        ${isReal ? '🛰️ ' : '⚠️ '}${sourceLabel}
+                    </div>
                 `;
                 document.getElementById('dem-info').innerHTML = infoHtml;
             } catch(e) {
@@ -307,8 +313,11 @@
 
                     if (data.terrain_profile) {
                         const tp = data.terrain_profile;
-                        popupContent += `<div style="margin-bottom: 8px; padding: 6px 8px; background: #f0fdf4; border: 1px solid #bbf7d0; border-radius: 6px; font-size: 0.8em; color: #166534;">
-                            <strong>🏔️ CartoDEM Terrain:</strong> Slope: ${tp.slope_deg.toFixed(2)}°, Elev: ${tp.elevation_m.toFixed(1)}m
+                        const isReal = tp.is_real_dem;
+                        const label = tp.dem_source_label || (isReal ? 'Real ISRO CartoDEM 30m' : 'Synthetic 30m Baseline');
+                        popupContent += `<div style="margin-bottom: 8px; padding: 6px 8px; background: ${isReal ? '#f0fdf4' : '#fefce8'}; border: 1px solid ${isReal ? '#bbf7d0' : '#fef08a'}; border-radius: 6px; font-size: 0.8em; color: ${isReal ? '#166534' : '#854d0e'};">
+                            <div><strong>🏔️ CartoDEM Terrain:</strong> Slope: ${tp.slope_deg.toFixed(2)}°, Elev: ${tp.elevation_m.toFixed(1)}m</div>
+                            <div style="font-size: 0.75em; margin-top: 3px; font-weight: 600;">${isReal ? '🛰️ ' : '⚠️ '}${label}</div>
                         </div>`;
                     }
 

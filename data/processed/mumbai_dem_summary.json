@@ -13,13 +13,17 @@
     "cols": 742
   },
   "elevation_m": {
-    "min": 3.792255982987161,
-    "max": 56.40070557352854,
-    "mean": 30.7708289560635
+    "min": 3.2340777109873997,
+    "max": 56.7667134095268,
+    "mean": 30.76952063711548
   },
   "slope_deg": {
-    "max": 5.504818062942085,
-    "mean": 0.8563168421609493
+    "max": 5.829181164750913,
+    "mean": 0.8565616708961611
   },
-  "depressions_count": 162040
+  "depressions_count": 162139,
+  "dem_source": {
+    "is_real_dem": false,
+    "label": "Synthetic / Fitted Baseline (Awaiting Real Satellite Tile)"
+  }
 }

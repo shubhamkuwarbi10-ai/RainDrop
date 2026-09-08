@@ -113,40 +113,63 @@ def process_city_cartodem(city_key: str, output_dir: str = "data/processed", res
 
     logging.info(f"--- Processing 30m CartoDEM for {cfg['name']} ({rows}x{cols} cells) ---")
     
-    # Check for raw real Bhuvan CartoDEM .tif tiles in data/raw/cartodem/
+    # Check for raw real Bhuvan CartoDEM .tif or .zip tiles
     raw_cartodem_dir = Path(__file__).parent.parent / "data" / "raw" / "cartodem"
+    zips_dir = Path(__file__).parent.parent / "dataset" / "DEM data"
+    if not zips_dir.exists():
+        zips_dir = Path(__file__).parent.parent / "data" / "raw" / "cartodem_zips"
+        
     real_dem_loaded = False
     
-    if HAS_RASTERIO and raw_cartodem_dir.exists():
-        raw_tifs = list(raw_cartodem_dir.glob("*.tif"))
-        if raw_tifs:
-            try:
-                # Find tiles that intersect target bounding box
-                overlapping = []
-                for f in raw_tifs:
+    if HAS_RASTERIO:
+        try:
+            import zipfile, io
+            from rasterio.merge import merge
+            
+            matching_sources = []
+            
+            # Check uncompressed tifs
+            if raw_cartodem_dir.exists():
+                for f in raw_cartodem_dir.glob("*.tif"):
                     with rasterio.open(f) as src:
                         b = src.bounds
-                        if not (b.right < lon_min or b.left > lon_max or b.top < lat_min or b.bottom > lat_max):
-                            overlapping.append(f)
+                        if not (b.right < (lon_min - 0.25) or b.left > (lon_max + 0.25) or b.top < (lat_min - 0.25) or b.bottom > (lat_max + 0.25)):
+                            matching_sources.append(f)
+                            
+            # Check zip archives if no uncompressed tif found
+            if not matching_sources and zips_dir.exists():
+                for zf in zips_dir.glob("*.zip"):
+                    try:
+                        with zipfile.ZipFile(zf, 'r') as z:
+                            tifs = [name for name in z.namelist() if name.endswith('.tif') and not name.startswith('__MACOSX') and '_dem_' not in name]
+                            for tname in tifs:
+                                data = z.read(tname)
+                                with rasterio.open(io.BytesIO(data)) as src:
+                                    b = src.bounds
+                                    if not (b.right < (lon_min - 0.25) or b.left > (lon_max + 0.25) or b.top < (lat_min - 0.25) or b.bottom > (lat_max + 0.25)):
+                                        matching_sources.append(io.BytesIO(data))
+                    except Exception:
+                        pass
+                        
+            if matching_sources:
+                srcs = [rasterio.open(s) for s in matching_sources]
+                mosaic, out_trans = merge(srcs)
+                for s in srcs: s.close()
                 
-                if overlapping:
-                    from rasterio.merge import merge
-                    srcs = [rasterio.open(f) for f in overlapping]
-                    mosaic, out_trans = merge(srcs, bounds=(lon_min, lat_min, lon_max, lat_max))
-                    for s in srcs: s.close()
-                    
-                    elev_data = mosaic[0].astype(np.float32)
-                    elev_data[elev_data < -100] = np.nan
-                    valid_mean = float(np.nanmean(elev_data)) if not np.isnan(np.nanmean(elev_data)) else cfg["base_elevation"]
-                    elev_data = np.nan_to_num(elev_data, nan=valid_mean)
-                    elev_data[elev_data <= 0] = 0.5
-                    
-                    if elev_data.shape == (rows, cols):
-                        elevation = elev_data
-                        real_dem_loaded = True
-                        logging.info(f"Successfully loaded real ISRO Bhuvan CartoDEM v3 tile mosaic for {cfg['name']}!")
-            except Exception as e:
-                logging.warning(f"Could not crop raw CartoDEM mosaic for {cfg['name']} directly ({e}); using trend-fitted 30m grid.")
+                elev_data = mosaic[0].astype(np.float32)
+                elev_data[elev_data < -100] = np.nan
+                valid_mean = float(np.nanmean(elev_data)) if not np.isnan(np.nanmean(elev_data)) else cfg["base_elevation"]
+                elev_data = np.nan_to_num(elev_data, nan=valid_mean)
+                elev_data[elev_data <= 0] = 0.5
+                
+                # Resize elevation grid to required rows x cols
+                from scipy.ndimage import zoom
+                zoom_factors = (rows / elev_data.shape[0], cols / elev_data.shape[1])
+                elevation = zoom(elev_data, zoom_factors, order=1)
+                real_dem_loaded = True
+                logging.info(f"Successfully loaded real ISRO Bhuvan CartoDEM v3 satellite mosaic for {cfg['name']}!")
+        except Exception as e:
+            logging.warning(f"Could not crop raw CartoDEM mosaic for {cfg['name']} ({e}); using trend-fitted 30m grid.")
 
     if not real_dem_loaded:
         np.random.seed(hash(city_key) % 10000)
@@ -205,11 +228,15 @@ def process_city_cartodem(city_key: str, output_dir: str = "data/processed", res
         "dimensions": {"rows": rows, "cols": cols},
         "elevation_m": {"min": float(np.min(elevation)), "max": float(np.max(elevation)), "mean": float(np.mean(elevation))},
         "slope_deg": {"max": float(np.max(slope)), "mean": float(np.mean(slope))},
-        "depressions_count": int(np.sum(depressions > 0.1))
+        "depressions_count": int(np.sum(depressions > 0.1)),
+        "dem_source": {
+            "is_real_dem": real_dem_loaded,
+            "label": "Real ISRO Bhuvan CartoDEM 30m" if real_dem_loaded else "Synthetic / Fitted Baseline (Awaiting Real Satellite Tile)"
+        }
     }
     out_json = out_path / f"{city_key}_dem_summary.json"
     out_json.write_text(json.dumps(summary, indent=2), encoding="utf-8")
-    logging.info(f"Saved {cfg['name']} DEM terrain summary to {out_json}")
+    logging.info(f"Saved {cfg['name']} DEM terrain summary (Real={real_dem_loaded}) to {out_json}")
     return summary
 
 def process_all_cities():

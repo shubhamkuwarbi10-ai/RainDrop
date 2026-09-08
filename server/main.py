@@ -30,9 +30,9 @@ SURROGATE_MODEL_FILE = Path(__file__).parent.parent / "models" / "artifacts" / "
 
 # Multi-City CartoDEM Terrain Profiles
 CITY_TERRAINS = {
-    "chennai": {"name": "Chennai", "lat_min": 12.90, "lat_max": 13.30, "lon_min": 80.10, "lon_max": 80.45, "slope": 0.75, "elevation": 12.94, "impermeability": 65.0},
-    "mumbai": {"name": "Mumbai", "lat_min": 18.90, "lat_max": 19.10, "lon_min": 72.75, "lon_max": 72.95, "slope": 1.85, "elevation": 8.50, "impermeability": 75.0},
-    "delhi": {"name": "Delhi", "lat_min": 28.40, "lat_max": 29.00, "lon_min": 76.80, "lon_max": 77.40, "slope": 0.45, "elevation": 215.0, "impermeability": 60.0}
+    "chennai": {"name": "Chennai", "lat_min": 12.90, "lat_max": 13.30, "lon_min": 80.10, "lon_max": 80.45, "slope": 0.75, "elevation": 12.94, "impermeability": 65.0, "is_real_dem": True, "dem_source_label": "Real ISRO Bhuvan CartoDEM 30m Satellite Data"},
+    "mumbai": {"name": "Mumbai", "lat_min": 18.90, "lat_max": 19.10, "lon_min": 72.75, "lon_max": 72.95, "slope": 1.85, "elevation": 8.50, "impermeability": 75.0, "is_real_dem": False, "dem_source_label": "Synthetic / Fitted 30m Baseline (Awaiting Satellite Tile)"},
+    "delhi": {"name": "Delhi", "lat_min": 28.40, "lat_max": 29.00, "lon_min": 76.80, "lon_max": 77.40, "slope": 0.45, "elevation": 215.0, "impermeability": 60.0, "is_real_dem": False, "dem_source_label": "Synthetic / Fitted 30m Baseline (Awaiting Satellite Tile)"}
 }
 
 for city_key, profile in CITY_TERRAINS.items():
@@ -43,7 +43,10 @@ for city_key, profile in CITY_TERRAINS.items():
                 sdata = json.load(f)
                 profile["slope"] = sdata.get("slope_deg", {}).get("mean", profile["slope"])
                 profile["elevation"] = sdata.get("elevation_m", {}).get("mean", profile["elevation"])
-                print(f"Loaded 30m CartoDEM Profile for {profile['name']}: Slope={profile['slope']:.2f}°, Elev={profile['elevation']:.2f}m")
+                dem_src = sdata.get("dem_source", {})
+                profile["is_real_dem"] = dem_src.get("is_real_dem", profile["is_real_dem"])
+                profile["dem_source_label"] = dem_src.get("label", profile["dem_source_label"])
+                print(f"Loaded 30m CartoDEM Profile for {profile['name']}: Slope={profile['slope']:.2f}°, Elev={profile['elevation']:.2f}m, Real={profile['is_real_dem']}")
         except Exception as e:
             print(f"Error loading {city_key} DEM summary: {e}")
 
@@ -229,7 +232,9 @@ def predict_rainfall(lat: float = Query(...), lon: float = Query(...)):
             "city": city_terrain["name"],
             "slope_deg": city_terrain["slope"],
             "elevation_m": city_terrain["elevation"],
-            "impermeability_pct": city_terrain["impermeability"]
+            "impermeability_pct": city_terrain["impermeability"],
+            "is_real_dem": city_terrain.get("is_real_dem", False),
+            "dem_source_label": city_terrain.get("dem_source_label", "Synthetic / Fitted 30m Baseline")
         },
         "current_weather": open_meteo_res.get("current") if open_meteo_res.get("success") else None,
         "forecast": {

@@ -13,13 +13,17 @@
     "cols": 1298
   },
   "elevation_m": {
-    "min": 7.324669201010297,
-    "max": 40.72221891524005,
-    "mean": 24.77076396714544
+    "min": 0.5,
+    "max": 954.0011596679688,
+    "mean": 46.56965637207031
   },
   "slope_deg": {
-    "max": 5.148999716631734,
-    "mean": 0.8481308068775613
+    "max": 72.9123306274414,
+    "mean": 3.651770830154419
   },
-  "depressions_count": 572863
+  "depressions_count": 1001505,
+  "dem_source": {
+    "is_real_dem": true,
+    "label": "Real ISRO Bhuvan CartoDEM 30m"
+  }
 }
