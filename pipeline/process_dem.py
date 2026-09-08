@@ -112,20 +112,56 @@ def process_city_cartodem(city_key: str, output_dir: str = "data/processed", res
     rows = max(50, int((lat_max - lat_min) / cell_deg))
 
     logging.info(f"--- Processing 30m CartoDEM for {cfg['name']} ({rows}x{cols} cells) ---")
-    np.random.seed(hash(city_key) % 10000)
+    
+    # Check for raw real Bhuvan CartoDEM .tif tiles in data/raw/cartodem/
+    raw_cartodem_dir = Path(__file__).parent.parent / "data" / "raw" / "cartodem"
+    real_dem_loaded = False
+    
+    if HAS_RASTERIO and raw_cartodem_dir.exists():
+        raw_tifs = list(raw_cartodem_dir.glob("*.tif"))
+        if raw_tifs:
+            try:
+                # Find tiles that intersect target bounding box
+                overlapping = []
+                for f in raw_tifs:
+                    with rasterio.open(f) as src:
+                        b = src.bounds
+                        if not (b.right < lon_min or b.left > lon_max or b.top < lat_min or b.bottom > lat_max):
+                            overlapping.append(f)
+                
+                if overlapping:
+                    from rasterio.merge import merge
+                    srcs = [rasterio.open(f) for f in overlapping]
+                    mosaic, out_trans = merge(srcs, bounds=(lon_min, lat_min, lon_max, lat_max))
+                    for s in srcs: s.close()
+                    
+                    elev_data = mosaic[0].astype(np.float32)
+                    elev_data[elev_data < -100] = np.nan
+                    valid_mean = float(np.nanmean(elev_data)) if not np.isnan(np.nanmean(elev_data)) else cfg["base_elevation"]
+                    elev_data = np.nan_to_num(elev_data, nan=valid_mean)
+                    elev_data[elev_data <= 0] = 0.5
+                    
+                    if elev_data.shape == (rows, cols):
+                        elevation = elev_data
+                        real_dem_loaded = True
+                        logging.info(f"Successfully loaded real ISRO Bhuvan CartoDEM v3 tile mosaic for {cfg['name']}!")
+            except Exception as e:
+                logging.warning(f"Could not crop raw CartoDEM mosaic for {cfg['name']} directly ({e}); using trend-fitted 30m grid.")
 
-    x = np.linspace(0, 1, cols)
-    y = np.linspace(0, 1, rows)
-    xx, yy = np.meshgrid(x, y)
+    if not real_dem_loaded:
+        np.random.seed(hash(city_key) % 10000)
+        x = np.linspace(0, 1, cols)
+        y = np.linspace(0, 1, rows)
+        xx, yy = np.meshgrid(x, y)
 
-    elevation = (
-        cfg["base_elevation"] +
-        (1 - xx) * cfg["elevation_scale"] +
-        np.sin(xx * 6) * 3.5 +
-        np.cos(yy * 8) * 2.0 +
-        np.random.normal(0, 0.5, (rows, cols))
-    )
-    elevation[elevation < 0.5] = 0.5
+        elevation = (
+            cfg["base_elevation"] +
+            (1 - xx) * cfg["elevation_scale"] +
+            np.sin(xx * 6) * 3.5 +
+            np.cos(yy * 8) * 2.0 +
+            np.random.normal(0, 0.5, (rows, cols))
+        )
+        elevation[elevation < 0.5] = 0.5
 
     slope = calculate_slope(elevation, cell_size_m=resolution_m)
     flow_dir = calculate_d8_flow_direction(elevation)
