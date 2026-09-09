@@ -75,6 +75,7 @@ const Check = getIcon("Check");
 const Crosshair = getIcon("Crosshair");
 const Printer = getIcon("Printer");
 const Copy = getIcon("Copy");
+const Search = getIcon("Search");
 const Power = getIcon("Power");
 const EyeOff = getIcon("EyeOff");
 const Route = getIcon("Route", (
@@ -90,9 +91,11 @@ const Route = getIcon("Route", (
 // ============================================================================
 
 const WARDS_DATA = {
+    // --- MUMBAI WARDS ---
     "Kurla West": {
         code: "Ward 184-L",
         name: "Kurla West",
+        city: "Mumbai",
         riskLevel: "HIGH RISK",
         riskColor: "text-rose-400 bg-rose-500/10 border-rose-500/30",
         riverName: "Mithi River Corridor",
@@ -131,6 +134,7 @@ const WARDS_DATA = {
     "Kurla East": {
         code: "Ward 185-L",
         name: "Kurla East",
+        city: "Mumbai",
         riskLevel: "MODERATE RISK",
         riskColor: "text-amber-400 bg-amber-500/10 border-amber-500/30",
         riverName: "Eastern Nullah Trunk",
@@ -153,6 +157,7 @@ const WARDS_DATA = {
     "Chembur": {
         code: "Ward 152-M",
         name: "Chembur",
+        city: "Mumbai",
         riskLevel: "MODERATE RISK",
         riskColor: "text-amber-400 bg-amber-500/10 border-amber-500/30",
         riverName: "Mahul Creek Drainage",
@@ -173,6 +178,7 @@ const WARDS_DATA = {
     "Vikhroli": {
         code: "Ward 121-S",
         name: "Vikhroli",
+        city: "Mumbai",
         riskLevel: "LOW RISK",
         riskColor: "text-emerald-400 bg-emerald-500/10 border-emerald-500/30",
         riverName: "Thane Creek Spillway",
@@ -192,6 +198,7 @@ const WARDS_DATA = {
     "Andheri West": {
         code: "Ward 064-K",
         name: "Andheri West",
+        city: "Mumbai",
         riskLevel: "HIGH RISK",
         riskColor: "text-rose-400 bg-rose-500/10 border-rose-500/30",
         riverName: "Oshiwara River Basin",
@@ -207,6 +214,126 @@ const WARDS_DATA = {
             { id: 3, name: "Gilbert Hill Foothill Runoff", baseDepth: 22, elevation: 6.7, coords: "19.121, 72.838" },
             { id: 4, name: "DN Nagar Metro Depot", baseDepth: 10, elevation: 8.1, coords: "19.126, 72.831" },
             { id: 5, name: "Lokhandwala Back Road", baseDepth: 16, elevation: 7.0, coords: "19.141, 72.825" },
+        ],
+    },
+
+    // --- CHENNAI WARDS ---
+    "Chennai Central (Adyar)": {
+        code: "Ward 170-Adyar",
+        name: "Chennai Central (Adyar)",
+        city: "Chennai",
+        riskLevel: "HIGH RISK",
+        riskColor: "text-rose-400 bg-rose-500/10 border-rose-500/30",
+        riverName: "Adyar River Basin",
+        riverLevel: 4.12,
+        dangerLevel: 4.50,
+        rainfallForecast: "62 mm",
+        activePumps: "14 / 16",
+        evacShelters: "6 Active (78% cap)",
+        sectors: [
+            { id: 0, name: "Kotturpuram Lowland Causeway", baseDepth: 44, elevation: 3.2, coords: "13.022, 80.241" },
+            { id: 1, name: "Saidapet Bridge Approach", baseDepth: 38, elevation: 4.5, coords: "13.028, 80.224" },
+            { id: 2, name: "Velachery Main Road Junction", baseDepth: 52, elevation: 2.8, coords: "12.981, 80.218" },
+            { id: 3, name: "Jafferkhanpet Canal Outlet", baseDepth: 36, elevation: 4.1, coords: "13.033, 80.209" },
+            { id: 4, name: "Guindy Industrial Flyover Link", baseDepth: 6, elevation: 9.4, coords: "13.010, 80.212" },
+        ],
+    },
+    "Chennai North (Otteri)": {
+        code: "Ward 074-Otteri",
+        name: "Chennai North (Otteri)",
+        city: "Chennai",
+        riskLevel: "MODERATE RISK",
+        riskColor: "text-amber-400 bg-amber-500/10 border-amber-500/30",
+        riverName: "Otteri Nullah Channel",
+        riverLevel: 2.85,
+        dangerLevel: 3.40,
+        rainfallForecast: "48 mm",
+        activePumps: "10 / 12",
+        evacShelters: "4 Active (52% cap)",
+        sectors: [
+            { id: 0, name: "Pulianthope Lowland Canal", baseDepth: 32, elevation: 3.8, coords: "13.097, 80.264" },
+            { id: 1, name: "Basin Bridge Junction Sump", baseDepth: 40, elevation: 3.1, coords: "13.104, 80.272" },
+            { id: 2, name: "Vysarpadi Subway Underpass", baseDepth: 48, elevation: 2.5, coords: "13.111, 80.258" },
+            { id: 3, name: "Perambur High Road Railway Crossing", baseDepth: 18, elevation: 6.2, coords: "13.108, 80.245" },
+        ],
+    },
+    "T. Nagar (Cooum)": {
+        code: "Ward 113-Cooum",
+        name: "T. Nagar (Cooum)",
+        city: "Chennai",
+        riskLevel: "HIGH RISK",
+        riskColor: "text-rose-400 bg-rose-500/10 border-rose-500/30",
+        riverName: "Cooum River Spillway",
+        riverLevel: 3.90,
+        dangerLevel: 4.20,
+        rainfallForecast: "58 mm",
+        activePumps: "12 / 12",
+        evacShelters: "5 Active (68% cap)",
+        sectors: [
+            { id: 0, name: "Usman Road Underpass", baseDepth: 46, elevation: 3.4, coords: "13.041, 80.233" },
+            { id: 1, name: "G N Chetty Road Drainage Sump", baseDepth: 30, elevation: 4.8, coords: "13.048, 80.242" },
+            { id: 2, name: "Mambalam Canal Outfall", baseDepth: 42, elevation: 3.6, coords: "13.036, 80.228" },
+            { id: 3, name: "Valluvar Kottam High Ridge", baseDepth: 4, elevation: 10.2, coords: "13.055, 80.240" },
+        ],
+    },
+
+    // --- DELHI WARDS ---
+    "Yamuna Floodplain (ITO)": {
+        code: "NCR Ward 042-ITO",
+        name: "Yamuna Floodplain (ITO)",
+        city: "Delhi",
+        riskLevel: "HIGH RISK",
+        riskColor: "text-rose-400 bg-rose-500/10 border-rose-500/30",
+        riverName: "Yamuna River Main Trunk",
+        riverLevel: 205.80,
+        dangerLevel: 205.33,
+        rainfallForecast: "50 mm",
+        activePumps: "18 / 20",
+        evacShelters: "8 Active (85% cap)",
+        sectors: [
+            { id: 0, name: "ITO Ring Road Underpass", baseDepth: 55, elevation: 202.1, coords: "28.628, 77.248" },
+            { id: 1, name: "Kashmere Gate ISBT Ramp", baseDepth: 42, elevation: 203.4, coords: "28.667, 77.228" },
+            { id: 2, name: "Loha Pul Yamuna Bank", baseDepth: 60, elevation: 201.8, coords: "28.656, 77.245" },
+            { id: 3, name: "Rajghat Lowland Overflow", baseDepth: 35, elevation: 203.9, coords: "28.641, 77.249" },
+            { id: 4, name: "Vikas Marg Flyover Bypass", baseDepth: 8, elevation: 211.5, coords: "28.631, 77.255" },
+        ],
+    },
+    "Najafgarh Basin": {
+        code: "NCR Ward 108-NJF",
+        name: "Najafgarh Basin",
+        city: "Delhi",
+        riskLevel: "MODERATE RISK",
+        riskColor: "text-amber-400 bg-amber-500/10 border-amber-500/30",
+        riverName: "Najafgarh Drain Channel",
+        riverLevel: 204.10,
+        dangerLevel: 205.00,
+        rainfallForecast: "36 mm",
+        activePumps: "12 / 14",
+        evacShelters: "4 Active (45% cap)",
+        sectors: [
+            { id: 0, name: "Dwarka Sector 8 Underpass", baseDepth: 38, elevation: 203.8, coords: "28.571, 77.068" },
+            { id: 1, name: "Uttam Nagar Drain Outfall", baseDepth: 28, elevation: 204.5, coords: "28.622, 77.058" },
+            { id: 2, name: "Kakrola Regulator Sump", baseDepth: 32, elevation: 204.1, coords: "28.610, 77.039" },
+            { id: 3, name: "Najafgarh Main Chowk Ridge", baseDepth: 10, elevation: 209.2, coords: "28.609, 76.985" },
+        ],
+    },
+    "Barapullah Corridor": {
+        code: "NCR Ward 088-BRP",
+        name: "Barapullah Corridor",
+        city: "Delhi",
+        riskLevel: "MODERATE RISK",
+        riskColor: "text-amber-400 bg-amber-500/10 border-amber-500/30",
+        riverName: "Barapullah Nallah",
+        riverLevel: 204.30,
+        dangerLevel: 205.20,
+        rainfallForecast: "40 mm",
+        activePumps: "10 / 10",
+        evacShelters: "3 Active (38% cap)",
+        sectors: [
+            { id: 0, name: "Nizamuddin Railway Subway", baseDepth: 45, elevation: 203.0, coords: "28.591, 77.252" },
+            { id: 1, name: "Jangpura Nallah Culvert", baseDepth: 26, elevation: 205.2, coords: "28.582, 77.241" },
+            { id: 2, name: "AIIMS Flyover Underpass", baseDepth: 34, elevation: 204.6, coords: "28.567, 77.210" },
+            { id: 3, name: "Barapullah Elevated Expressway", baseDepth: 0, elevation: 215.0, coords: "28.585, 77.230" },
         ],
     },
 };
@@ -416,6 +543,7 @@ function WaterDepthWave({ depth, maxDepth = 60 }) {
 function RainDrop() {
     const [view, setView] = useState("hero"); // 'hero' | 'command'
     const [activeTab, setActiveTab] = useState("telemetry"); // 'telemetry' | 'routes' | 'scenario' | 'map'
+    const [selectedCity, setSelectedCity] = useState("All Cities"); // 'All Cities' | 'Chennai' | 'Mumbai' | 'Delhi'
     const [ward, setWard] = useState("Kurla West");
     const [wardOpen, setWardOpen] = useState(false);
     const [toasts, setToasts] = useState([]);
@@ -806,13 +934,17 @@ function RainDrop() {
             ) : (
                 <div className="relative z-10 max-w-[1600px] mx-auto px-3 sm:px-6 py-4 flex flex-col min-h-screen">
                     <TopNavbar
+                        selectedCity={selectedCity}
+                        setSelectedCity={setSelectedCity}
                         ward={ward}
                         wardOpen={wardOpen}
                         setWardOpen={setWardOpen}
                         setWard={setWard}
+                        setSelectedSector={setSelectedSector}
                         soundEnabled={soundEnabled}
                         setSoundEnabled={setSoundEnabled}
                         isMapEnabled={isMapEnabled}
+                        setIsMapEnabled={setIsMapEnabled}
                         onToggleMap={() => (isMapEnabled ? handleDisableMap() : handleEnableMap())}
                         onOpenSitRep={() => setSitRepOpen(true)}
                         onSwitchToHero={() => setView("hero")}
@@ -1208,17 +1340,132 @@ function MapStandbyDeck({ wardData, floodStats, onEnableMap }) {
 
 function TopNavbar(props) {
     const {
+        selectedCity,
+        setSelectedCity,
         ward,
         wardOpen,
         setWardOpen,
         setWard,
+        setSelectedSector,
         soundEnabled,
         setSoundEnabled,
         isMapEnabled,
         onToggleMap,
         onSwitchToHero,
         pushToast,
+        setIsMapEnabled,
     } = props;
+
+    const [searchQuery, setSearchQuery] = useState("");
+    const [searchOpen, setSearchOpen] = useState(false);
+    const searchRef = useRef(null);
+
+    const CITIES = ["All Cities", "Chennai", "Mumbai", "Delhi"];
+
+    // Filter available wards based on selected city
+    const filteredWards = useMemo(() => {
+        if (!selectedCity || selectedCity === "All Cities") return Object.keys(WARDS_DATA);
+        return Object.keys(WARDS_DATA).filter((w) => WARDS_DATA[w].city === selectedCity);
+    }, [selectedCity]);
+
+    // Build multi-city search index results
+    const searchResults = useMemo(() => {
+        const q = searchQuery.trim().toLowerCase();
+        if (!q) return [];
+        const results = [];
+
+        // 1. Match Cities
+        ["Chennai", "Mumbai", "Delhi"].forEach((cityName) => {
+            if (cityName.toLowerCase().includes(q)) {
+                const firstWard = Object.keys(WARDS_DATA).find((w) => WARDS_DATA[w].city === cityName);
+                results.push({
+                    type: "city",
+                    title: `${cityName} Metropole`,
+                    subtitle: `Switch city filter to ${cityName} GIS grid`,
+                    city: cityName,
+                    ward: firstWard,
+                    sectorId: null,
+                    badge: "🏙️ CITY",
+                    badgeColor: "bg-blue-500/10 text-blue-400 border-blue-500/30",
+                });
+            }
+        });
+
+        // 2. Match Wards, Rivers, and Sectors
+        Object.entries(WARDS_DATA).forEach(([wardKey, data]) => {
+            // Match Ward Name or Ward Code
+            if (data.name.toLowerCase().includes(q) || data.code.toLowerCase().includes(q)) {
+                results.push({
+                    type: "ward",
+                    title: `${data.name} (${data.code})`,
+                    subtitle: `River: ${data.riverName} · ${data.city}`,
+                    city: data.city,
+                    ward: wardKey,
+                    sectorId: null,
+                    badge: "📍 WARD",
+                    badgeColor: "bg-emerald-500/10 text-emerald-400 border-emerald-500/30",
+                });
+            }
+
+            // Match River Basin Name
+            if (data.riverName.toLowerCase().includes(q)) {
+                results.push({
+                    type: "river",
+                    title: `${data.riverName}`,
+                    subtitle: `Primary Spillway in ${data.name} · ${data.city}`,
+                    city: data.city,
+                    ward: wardKey,
+                    sectorId: null,
+                    badge: "🌊 RIVER BASIN",
+                    badgeColor: "bg-sky-500/10 text-sky-400 border-sky-500/30",
+                });
+            }
+
+            // Match Sector Locality Names
+            data.sectors.forEach((sec) => {
+                if (sec.name.toLowerCase().includes(q)) {
+                    results.push({
+                        type: "sector",
+                        title: `${sec.name}`,
+                        subtitle: `${data.name} · Elev: ${sec.elevation}m · ${data.city}`,
+                        city: data.city,
+                        ward: wardKey,
+                        sectorId: sec.id,
+                        badge: "🏘️ LOCALITY",
+                        badgeColor: "bg-indigo-500/10 text-indigo-400 border-indigo-500/30",
+                    });
+                }
+            });
+        });
+
+        return results.slice(0, 10);
+    }, [searchQuery]);
+
+    // Handle clicking a search result
+    const handleSelectSearchResult = (res) => {
+        if (res.city) setSelectedCity(res.city);
+        if (res.ward) setWard(res.ward);
+        if (res.sectorId !== null && res.sectorId !== undefined) {
+            setSelectedSector(res.sectorId);
+        } else {
+            setSelectedSector(null);
+        }
+        setIsMapEnabled(true);
+        setSearchQuery("");
+        setSearchOpen(false);
+        pushToast(`Navigated to ${res.title} (${res.city})`);
+    };
+
+    // Close search dropdown on click outside
+    useEffect(() => {
+        const handleClickOutside = (e) => {
+            if (searchRef.current && !searchRef.current.contains(e.target)) {
+                setSearchOpen(false);
+            }
+        };
+        document.addEventListener("mousedown", handleClickOutside);
+        return () => document.removeEventListener("mousedown", handleClickOutside);
+    }, []);
 
     return (
         <header className="flex flex-wrap items-center justify-between gap-3 p-3.5 rounded-2xl border border-slate-200 bg-white shadow-sm">
@@ -1243,61 +1490,153 @@ function TopNavbar(props) {
                         </p>
                     </div>
                 </button>
+
+                {/* City Filter Pills */}
+                <div className="hidden lg:flex items-center gap-1 bg-slate-100 p-1 rounded-xl border border-slate-200 ml-2">
+                    {CITIES.map((c) => (
+                        <button
+                            key={c}
+                            onClick={() => {
+                                setSelectedCity(c);
+                                if (c !== "All Cities") {
+                                    const first = Object.keys(WARDS_DATA).find((w) => WARDS_DATA[w].city === c);
+                                    if (first) setWard(first);
+                                }
+                                pushToast(`City view filtered to ${c}`);
+                            }}
+                            className={`px-2.5 py-1 rounded-lg text-xs font-bold transition-all cursor-pointer ${
+                                selectedCity === c
+                                    ? "bg-blue-600 text-white shadow-sm"
+                                    : "text-slate-600 hover:text-blue-600 hover:bg-white/60"
+                            }`}
+                        >
+                            {c === "All Cities" ? "🌐 All Cities" : c}
+                        </button>
+                    ))}
+                </div>
             </div>
 
-            <div className="flex items-center gap-2.5">
+            {/* Global Multi-City Search Bar */}
+            <div ref={searchRef} className="relative flex-1 max-w-md mx-2">
+                <div className="relative">
+                    <input
+                        type="text"
+                        value={searchQuery}
+                        onChange={(e) => {
+                            setSearchQuery(e.target.value);
+                            setSearchOpen(true);
+                        }}
+                        onFocus={() => setSearchOpen(true)}
+                        placeholder="🔍 Search City, Ward, River, or Locality (e.g. Adyar, ITO, Kurla, Yamuna)..."
+                        className="w-full pl-9 pr-8 py-2 rounded-xl border border-slate-200 bg-slate-50 text-xs font-medium text-slate-800 placeholder-slate-400 focus:bg-white focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/20 shadow-inner transition-all"
+                    />
+                    <Search className="w-4 h-4 text-slate-400 absolute left-3 top-2.5 pointer-events-none" />
+                    {searchQuery && (
+                        <button
+                            onClick={() => {
+                                setSearchQuery("");
+                                setSearchOpen(false);
+                            }}
+                            className="absolute right-2.5 top-2.5 text-slate-400 hover:text-slate-600 cursor-pointer"
+                        >
+                            <X className="w-3.5 h-3.5" />
+                        </button>
+                    )}
+                </div>
+
+                {/* Instant Search Results Dropdown */}
+                {searchOpen && searchResults.length > 0 && (
+                    <div className="absolute left-0 right-0 mt-2 rounded-2xl border border-slate-200 bg-white shadow-2xl overflow-hidden z-50 divide-y divide-slate-100 max-h-80 overflow-y-auto">
+                        <div className="px-3.5 py-1.5 bg-slate-50 text-[10px] font-bold uppercase tracking-wider text-slate-500 font-mono flex items-center justify-between">
+                            <span>Search Results Across All Cities</span>
+                            <span>{searchResults.length} matches</span>
+                        </div>
+                        {searchResults.map((res, i) => (
+                            <div
+                                key={i}
+                                onClick={() => handleSelectSearchResult(res)}
+                                className="p-3 hover:bg-blue-50/70 transition-colors cursor-pointer flex items-center justify-between gap-3 group"
+                            >
+                                <div>
+                                    <div className="flex items-center gap-2">
+                                        <span className="text-xs font-extrabold text-slate-900 group-hover:text-blue-700">
+                                            {res.title}
+                                        </span>
+                                        <span className={`text-[9px] font-bold px-1.5 py-0.5 rounded border ${res.badgeColor}`}>
+                                            {res.badge}
+                                        </span>
+                                    </div>
+                                    <p className="text-[11px] text-slate-500 mt-0.5">{res.subtitle}</p>
+                                </div>
+                                <ArrowRight className="w-3.5 h-3.5 text-slate-400 group-hover:text-blue-600 transition-transform group-hover:translate-x-0.5" />
+                            </div>
+                        ))}
+                    </div>
+                )}
+                {searchOpen && searchQuery.trim() && searchResults.length === 0 && (
+                    <div className="absolute left-0 right-0 mt-2 p-4 rounded-2xl border border-slate-200 bg-white shadow-2xl text-center text-xs text-slate-500 z-50">
+                        No cities, wards, rivers, or localities found matching "{searchQuery}".
+                    </div>
+                )}
+            </div>
+
+            <div className="flex items-center gap-2">
                 {/* Return to Hero / Overview Button */}
                 <button
                     onClick={onSwitchToHero}
-                    className="flex items-center gap-1.5 px-3.5 py-1.5 rounded-xl border border-indigo-200 bg-indigo-50 hover:bg-indigo-100 text-indigo-900 text-xs font-bold transition-all cursor-pointer shadow-sm"
+                    className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl border border-indigo-200 bg-indigo-50 hover:bg-indigo-100 text-indigo-900 text-xs font-bold transition-all cursor-pointer shadow-sm"
                     title="Switch to Hero & Project Overview Page"
                 >
                     <Info className="w-3.5 h-3.5 text-indigo-600" />
-                    <span>📖 Hero Page Overview</span>
+                    <span className="hidden sm:inline">📖 Hero Overview</span>
                 </button>
 
                 {/* Enable / Standby Map Toggle Button */}
                 <button
                     onClick={onToggleMap}
-                    className={`flex items-center gap-1.5 px-3.5 py-1.5 rounded-xl border text-xs font-bold transition-all cursor-pointer shadow-sm ${
+                    className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl border text-xs font-bold transition-all cursor-pointer shadow-sm ${
                         isMapEnabled
                             ? "border-emerald-300 bg-emerald-600 text-white hover:bg-emerald-700"
                             : "border-blue-200 bg-blue-50 text-blue-800 hover:bg-blue-100"
                     }`}
                 >
                     <Power className="w-3.5 h-3.5" />
-                    <span>{isMapEnabled ? "🗺️ Live Map Active" : "🗺️ View Interactive Map"}</span>
+                    <span className="hidden sm:inline">{isMapEnabled ? "🗺️ Map Active" : "🗺️ View Map"}</span>
                 </button>
 
                 {/* Ward Selector Dropdown */}
                 <div className="relative">
                     <button
                         onClick={() => setWardOpen(!wardOpen)}
-                        className="flex items-center gap-2 px-3.5 py-1.5 rounded-xl border border-slate-200 bg-slate-50 hover:bg-slate-100 text-xs font-bold text-slate-800 transition-all cursor-pointer shadow-sm"
+                        className="flex items-center gap-2 px-3 py-1.5 rounded-xl border border-slate-200 bg-slate-50 hover:bg-slate-100 text-xs font-bold text-slate-800 transition-all cursor-pointer shadow-sm"
                     >
                         <MapPin className="w-3.5 h-3.5 text-blue-600" />
-                        <span>Ward: {ward}</span>
+                        <span>{ward}</span>
                         <ChevronDown className={`w-3.5 h-3.5 text-slate-400 transition-transform ${wardOpen ? "rotate-180" : ""}`} />
                     </button>
 
                     {wardOpen && (
-                        <div className="absolute right-0 mt-2 w-56 rounded-2xl border border-slate-200 bg-white shadow-2xl py-2 z-50 text-slate-900">
+                        <div className="absolute right-0 mt-2 w-64 rounded-2xl border border-slate-200 bg-white shadow-2xl py-2 z-50 text-slate-900 max-h-80 overflow-y-auto">
                             <div className="px-3.5 py-1.5 border-b border-slate-100 text-[10px] font-bold uppercase tracking-wider text-slate-400 font-mono">
-                                Select Ward Operations Area
+                                {selectedCity === "All Cities" ? "All Wards Across Cities" : `Wards in ${selectedCity}`}
                             </div>
-                            {WARDS.map((w) => (
+                            {filteredWards.map((w) => (
                                 <button
                                     key={w}
                                     onClick={() => {
                                         setWard(w);
+                                        setSelectedCity(WARDS_DATA[w].city);
                                         setWardOpen(false);
-                                        pushToast(`Active operations ward switched to ${w}`);
+                                        pushToast(`Switched active operations area to ${w} (${WARDS_DATA[w].city})`);
                                     }}
                                     className={`w-full text-left px-4 py-2 text-xs flex items-center justify-between hover:bg-blue-50 cursor-pointer ${
                                         w === ward ? "text-blue-900 font-extrabold bg-blue-50/70" : "text-slate-700"
                                     }`}
                                 >
-                                    <span>{w}</span>
+                                    <div>
+                                        <span className="block font-semibold">{w}</span>
+                                        <span className="text-[10px] text-slate-400">{WARDS_DATA[w].city} · {WARDS_DATA[w].code}</span>
+                                    </div>
                                     {w === ward && <Check className="w-3.5 h-3.5 text-blue-600" />}
                                 </button>
                             ))}
