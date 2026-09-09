@@ -712,7 +712,7 @@ function WaterDepthWave({
 // ============================================================================
 
 function RainDrop() {
-  const [view, setView] = useState("command"); // 'command' | 'hero'
+  const [view, setView] = useState("hero"); // 'hero' | 'command'
   const [activeTab, setActiveTab] = useState("telemetry"); // 'telemetry' | 'routes' | 'scenario' | 'map'
   const [ward, setWard] = useState("Kurla West");
   const [wardOpen, setWardOpen] = useState(false);
@@ -1464,6 +1464,12 @@ function TopNavbar(props) {
   }, "Urban Flood Intelligence & Nowcasting Platform")))), /*#__PURE__*/React.createElement("div", {
     className: "flex items-center gap-2.5"
   }, /*#__PURE__*/React.createElement("button", {
+    onClick: onSwitchToHero,
+    className: "flex items-center gap-1.5 px-3.5 py-1.5 rounded-xl border border-indigo-200 bg-indigo-50 hover:bg-indigo-100 text-indigo-900 text-xs font-bold transition-all cursor-pointer shadow-sm",
+    title: "Switch to Hero & Project Overview Page"
+  }, /*#__PURE__*/React.createElement(Info, {
+    className: "w-3.5 h-3.5 text-indigo-600"
+  }), /*#__PURE__*/React.createElement("span", null, "📖 Hero Page Overview")), /*#__PURE__*/React.createElement("button", {
     onClick: onToggleMap,
     className: `flex items-center gap-1.5 px-3.5 py-1.5 rounded-xl border text-xs font-bold transition-all cursor-pointer shadow-sm ${isMapEnabled ? "border-emerald-300 bg-emerald-600 text-white hover:bg-emerald-700" : "border-blue-200 bg-blue-50 text-blue-800 hover:bg-blue-100"}`
   }, /*#__PURE__*/React.createElement(Power, {

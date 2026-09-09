@@ -414,7 +414,7 @@ function WaterDepthWave({ depth, maxDepth = 60 }) {
 // ============================================================================
 
 function RainDrop() {
-    const [view, setView] = useState("command"); // 'command' | 'hero'
+    const [view, setView] = useState("hero"); // 'hero' | 'command'
     const [activeTab, setActiveTab] = useState("telemetry"); // 'telemetry' | 'routes' | 'scenario' | 'map'
     const [ward, setWard] = useState("Kurla West");
     const [wardOpen, setWardOpen] = useState(false);
@@ -1246,6 +1246,16 @@ function TopNavbar(props) {
             </div>
 
             <div className="flex items-center gap-2.5">
+                {/* Return to Hero / Overview Button */}
+                <button
+                    onClick={onSwitchToHero}
+                    className="flex items-center gap-1.5 px-3.5 py-1.5 rounded-xl border border-indigo-200 bg-indigo-50 hover:bg-indigo-100 text-indigo-900 text-xs font-bold transition-all cursor-pointer shadow-sm"
+                    title="Switch to Hero & Project Overview Page"
+                >
+                    <Info className="w-3.5 h-3.5 text-indigo-600" />
+                    <span>📖 Hero Page Overview</span>
+                </button>
+
                 {/* Enable / Standby Map Toggle Button */}
                 <button
                     onClick={onToggleMap}
