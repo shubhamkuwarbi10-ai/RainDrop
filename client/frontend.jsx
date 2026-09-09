@@ -2544,60 +2544,425 @@ function SitRepModal({ ward, wardData, floodStats, sectorDepths, timeStep, scena
 // Hero Welcome View
 // ============================================================================
 
+// ============================================================================
+// Hero Welcome & Technical Project Details View (Scrollable)
+// ============================================================================
+
 function HeroView({ ward, wardData, onEnter }) {
+    const [activeStep, setActiveStep] = useState(0);
+
+    const PIPELINE_STEPS = [
+        {
+            num: "01",
+            title: "30m CartoDEM GIS Data Ingestion",
+            icon: Layers,
+            color: "text-blue-400 bg-blue-500/10 border-blue-500/30",
+            desc: "Processes 30-meter high-precision CartoDEM elevation rasters for Chennai, Mumbai, and Delhi. Calculates localized slopes, flow accumulation channels, and lowland depression storage to identify natural runoff paths.",
+            tech: ["GeoTIFF 30m Rasters", "GDAL Topography", "Flow Accumulation"]
+        },
+        {
+            num: "02",
+            title: "Hydrographic Channel & Sump Extraction",
+            icon: Waves,
+            color: "text-sky-400 bg-sky-500/10 border-sky-500/30",
+            desc: "Extracts primary municipal drainage trunks (Mithi River, Buckingham Canal, Yamuna River, Otteri Nullah) and pinpoints critical underpass sumps (e.g. Kurla Station Subway, Bail Bazar Nullah) prone to flash inundation.",
+            tech: ["D8 Flow Directions", "Drainage Network Extractor", "Surcharge Sump Mapping"]
+        },
+        {
+            num: "03",
+            title: "AI Inundation Surrogate Model Engine",
+            icon: Cpu,
+            color: "text-indigo-400 bg-indigo-500/10 border-indigo-500/30",
+            desc: "Combines IMD Doppler Radar nowcast data with 1D-2D coupled SWMM hydraulic simulations. Uses an ultra-fast ML surrogate model to predict neighborhood water depth (0-60cm) in under 15ms latency.",
+            tech: ["SWMM-HEC Coupled Mesh", "FastAPI AI Surrogate", "Radar Optical Flow"]
+        },
+        {
+            num: "04",
+            title: "Dual-Corridor Route Safety Navigator",
+            icon: Navigation,
+            color: "text-emerald-400 bg-emerald-500/10 border-emerald-500/30",
+            desc: "Evaluates transit corridors against live water depths. Detects blocked lowland underpasses (>25cm hazard) and dynamically computes 100% dry elevation flyover bypass routes with exact time detours.",
+            tech: ["Spatial Route Engine", "Passability Matrix", "Elevated Bypass Corridors"]
+        },
+        {
+            num: "05",
+            title: "Incident Commander SitRep Dispatch",
+            icon: FileText,
+            color: "text-rose-400 bg-rose-500/10 border-rose-500/30",
+            desc: "Generates automated municipal Situation Reports (SitRep) detailing critical submerged hotspots, active dewatering pumps, shelter capacities, and printable police diversion advisories.",
+            tech: ["Markdown SitRep Export", "Printable Emergency Log", "Pump & Shelter Telemetry"]
+        }
+    ];
+
     return (
-        <section className="hero min-h-screen bg-base-200">
-            <div className="hero-content text-center">
-                <div className="max-w-3xl">
-                    
-                    <div className="badge badge-primary gap-2 p-3 font-semibold mb-4 shadow-sm">
-                        <Waves className="w-4 h-4" />
-                        <span>RainDrop — Municipal GIS Urban Flood Intelligence Platform</span>
+        <div className="min-h-screen bg-slate-950 text-slate-100 flex flex-col font-sans selection:bg-blue-600 selection:text-white">
+            {/* Sticky Top Navigation */}
+            <header className="sticky top-0 z-50 bg-slate-950/90 backdrop-blur-md border-b border-slate-800/80 px-4 sm:px-8 py-3.5 flex items-center justify-between">
+                <div className="flex items-center gap-3">
+                    <div className="grid place-items-center w-10 h-10 rounded-xl bg-gradient-to-br from-blue-600 to-indigo-600 border border-blue-400/30 text-white shadow-lg shadow-blue-500/20">
+                        <Waves className="w-5 h-5 text-white" />
+                    </div>
+                    <div>
+                        <div className="flex items-center gap-2">
+                            <span className="text-base font-extrabold text-white tracking-tight">RainDrop GIS</span>
+                            <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-blue-500/20 text-blue-300 border border-blue-500/30">
+                                Municipal Intelligence
+                            </span>
+                        </div>
+                        <p className="text-[11px] text-slate-400 font-mono">Multi-City Urban Flood Nowcasting</p>
+                    </div>
+                </div>
+
+                <div className="hidden md:flex items-center gap-6 text-xs font-semibold text-slate-300">
+                    <a href="#overview" className="hover:text-blue-400 transition-colors">Overview</a>
+                    <a href="#architecture" className="hover:text-blue-400 transition-colors">Pipeline Architecture</a>
+                    <a href="#features" className="hover:text-blue-400 transition-colors">Core Capabilities</a>
+                    <a href="#cities" className="hover:text-blue-400 transition-colors">Pilot Cities</a>
+                </div>
+
+                <div className="flex items-center gap-3">
+                    <button
+                        onClick={onEnter}
+                        className="flex items-center gap-2 px-4 py-2 rounded-xl bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 text-white text-xs font-bold shadow-lg shadow-blue-600/30 transition-all cursor-pointer border border-blue-400/30"
+                    >
+                        <span>Launch Operations Center</span>
+                        <ArrowRight className="w-4 h-4" />
+                    </button>
+                </div>
+            </header>
+
+            {/* Main Scrollable Content */}
+            <main className="flex-1 overflow-y-auto">
+                {/* Hero Banner Section */}
+                <section id="overview" className="relative py-16 sm:py-24 px-4 sm:px-8 max-w-7xl mx-auto text-center flex flex-col items-center">
+                    {/* Background Radial Glow */}
+                    <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[500px] h-[500px] bg-blue-600/15 rounded-full blur-3xl pointer-events-none" />
+
+                    <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-blue-500/10 border border-blue-500/30 text-blue-300 text-xs font-bold mb-6 shadow-sm">
+                        <Sparkles className="w-4 h-4 text-blue-400" />
+                        <span>Next-Generation AI &amp; 30m CartoDEM GIS Platform</span>
                     </div>
 
-                    <h1 className="text-5xl font-extrabold md:text-7xl tracking-tight text-base-content">
-                        Rain<span className="text-primary">Drop</span>
+                    <h1 className="text-4xl sm:text-6xl md:text-7xl font-extrabold tracking-tight text-white max-w-4xl leading-tight">
+                        Precision Urban Flood <br className="hidden sm:inline" />
+                        <span className="bg-gradient-to-r from-blue-400 via-sky-300 to-indigo-400 bg-clip-text text-transparent">
+                            Nowcasting &amp; Safe Routing
+                        </span>
                     </h1>
 
-                    <p className="py-6 text-lg text-base-content/80 md:text-xl leading-relaxed">
-                        A Next-Generation AI &amp; GIS-Powered Multi-City Nowcasting System
-                        for creating intelligent, conflict-free municipal flood emergency responses and safe routing.
+                    <p className="mt-6 text-base sm:text-lg md:text-xl text-slate-300 max-w-3xl leading-relaxed">
+                        RainDrop combines <strong>30-meter CartoDEM topography</strong>, Doppler radar nowcasts, and fast 
+                        <strong> AI hydraulics surrogate models</strong> to predict neighborhood-level inundation, monitor critical drainage bottlenecks, 
+                        and guide emergency transit along 100% dry elevation corridors.
                     </p>
 
-                    <div className="flex flex-wrap justify-center gap-3">
-                        <button onClick={onEnter} className="btn btn-primary font-bold shadow-md cursor-pointer">
-                            Explore RainDrop GIS Map
+                    <div className="mt-8 flex flex-wrap justify-center gap-4">
+                        <button
+                            onClick={onEnter}
+                            className="flex items-center gap-2 px-6 py-3.5 rounded-xl bg-blue-600 hover:bg-blue-500 text-white font-extrabold text-sm shadow-xl shadow-blue-600/30 transition-all cursor-pointer border border-blue-400/40"
+                        >
+                            <Activity className="w-4 h-4" />
+                            <span>Explore RainDrop Operations Workspace</span>
                         </button>
 
-                        <button onClick={onEnter} className="btn btn-outline btn-secondary font-bold cursor-pointer">
-                            Open Operations Center
+                        <button
+                            onClick={onEnter}
+                            className="flex items-center gap-2 px-6 py-3.5 rounded-xl bg-slate-900 hover:bg-slate-800 text-slate-200 font-bold text-sm border border-slate-700 shadow-md transition-all cursor-pointer"
+                        >
+                            <Navigation className="w-4 h-4 text-emerald-400" />
+                            <span>Open Route Safety Check</span>
                         </button>
                     </div>
 
-                    <div className="mt-10 grid grid-cols-1 sm:grid-cols-3 gap-4 text-left">
-                        <div className="card bg-base-100 shadow-md border border-base-300 p-4">
-                            <div className="flex items-center gap-2 text-primary font-bold text-sm mb-1">
-                                <Activity className="w-4 h-4" /> Real-Time GIS Grid
-                            </div>
-                            <p className="text-xs text-base-content/70">Sub-kilometer neighborhood spatial inundation tracking across 5 pilot wards.</p>
+                    {/* Key System Metrics Grid */}
+                    <div className="mt-14 grid grid-cols-2 sm:grid-cols-4 gap-4 w-full max-w-4xl text-left">
+                        <div className="p-4 rounded-2xl bg-slate-900/80 border border-slate-800 backdrop-blur">
+                            <span className="text-[10px] uppercase font-mono tracking-wider text-slate-400 block">Elevation Resolution</span>
+                            <p className="text-xl font-bold font-mono text-blue-400 mt-1">30m CartoDEM</p>
+                            <span className="text-[11px] text-slate-400">ISRO GeoTIFF Rasters</span>
                         </div>
-                        <div className="card bg-base-100 shadow-md border border-base-300 p-4">
-                            <div className="flex items-center gap-2 text-accent font-bold text-sm mb-1">
-                                <Navigation className="w-4 h-4" /> Smart Elevation Routes
-                            </div>
-                            <p className="text-xs text-base-content/70">Dynamic vehicle passability analysis avoiding submerged lowlands &amp; subways.</p>
+                        <div className="p-4 rounded-2xl bg-slate-900/80 border border-slate-800 backdrop-blur">
+                            <span className="text-[10px] uppercase font-mono tracking-wider text-slate-400 block">Surrogate Model Latency</span>
+                            <p className="text-xl font-bold font-mono text-emerald-400 mt-1">&lt; 15 ms</p>
+                            <span className="text-[11px] text-slate-400">Instant Depth Inference</span>
                         </div>
-                        <div className="card bg-base-100 shadow-md border border-base-300 p-4">
-                            <div className="flex items-center gap-2 text-secondary font-bold text-sm mb-1">
-                                <Zap className="w-4 h-4" /> Doppler Radar Nowcast
-                            </div>
-                            <p className="text-xs text-base-content/70">T+3h high-resolution rainfall forecasts coupled with tidal outfall models.</p>
+                        <div className="p-4 rounded-2xl bg-slate-900/80 border border-slate-800 backdrop-blur">
+                            <span className="text-[10px] uppercase font-mono tracking-wider text-slate-400 block">Pilot Metros</span>
+                            <p className="text-xl font-bold font-mono text-sky-400 mt-1">3 Major Cities</p>
+                            <span className="text-[11px] text-slate-400">Chennai · Mumbai · Delhi</span>
+                        </div>
+                        <div className="p-4 rounded-2xl bg-slate-900/80 border border-slate-800 backdrop-blur">
+                            <span className="text-[10px] uppercase font-mono tracking-wider text-slate-400 block">Emergency Routing</span>
+                            <p className="text-xl font-bold font-mono text-indigo-400 mt-1">100% Safe</p>
+                            <span className="text-[11px] text-slate-400">Dry Elevation Corridors</span>
                         </div>
                     </div>
+                </section>
 
-                </div>
-            </div>
-        </section>
+                {/* Interactive Technical Pipeline & Architecture Section */}
+                <section id="architecture" className="py-16 px-4 sm:px-8 bg-slate-900/50 border-y border-slate-800/80">
+                    <div className="max-w-7xl mx-auto">
+                        <div className="text-center max-w-2xl mx-auto mb-12">
+                            <span className="text-xs uppercase font-mono font-bold tracking-widest text-blue-400 bg-blue-500/10 px-3 py-1 rounded-full border border-blue-500/20">
+                                End-to-End System Architecture
+                            </span>
+                            <h2 className="text-3xl sm:text-4xl font-extrabold text-white tracking-tight mt-3">
+                                How RainDrop Nowcasting Works
+                            </h2>
+                            <p className="text-slate-400 text-sm mt-2">
+                                Click on any stage below to inspect how spatial DEM topography, radar telemetry, and AI surrogate hydraulics work in harmony.
+                            </p>
+                        </div>
+
+                        {/* Interactive Step Navigator */}
+                        <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
+                            {/* Left: Step Selection Cards */}
+                            <div className="lg:col-span-5 space-y-3">
+                                {PIPELINE_STEPS.map((step, idx) => {
+                                    const Icon = step.icon;
+                                    const isActive = activeStep === idx;
+                                    return (
+                                        <div
+                                            key={step.num}
+                                            onClick={() => setActiveStep(idx)}
+                                            className={`p-4 rounded-2xl border transition-all cursor-pointer flex items-start gap-3.5 ${
+                                                isActive
+                                                    ? "bg-slate-900 border-blue-500 shadow-lg shadow-blue-500/10 ring-1 ring-blue-500/50"
+                                                    : "bg-slate-950/60 border-slate-800 hover:border-slate-700 hover:bg-slate-900/40"
+                                            }`}
+                                        >
+                                            <div className={`p-2.5 rounded-xl border font-bold text-xs font-mono shrink-0 ${step.color}`}>
+                                                {step.num}
+                                            </div>
+                                            <div>
+                                                <h3 className={`text-sm font-bold ${isActive ? "text-white" : "text-slate-300"}`}>
+                                                    {step.title}
+                                                </h3>
+                                                <p className="text-xs text-slate-400 mt-1 line-clamp-2 leading-relaxed">
+                                                    {step.desc}
+                                                </p>
+                                            </div>
+                                        </div>
+                                    );
+                                })}
+                            </div>
+
+                            {/* Right: Step Deep Dive Detail Display */}
+                            <div className="lg:col-span-7 p-6 sm:p-8 rounded-3xl bg-slate-900 border border-slate-800 shadow-2xl relative overflow-hidden flex flex-col justify-between min-h-[420px]">
+                                <div className="absolute top-0 right-0 p-8 opacity-5 text-blue-500 pointer-events-none">
+                                    <Waves className="w-64 h-64" />
+                                </div>
+
+                                <div>
+                                    <div className="flex items-center justify-between pb-4 border-b border-slate-800">
+                                        <div className="flex items-center gap-3">
+                                            <div className="p-3 rounded-2xl bg-blue-600/20 border border-blue-500/30 text-blue-300">
+                                                {React.createElement(PIPELINE_STEPS[activeStep].icon, { className: "w-6 h-6" })}
+                                            </div>
+                                            <div>
+                                                <span className="text-[10px] uppercase font-bold tracking-widest text-blue-400 font-mono">
+                                                    Stage {PIPELINE_STEPS[activeStep].num} of 05
+                                                </span>
+                                                <h3 className="text-xl font-bold text-white">
+                                                    {PIPELINE_STEPS[activeStep].title}
+                                                </h3>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <div className="mt-5 space-y-4">
+                                        <p className="text-slate-300 text-sm leading-relaxed">
+                                            {PIPELINE_STEPS[activeStep].desc}
+                                        </p>
+
+                                        <div className="pt-3">
+                                            <span className="text-[11px] font-mono uppercase font-bold text-slate-400 tracking-wider block mb-2">
+                                                Core Technical Stack &amp; Algorithms:
+                                            </span>
+                                            <div className="flex flex-wrap gap-2">
+                                                {PIPELINE_STEPS[activeStep].tech.map((t, i) => (
+                                                    <span key={i} className="px-3 py-1 rounded-xl bg-slate-800 border border-slate-700 text-blue-300 text-xs font-mono font-semibold">
+                                                        ⚡ {t}
+                                                    </span>
+                                                ))}
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                {/* Flow Connection Footer */}
+                                <div className="mt-8 pt-4 border-t border-slate-800 flex items-center justify-between text-xs text-slate-400">
+                                    <span>Pipeline Status: <strong className="text-emerald-400 font-mono">200 OK Active</strong></span>
+                                    <div className="flex items-center gap-2">
+                                        <button
+                                            onClick={() => setActiveStep((prev) => (prev > 0 ? prev - 1 : PIPELINE_STEPS.length - 1))}
+                                            className="px-3 py-1.5 rounded-lg border border-slate-700 hover:bg-slate-800 text-slate-300 font-bold text-xs cursor-pointer"
+                                        >
+                                            &larr; Previous Step
+                                        </button>
+                                        <button
+                                            onClick={() => setActiveStep((prev) => (prev < PIPELINE_STEPS.length - 1 ? prev + 1 : 0))}
+                                            className="px-3 py-1.5 rounded-lg bg-blue-600 hover:bg-blue-500 text-white font-bold text-xs cursor-pointer"
+                                        >
+                                            Next Step &rarr;
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+
+                {/* Core Capabilities & Features Section */}
+                <section id="features" className="py-16 px-4 sm:px-8 max-w-7xl mx-auto">
+                    <div className="text-center max-w-2xl mx-auto mb-12">
+                        <span className="text-xs uppercase font-mono font-bold tracking-widest text-emerald-400 bg-emerald-500/10 px-3 py-1 rounded-full border border-emerald-500/20">
+                            Public Safety Features
+                        </span>
+                        <h2 className="text-3xl sm:text-4xl font-extrabold text-white tracking-tight mt-3">
+                            Built for Municipal Emergency Teams
+                        </h2>
+                        <p className="text-slate-400 text-sm mt-2">
+                            Comprehensive tools for disaster management, commuter routing, and infrastructure protection.
+                        </p>
+                    </div>
+
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                        <div className="p-6 rounded-3xl bg-slate-900 border border-slate-800 shadow-xl flex flex-col justify-between hover:border-slate-700 transition-all">
+                            <div>
+                                <div className="p-3 rounded-2xl bg-blue-500/10 border border-blue-500/30 text-blue-400 w-fit mb-4">
+                                    <Activity className="w-6 h-6" />
+                                </div>
+                                <h3 className="text-lg font-bold text-white mb-2">Sub-kilometer Inundation Grid</h3>
+                                <p className="text-slate-400 text-xs leading-relaxed">
+                                    Tracks localized neighborhood water depth (0-60cm) across high-vulnerability sectors with clear color-coded hazard indicators:
+                                </p>
+                                <ul className="mt-3 space-y-1.5 text-xs text-slate-300 font-mono">
+                                    <li className="flex items-center gap-2"><span className="w-2.5 h-2.5 rounded-full bg-emerald-500" /> &lt;15cm: Dry &amp; Passable</li>
+                                    <li className="flex items-center gap-2"><span className="w-2.5 h-2.5 rounded-full bg-amber-500" /> 15-29cm: Waterlogging Caution</li>
+                                    <li className="flex items-center gap-2"><span className="w-2.5 h-2.5 rounded-full bg-rose-500" /> &ge;30cm: Impassable Hazard</li>
+                                </ul>
+                            </div>
+                        </div>
+
+                        <div className="p-6 rounded-3xl bg-slate-900 border border-slate-800 shadow-xl flex flex-col justify-between hover:border-slate-700 transition-all">
+                            <div>
+                                <div className="p-3 rounded-2xl bg-emerald-500/10 border border-emerald-500/30 text-emerald-400 w-fit mb-4">
+                                    <Navigation className="w-6 h-6" />
+                                </div>
+                                <h3 className="text-lg font-bold text-white mb-2">Dual-Corridor Route Check</h3>
+                                <p className="text-slate-400 text-xs leading-relaxed">
+                                    Renders side-by-side comparison between standard direct routes (which often submerge underpass subways) and 100% dry high-elevation flyover corridors.
+                                </p>
+                                <div className="mt-3 p-3 rounded-xl bg-slate-950 border border-slate-800 text-xs font-mono">
+                                    <span className="text-rose-400 block font-bold">🔴 Standard: Impassable Subway</span>
+                                    <span className="text-emerald-400 block font-bold mt-1">🟢 Bypass: Dry Flyover (+3 min)</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div className="p-6 rounded-3xl bg-slate-900 border border-slate-800 shadow-xl flex flex-col justify-between hover:border-slate-700 transition-all">
+                            <div>
+                                <div className="p-3 rounded-2xl bg-indigo-500/10 border border-indigo-500/30 text-indigo-400 w-fit mb-4">
+                                    <FileText className="w-6 h-6" />
+                                </div>
+                                <h3 className="text-lg font-bold text-white mb-2">Incident SitRep Generator</h3>
+                                <p className="text-slate-400 text-xs leading-relaxed">
+                                    Generates official municipal situation reports for police dispatchers, disaster management teams, and emergency responders with one-click copy and print formatting.
+                                </p>
+                                <div className="mt-3 p-3 rounded-xl bg-slate-950 border border-slate-800 text-xs font-mono text-slate-300">
+                                    📄 SitRep Markdown &amp; Printable Incident Directives
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+
+                {/* Pilot Cities Coverage Section */}
+                <section id="cities" className="py-16 px-4 sm:px-8 bg-slate-900/50 border-t border-slate-800/80">
+                    <div className="max-w-7xl mx-auto">
+                        <div className="text-center max-w-2xl mx-auto mb-12">
+                            <span className="text-xs uppercase font-mono font-bold tracking-widest text-sky-400 bg-sky-500/10 px-3 py-1 rounded-full border border-sky-500/20">
+                                Multi-City GIS Coverage
+                            </span>
+                            <h2 className="text-3xl sm:text-4xl font-extrabold text-white tracking-tight mt-3">
+                                Supported Metropolitan Drainage Networks
+                            </h2>
+                        </div>
+
+                        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                            <div className="p-6 rounded-3xl bg-slate-900 border border-slate-800">
+                                <div className="flex items-center justify-between mb-3">
+                                    <h3 className="text-xl font-bold text-white">Chennai</h3>
+                                    <span className="text-xs font-bold text-emerald-400 font-mono bg-emerald-500/10 px-2 py-0.5 rounded border border-emerald-500/30">REAL DEM</span>
+                                </div>
+                                <p className="text-xs text-slate-400 mb-3">Slope: 3.65° · Elevation: 46.57m MSL</p>
+                                <div className="space-y-1 text-xs text-slate-300 font-mono">
+                                    <div className="p-2 rounded bg-slate-950 border border-slate-800">🌊 Buckingham Canal</div>
+                                    <div className="p-2 rounded bg-slate-950 border border-slate-800">🌊 Cooum River</div>
+                                    <div className="p-2 rounded bg-slate-950 border border-slate-800">🌊 Adyar River</div>
+                                    <div className="p-2 rounded bg-slate-950 border border-slate-800">🌊 Otteri Nullah</div>
+                                </div>
+                            </div>
+
+                            <div className="p-6 rounded-3xl bg-slate-900 border border-slate-800">
+                                <div className="flex items-center justify-between mb-3">
+                                    <h3 className="text-xl font-bold text-white">Mumbai</h3>
+                                    <span className="text-xs font-bold text-blue-400 font-mono bg-blue-500/10 px-2 py-0.5 rounded border border-blue-500/30">Wards 184-L &amp; 185-L</span>
+                                </div>
+                                <p className="text-xs text-slate-400 mb-3">Slope: 0.86° · Base Elev: 8.00m MSL</p>
+                                <div className="space-y-1 text-xs text-slate-300 font-mono">
+                                    <div className="p-2 rounded bg-slate-950 border border-slate-800">🌊 Mithi River Corridor</div>
+                                    <div className="p-2 rounded bg-slate-950 border border-slate-800">🌊 Vakola Nalla</div>
+                                    <div className="p-2 rounded bg-slate-950 border border-slate-800">🌊 Poisar River</div>
+                                    <div className="p-2 rounded bg-slate-950 border border-slate-800">🌊 Dahisar River</div>
+                                </div>
+                            </div>
+
+                            <div className="p-6 rounded-3xl bg-slate-900 border border-slate-800">
+                                <div className="flex items-center justify-between mb-3">
+                                    <h3 className="text-xl font-bold text-white">Delhi</h3>
+                                    <span className="text-xs font-bold text-purple-400 font-mono bg-purple-500/10 px-2 py-0.5 rounded border border-purple-500/30">NCR Basin</span>
+                                </div>
+                                <p className="text-xs text-slate-400 mb-3">Slope: 0.85° · Base Elev: 215.0m MSL</p>
+                                <div className="space-y-1 text-xs text-slate-300 font-mono">
+                                    <div className="p-2 rounded bg-slate-950 border border-slate-800">🌊 Yamuna River Trunk</div>
+                                    <div className="p-2 rounded bg-slate-950 border border-slate-800">🌊 Najafgarh Drain</div>
+                                    <div className="p-2 rounded bg-slate-950 border border-slate-800">🌊 Barapullah Nallah</div>
+                                    <div className="p-2 rounded bg-slate-950 border border-slate-800">🌊 Agra Canal</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+
+                {/* Final Call to Action Footer */}
+                <section className="py-16 px-4 sm:px-8 text-center max-w-4xl mx-auto">
+                    <div className="p-8 sm:p-12 rounded-3xl bg-gradient-to-b from-blue-900/30 to-indigo-950/40 border border-blue-500/30 shadow-2xl relative overflow-hidden">
+                        <h2 className="text-2xl sm:text-4xl font-extrabold text-white tracking-tight">
+                            Ready to Access Live Flood Operations?
+                        </h2>
+                        <p className="mt-3 text-slate-300 text-sm max-w-xl mx-auto leading-relaxed">
+                            Jump straight into the interactive spatial map, real-time hotspot telemetry deck, and flood event simulation sandbox.
+                        </p>
+                        <div className="mt-8 flex justify-center">
+                            <button
+                                onClick={onEnter}
+                                className="flex items-center gap-2 px-8 py-4 rounded-2xl bg-blue-600 hover:bg-blue-500 text-white font-extrabold text-sm shadow-xl shadow-blue-600/30 transition-all cursor-pointer border border-blue-400/40"
+                            >
+                                <Activity className="w-5 h-5 text-white" />
+                                <span>Launch RainDrop Operations Center</span>
+                            </button>
+                        </div>
+                    </div>
+                </section>
+            </main>
+
+            {/* Simple Footer */}
+            <footer className="py-6 px-8 border-t border-slate-800/80 bg-slate-950 text-center text-xs text-slate-500 font-mono">
+                RainDrop · Municipal GIS Urban Flood Nowcasting Platform &copy; 2026
+            </footer>
+        </div>
     );
 }
 
