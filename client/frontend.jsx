@@ -2545,11 +2545,55 @@ function SitRepModal({ ward, wardData, floodStats, sectorDepths, timeStep, scena
 // ============================================================================
 
 // ============================================================================
-// Hero Welcome & Technical Project Details View (Scrollable)
+// Hero Welcome & Technical Project Details View (Scrollable with Images & Animations)
 // ============================================================================
 
 function HeroView({ ward, wardData, onEnter }) {
     const [activeStep, setActiveStep] = useState(0);
+    const [activeImgIndex, setActiveImgIndex] = useState(0);
+    const [isAutoPlay, setIsAutoPlay] = useState(true);
+
+    const HERO_IMAGES = [
+        {
+            url: "/static/images/dibakar-roy-DccG84ivd3k-unsplash.jpg",
+            title: "Monsoon Cloudburst Downpour",
+            subtitle: "Flash surface runoff rapidly entering lowland municipal sumps",
+            badge: "IMD Radar Telemetry"
+        },
+        {
+            url: "/static/images/dibakar-roy-FbOchRlXaPs-unsplash.jpg",
+            title: "Metropolitan Inundation Basin",
+            subtitle: "Real-time 30m CartoDEM spatial elevation modeling",
+            badge: "CartoDEM 30m Rasters"
+        },
+        {
+            url: "/static/images/dibakar-roy-KbG3OsDKkCM-unsplash.jpg",
+            title: "Submerged Bottlenecks & Subways",
+            subtitle: "Automated hazard detection for roads exceeding 30cm water depth",
+            badge: "Passability Matrix"
+        },
+        {
+            url: "/static/images/dibakar-roy-P7Z3HwNWPeQ-unsplash.jpg",
+            title: "Drainage Sump & Outfall Operations",
+            subtitle: "1D-2D SWMM hydraulic modeling coupled with active pump telemetry",
+            badge: "SWMM Hydraulics"
+        },
+        {
+            url: "/static/images/dibakar-roy-aby-GGLtD-A-unsplash.jpg",
+            title: "Safe Elevation Transit Corridors",
+            subtitle: "Dynamic routing guiding emergency transit along dry flyover bypasses",
+            badge: "Dual-Corridor Route Engine"
+        }
+    ];
+
+    // Auto-advance carousel image every 4.5 seconds
+    useEffect(() => {
+        if (!isAutoPlay) return;
+        const timer = setInterval(() => {
+            setActiveImgIndex((prev) => (prev + 1) % HERO_IMAGES.length);
+        }, 4500);
+        return () => clearInterval(timer);
+    }, [isAutoPlay, HERO_IMAGES.length]);
 
     const PIPELINE_STEPS = [
         {
@@ -2596,11 +2640,11 @@ function HeroView({ ward, wardData, onEnter }) {
 
     return (
         <div className="min-h-screen bg-slate-950 text-slate-100 flex flex-col font-sans selection:bg-blue-600 selection:text-white">
-            {/* Sticky Top Navigation */}
+            {/* Sticky Top Navigation Bar */}
             <header className="sticky top-0 z-50 bg-slate-950/90 backdrop-blur-md border-b border-slate-800/80 px-4 sm:px-8 py-3.5 flex items-center justify-between">
                 <div className="flex items-center gap-3">
                     <div className="grid place-items-center w-10 h-10 rounded-xl bg-gradient-to-br from-blue-600 to-indigo-600 border border-blue-400/30 text-white shadow-lg shadow-blue-500/20">
-                        <Waves className="w-5 h-5 text-white" />
+                        <Waves className="w-5 h-5 text-white animate-pulse" />
                     </div>
                     <div>
                         <div className="flex items-center gap-2">
@@ -2615,9 +2659,10 @@ function HeroView({ ward, wardData, onEnter }) {
 
                 <div className="hidden md:flex items-center gap-6 text-xs font-semibold text-slate-300">
                     <a href="#overview" className="hover:text-blue-400 transition-colors">Overview</a>
-                    <a href="#architecture" className="hover:text-blue-400 transition-colors">Pipeline Architecture</a>
-                    <a href="#features" className="hover:text-blue-400 transition-colors">Core Capabilities</a>
-                    <a href="#cities" className="hover:text-blue-400 transition-colors">Pilot Cities</a>
+                    <a href="#gallery" className="hover:text-blue-400 transition-colors">Visual Gallery</a>
+                    <a href="#architecture" className="hover:text-blue-400 transition-colors">Architecture</a>
+                    <a href="#features" className="hover:text-blue-400 transition-colors">Capabilities</a>
+                    <a href="#cities" className="hover:text-blue-400 transition-colors">Pilot Metros</a>
                 </div>
 
                 <div className="flex items-center gap-3">
@@ -2631,70 +2676,214 @@ function HeroView({ ward, wardData, onEnter }) {
                 </div>
             </header>
 
-            {/* Main Scrollable Content */}
+            {/* Main Scrollable Body */}
             <main className="flex-1 overflow-y-auto">
-                {/* Hero Banner Section */}
-                <section id="overview" className="relative py-16 sm:py-24 px-4 sm:px-8 max-w-7xl mx-auto text-center flex flex-col items-center">
-                    {/* Background Radial Glow */}
-                    <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[500px] h-[500px] bg-blue-600/15 rounded-full blur-3xl pointer-events-none" />
+                {/* Hero Banner Section with Background Image Carousel */}
+                <section id="overview" className="relative min-h-[85vh] flex items-center justify-center overflow-hidden py-16 sm:py-24 px-4 sm:px-8 border-b border-slate-800/80">
+                    {/* Background Images with Crossfade Animation */}
+                    {HERO_IMAGES.map((img, idx) => (
+                        <div
+                            key={img.url}
+                            className={`absolute inset-0 bg-cover bg-center transition-opacity duration-1000 ease-in-out ${
+                                activeImgIndex === idx ? "opacity-35 scale-100" : "opacity-0 scale-105 pointer-events-none"
+                            }`}
+                            style={{ backgroundImage: `url('${img.url}')` }}
+                        />
+                    ))}
 
-                    <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-blue-500/10 border border-blue-500/30 text-blue-300 text-xs font-bold mb-6 shadow-sm">
-                        <Sparkles className="w-4 h-4 text-blue-400" />
-                        <span>Next-Generation AI &amp; 30m CartoDEM GIS Platform</span>
+                    {/* Gradient Overlay Mask */}
+                    <div className="absolute inset-0 bg-gradient-to-t from-slate-950 via-slate-950/80 to-slate-950/40 pointer-events-none" />
+
+                    {/* Hero Foreground Content */}
+                    <div className="relative z-10 max-w-5xl mx-auto text-center flex flex-col items-center">
+                        <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-blue-500/20 backdrop-blur-md border border-blue-400/30 text-blue-200 text-xs font-bold mb-6 shadow-xl animate-in fade-in duration-300">
+                            <Sparkles className="w-4 h-4 text-blue-400 animate-spin" />
+                            <span>{HERO_IMAGES[activeImgIndex].badge} · Live Spatial Intelligence</span>
+                        </div>
+
+                        <h1 className="text-4xl sm:text-6xl md:text-7xl font-extrabold tracking-tight text-white leading-tight">
+                            Precision Urban Flood <br className="hidden sm:inline" />
+                            <span className="bg-gradient-to-r from-blue-400 via-sky-300 to-indigo-400 bg-clip-text text-transparent">
+                                Nowcasting &amp; Safe Routing
+                            </span>
+                        </h1>
+
+                        <p className="mt-6 text-base sm:text-lg md:text-xl text-slate-200 max-w-3xl leading-relaxed drop-shadow-md">
+                            RainDrop combines <strong>30-meter CartoDEM topography</strong>, Doppler radar nowcasts, and fast 
+                            <strong> AI hydraulics surrogate models</strong> to predict neighborhood-level inundation, monitor critical drainage bottlenecks, 
+                            and guide emergency transit along 100% dry elevation corridors.
+                        </p>
+
+                        <div className="mt-8 flex flex-wrap justify-center gap-4">
+                            <button
+                                onClick={onEnter}
+                                className="flex items-center gap-2 px-6 py-3.5 rounded-xl bg-blue-600 hover:bg-blue-500 text-white font-extrabold text-sm shadow-2xl shadow-blue-600/40 transition-all cursor-pointer border border-blue-400/40 transform hover:-translate-y-0.5"
+                            >
+                                <Activity className="w-4 h-4" />
+                                <span>Explore RainDrop Operations Workspace</span>
+                            </button>
+
+                            <button
+                                onClick={onEnter}
+                                className="flex items-center gap-2 px-6 py-3.5 rounded-xl bg-slate-900/90 hover:bg-slate-800 backdrop-blur-md text-slate-200 font-bold text-sm border border-slate-700 shadow-lg transition-all cursor-pointer transform hover:-translate-y-0.5"
+                            >
+                                <Navigation className="w-4 h-4 text-emerald-400" />
+                                <span>Open Route Safety Check</span>
+                            </button>
+                        </div>
+
+                        {/* Interactive Carousel Controls */}
+                        <div className="mt-10 flex items-center justify-center gap-3">
+                            <button
+                                onClick={() => {
+                                    setIsAutoPlay(false);
+                                    setActiveImgIndex((prev) => (prev > 0 ? prev - 1 : HERO_IMAGES.length - 1));
+                                }}
+                                className="p-2 rounded-xl bg-slate-900/80 hover:bg-slate-800 border border-slate-700 text-slate-300 text-xs font-bold cursor-pointer transition-colors"
+                                title="Previous Slide"
+                            >
+                                &larr;
+                            </button>
+
+                            <div className="flex gap-2">
+                                {HERO_IMAGES.map((img, idx) => (
+                                    <button
+                                        key={idx}
+                                        onClick={() => {
+                                            setIsAutoPlay(false);
+                                            setActiveImgIndex(idx);
+                                        }}
+                                        className={`h-2 rounded-full transition-all duration-300 cursor-pointer ${
+                                            activeImgIndex === idx ? "w-8 bg-blue-400" : "w-2 bg-slate-700 hover:bg-slate-500"
+                                        }`}
+                                        title={img.title}
+                                    />
+                                ))}
+                            </div>
+
+                            <button
+                                onClick={() => {
+                                    setIsAutoPlay(false);
+                                    setActiveImgIndex((prev) => (prev + 1) % HERO_IMAGES.length);
+                                }}
+                                className="p-2 rounded-xl bg-slate-900/80 hover:bg-slate-800 border border-slate-700 text-slate-300 text-xs font-bold cursor-pointer transition-colors"
+                                title="Next Slide"
+                            >
+                                &rarr;
+                            </button>
+
+                            <button
+                                onClick={() => setIsAutoPlay(!isAutoPlay)}
+                                className={`px-2.5 py-1 rounded-xl text-[10px] font-mono font-bold border transition-colors cursor-pointer ${
+                                    isAutoPlay
+                                        ? "bg-blue-500/20 text-blue-300 border-blue-500/40"
+                                        : "bg-slate-800 text-slate-400 border-slate-700"
+                                }`}
+                            >
+                                {isAutoPlay ? "⏸️ Auto" : "▶️ Play"}
+                            </button>
+                        </div>
+
+                        {/* Carousel Image Caption */}
+                        <div className="mt-3 text-xs font-mono text-slate-300 bg-slate-900/80 backdrop-blur border border-slate-800 px-4 py-1.5 rounded-full shadow-md">
+                            <strong>{HERO_IMAGES[activeImgIndex].title}</strong> — {HERO_IMAGES[activeImgIndex].subtitle}
+                        </div>
+
+                        {/* Key System Metrics Grid */}
+                        <div className="mt-12 grid grid-cols-2 sm:grid-cols-4 gap-4 w-full max-w-4xl text-left">
+                            <div className="p-4 rounded-2xl bg-slate-900/80 border border-slate-800 backdrop-blur">
+                                <span className="text-[10px] uppercase font-mono tracking-wider text-slate-400 block">Elevation Resolution</span>
+                                <p className="text-xl font-bold font-mono text-blue-400 mt-1">30m CartoDEM</p>
+                                <span className="text-[11px] text-slate-400">ISRO GeoTIFF Rasters</span>
+                            </div>
+                            <div className="p-4 rounded-2xl bg-slate-900/80 border border-slate-800 backdrop-blur">
+                                <span className="text-[10px] uppercase font-mono tracking-wider text-slate-400 block">Surrogate Model Latency</span>
+                                <p className="text-xl font-bold font-mono text-emerald-400 mt-1">&lt; 15 ms</p>
+                                <span className="text-[11px] text-slate-400">Instant Depth Inference</span>
+                            </div>
+                            <div className="p-4 rounded-2xl bg-slate-900/80 border border-slate-800 backdrop-blur">
+                                <span className="text-[10px] uppercase font-mono tracking-wider text-slate-400 block">Pilot Metros</span>
+                                <p className="text-xl font-bold font-mono text-sky-400 mt-1">3 Major Cities</p>
+                                <span className="text-[11px] text-slate-400">Chennai · Mumbai · Delhi</span>
+                            </div>
+                            <div className="p-4 rounded-2xl bg-slate-900/80 border border-slate-800 backdrop-blur">
+                                <span className="text-[10px] uppercase font-mono tracking-wider text-slate-400 block">Emergency Routing</span>
+                                <p className="text-xl font-bold font-mono text-indigo-400 mt-1">100% Safe</p>
+                                <span className="text-[11px] text-slate-400">Dry Elevation Corridors</span>
+                            </div>
+                        </div>
                     </div>
+                </section>
 
-                    <h1 className="text-4xl sm:text-6xl md:text-7xl font-extrabold tracking-tight text-white max-w-4xl leading-tight">
-                        Precision Urban Flood <br className="hidden sm:inline" />
-                        <span className="bg-gradient-to-r from-blue-400 via-sky-300 to-indigo-400 bg-clip-text text-transparent">
-                            Nowcasting &amp; Safe Routing
+                {/* Visual Imagery & Flood Resilience Showcase Section */}
+                <section id="gallery" className="py-16 px-4 sm:px-8 max-w-7xl mx-auto">
+                    <div className="text-center max-w-2xl mx-auto mb-12">
+                        <span className="text-xs uppercase font-mono font-bold tracking-widest text-sky-400 bg-sky-500/10 px-3 py-1 rounded-full border border-sky-500/20">
+                            Real-World Visual Intelligence
                         </span>
-                    </h1>
-
-                    <p className="mt-6 text-base sm:text-lg md:text-xl text-slate-300 max-w-3xl leading-relaxed">
-                        RainDrop combines <strong>30-meter CartoDEM topography</strong>, Doppler radar nowcasts, and fast 
-                        <strong> AI hydraulics surrogate models</strong> to predict neighborhood-level inundation, monitor critical drainage bottlenecks, 
-                        and guide emergency transit along 100% dry elevation corridors.
-                    </p>
-
-                    <div className="mt-8 flex flex-wrap justify-center gap-4">
-                        <button
-                            onClick={onEnter}
-                            className="flex items-center gap-2 px-6 py-3.5 rounded-xl bg-blue-600 hover:bg-blue-500 text-white font-extrabold text-sm shadow-xl shadow-blue-600/30 transition-all cursor-pointer border border-blue-400/40"
-                        >
-                            <Activity className="w-4 h-4" />
-                            <span>Explore RainDrop Operations Workspace</span>
-                        </button>
-
-                        <button
-                            onClick={onEnter}
-                            className="flex items-center gap-2 px-6 py-3.5 rounded-xl bg-slate-900 hover:bg-slate-800 text-slate-200 font-bold text-sm border border-slate-700 shadow-md transition-all cursor-pointer"
-                        >
-                            <Navigation className="w-4 h-4 text-emerald-400" />
-                            <span>Open Route Safety Check</span>
-                        </button>
+                        <h2 className="text-3xl sm:text-4xl font-extrabold text-white tracking-tight mt-3">
+                            Urban Flood Scenarios &amp; Resilience
+                        </h2>
+                        <p className="text-slate-400 text-sm mt-2">
+                            Actual flood vulnerability photography demonstrating cloudburst runoff, lowland submersions, and dewatering responses.
+                        </p>
                     </div>
 
-                    {/* Key System Metrics Grid */}
-                    <div className="mt-14 grid grid-cols-2 sm:grid-cols-4 gap-4 w-full max-w-4xl text-left">
-                        <div className="p-4 rounded-2xl bg-slate-900/80 border border-slate-800 backdrop-blur">
-                            <span className="text-[10px] uppercase font-mono tracking-wider text-slate-400 block">Elevation Resolution</span>
-                            <p className="text-xl font-bold font-mono text-blue-400 mt-1">30m CartoDEM</p>
-                            <span className="text-[11px] text-slate-400">ISRO GeoTIFF Rasters</span>
-                        </div>
-                        <div className="p-4 rounded-2xl bg-slate-900/80 border border-slate-800 backdrop-blur">
-                            <span className="text-[10px] uppercase font-mono tracking-wider text-slate-400 block">Surrogate Model Latency</span>
-                            <p className="text-xl font-bold font-mono text-emerald-400 mt-1">&lt; 15 ms</p>
-                            <span className="text-[11px] text-slate-400">Instant Depth Inference</span>
-                        </div>
-                        <div className="p-4 rounded-2xl bg-slate-900/80 border border-slate-800 backdrop-blur">
-                            <span className="text-[10px] uppercase font-mono tracking-wider text-slate-400 block">Pilot Metros</span>
-                            <p className="text-xl font-bold font-mono text-sky-400 mt-1">3 Major Cities</p>
-                            <span className="text-[11px] text-slate-400">Chennai · Mumbai · Delhi</span>
-                        </div>
-                        <div className="p-4 rounded-2xl bg-slate-900/80 border border-slate-800 backdrop-blur">
-                            <span className="text-[10px] uppercase font-mono tracking-wider text-slate-400 block">Emergency Routing</span>
-                            <p className="text-xl font-bold font-mono text-indigo-400 mt-1">100% Safe</p>
-                            <span className="text-[11px] text-slate-400">Dry Elevation Corridors</span>
+                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                        {HERO_IMAGES.map((img, idx) => (
+                            <div
+                                key={img.url}
+                                onClick={() => {
+                                    setActiveImgIndex(idx);
+                                    document.getElementById("overview")?.scrollIntoView({ behavior: "smooth" });
+                                }}
+                                className="group relative rounded-3xl overflow-hidden border border-slate-800 bg-slate-900 shadow-xl cursor-pointer hover:border-blue-500/50 transition-all duration-300 hover:shadow-2xl hover:shadow-blue-500/10 transform hover:-translate-y-1"
+                            >
+                                <div className="h-52 w-full overflow-hidden relative">
+                                    <img
+                                        src={img.url}
+                                        alt={img.title}
+                                        className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500 ease-out"
+                                        loading="lazy"
+                                    />
+                                    <div className="absolute inset-0 bg-gradient-to-t from-slate-950 via-slate-950/30 to-transparent opacity-80 group-hover:opacity-60 transition-opacity" />
+                                    <span className="absolute top-3 left-3 px-3 py-1 rounded-full text-[10px] font-mono font-bold bg-slate-950/80 backdrop-blur-md border border-slate-700 text-blue-300">
+                                        {img.badge}
+                                    </span>
+                                </div>
+
+                                <div className="p-5">
+                                    <h3 className="text-base font-bold text-white group-hover:text-blue-400 transition-colors">
+                                        {img.title}
+                                    </h3>
+                                    <p className="text-xs text-slate-400 mt-1.5 leading-relaxed">
+                                        {img.subtitle}
+                                    </p>
+                                    <div className="mt-3 flex items-center justify-between text-[11px] font-mono text-blue-400 font-semibold pt-2 border-t border-slate-800/80">
+                                        <span>Inspect Scenario</span>
+                                        <span>&rarr;</span>
+                                    </div>
+                                </div>
+                            </div>
+                        ))}
+
+                        {/* Extra Interactive Summary Card */}
+                        <div className="p-6 rounded-3xl bg-gradient-to-br from-blue-900/30 via-slate-900 to-indigo-950/40 border border-blue-500/30 shadow-xl flex flex-col justify-between">
+                            <div>
+                                <div className="p-3 rounded-2xl bg-blue-500/20 border border-blue-400/30 text-blue-300 w-fit mb-4">
+                                    <Droplets className="w-6 h-6" />
+                                </div>
+                                <h3 className="text-lg font-bold text-white mb-2">Real-Time Sensor Verification</h3>
+                                <p className="text-slate-300 text-xs leading-relaxed">
+                                    Telemetry is validated against ultrasonic municipal sumps &amp; CCTV water-level markers, guaranteeing high confidence predictions.
+                                </p>
+                            </div>
+                            <button
+                                onClick={onEnter}
+                                className="mt-5 w-full py-2.5 px-4 rounded-xl bg-blue-600 hover:bg-blue-500 text-white font-bold text-xs shadow-md transition-all cursor-pointer text-center"
+                            >
+                                Open Live Map Operations
+                            </button>
                         </div>
                     </div>
                 </section>

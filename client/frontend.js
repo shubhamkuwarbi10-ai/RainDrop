@@ -2595,7 +2595,7 @@ function SitRepModal({
 // ============================================================================
 
 // ============================================================================
-// Hero Welcome & Technical Project Details View (Scrollable)
+// Hero Welcome & Technical Project Details View (Scrollable with Images & Animations)
 // ============================================================================
 
 function HeroView({
@@ -2604,6 +2604,43 @@ function HeroView({
   onEnter
 }) {
   const [activeStep, setActiveStep] = useState(0);
+  const [activeImgIndex, setActiveImgIndex] = useState(0);
+  const [isAutoPlay, setIsAutoPlay] = useState(true);
+  const HERO_IMAGES = [{
+    url: "/static/images/dibakar-roy-DccG84ivd3k-unsplash.jpg",
+    title: "Monsoon Cloudburst Downpour",
+    subtitle: "Flash surface runoff rapidly entering lowland municipal sumps",
+    badge: "IMD Radar Telemetry"
+  }, {
+    url: "/static/images/dibakar-roy-FbOchRlXaPs-unsplash.jpg",
+    title: "Metropolitan Inundation Basin",
+    subtitle: "Real-time 30m CartoDEM spatial elevation modeling",
+    badge: "CartoDEM 30m Rasters"
+  }, {
+    url: "/static/images/dibakar-roy-KbG3OsDKkCM-unsplash.jpg",
+    title: "Submerged Bottlenecks & Subways",
+    subtitle: "Automated hazard detection for roads exceeding 30cm water depth",
+    badge: "Passability Matrix"
+  }, {
+    url: "/static/images/dibakar-roy-P7Z3HwNWPeQ-unsplash.jpg",
+    title: "Drainage Sump & Outfall Operations",
+    subtitle: "1D-2D SWMM hydraulic modeling coupled with active pump telemetry",
+    badge: "SWMM Hydraulics"
+  }, {
+    url: "/static/images/dibakar-roy-aby-GGLtD-A-unsplash.jpg",
+    title: "Safe Elevation Transit Corridors",
+    subtitle: "Dynamic routing guiding emergency transit along dry flyover bypasses",
+    badge: "Dual-Corridor Route Engine"
+  }];
+
+  // Auto-advance carousel image every 4.5 seconds
+  useEffect(() => {
+    if (!isAutoPlay) return;
+    const timer = setInterval(() => {
+      setActiveImgIndex(prev => (prev + 1) % HERO_IMAGES.length);
+    }, 4500);
+    return () => clearInterval(timer);
+  }, [isAutoPlay, HERO_IMAGES.length]);
   const PIPELINE_STEPS = [{
     num: "01",
     title: "30m CartoDEM GIS Data Ingestion",
@@ -2649,7 +2686,7 @@ function HeroView({
   }, /*#__PURE__*/React.createElement("div", {
     className: "grid place-items-center w-10 h-10 rounded-xl bg-gradient-to-br from-blue-600 to-indigo-600 border border-blue-400/30 text-white shadow-lg shadow-blue-500/20"
   }, /*#__PURE__*/React.createElement(Waves, {
-    className: "w-5 h-5 text-white"
+    className: "w-5 h-5 text-white animate-pulse"
   })), /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("div", {
     className: "flex items-center gap-2"
   }, /*#__PURE__*/React.createElement("span", {
@@ -2664,15 +2701,18 @@ function HeroView({
     href: "#overview",
     className: "hover:text-blue-400 transition-colors"
   }, "Overview"), /*#__PURE__*/React.createElement("a", {
+    href: "#gallery",
+    className: "hover:text-blue-400 transition-colors"
+  }, "Visual Gallery"), /*#__PURE__*/React.createElement("a", {
     href: "#architecture",
     className: "hover:text-blue-400 transition-colors"
-  }, "Pipeline Architecture"), /*#__PURE__*/React.createElement("a", {
+  }, "Architecture"), /*#__PURE__*/React.createElement("a", {
     href: "#features",
     className: "hover:text-blue-400 transition-colors"
-  }, "Core Capabilities"), /*#__PURE__*/React.createElement("a", {
+  }, "Capabilities"), /*#__PURE__*/React.createElement("a", {
     href: "#cities",
     className: "hover:text-blue-400 transition-colors"
-  }, "Pilot Cities")), /*#__PURE__*/React.createElement("div", {
+  }, "Pilot Metros")), /*#__PURE__*/React.createElement("div", {
     className: "flex items-center gap-3"
   }, /*#__PURE__*/React.createElement("button", {
     onClick: onEnter,
@@ -2683,35 +2723,74 @@ function HeroView({
     className: "flex-1 overflow-y-auto"
   }, /*#__PURE__*/React.createElement("section", {
     id: "overview",
-    className: "relative py-16 sm:py-24 px-4 sm:px-8 max-w-7xl mx-auto text-center flex flex-col items-center"
-  }, /*#__PURE__*/React.createElement("div", {
-    className: "absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[500px] h-[500px] bg-blue-600/15 rounded-full blur-3xl pointer-events-none"
+    className: "relative min-h-[85vh] flex items-center justify-center overflow-hidden py-16 sm:py-24 px-4 sm:px-8 border-b border-slate-800/80"
+  }, HERO_IMAGES.map((img, idx) => /*#__PURE__*/React.createElement("div", {
+    key: img.url,
+    className: `absolute inset-0 bg-cover bg-center transition-opacity duration-1000 ease-in-out ${activeImgIndex === idx ? "opacity-35 scale-100" : "opacity-0 scale-105 pointer-events-none"}`,
+    style: {
+      backgroundImage: `url('${img.url}')`
+    }
+  })), /*#__PURE__*/React.createElement("div", {
+    className: "absolute inset-0 bg-gradient-to-t from-slate-950 via-slate-950/80 to-slate-950/40 pointer-events-none"
   }), /*#__PURE__*/React.createElement("div", {
-    className: "inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-blue-500/10 border border-blue-500/30 text-blue-300 text-xs font-bold mb-6 shadow-sm"
+    className: "relative z-10 max-w-5xl mx-auto text-center flex flex-col items-center"
+  }, /*#__PURE__*/React.createElement("div", {
+    className: "inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-blue-500/20 backdrop-blur-md border border-blue-400/30 text-blue-200 text-xs font-bold mb-6 shadow-xl animate-in fade-in duration-300"
   }, /*#__PURE__*/React.createElement(Sparkles, {
-    className: "w-4 h-4 text-blue-400"
-  }), /*#__PURE__*/React.createElement("span", null, "Next-Generation AI & 30m CartoDEM GIS Platform")), /*#__PURE__*/React.createElement("h1", {
-    className: "text-4xl sm:text-6xl md:text-7xl font-extrabold tracking-tight text-white max-w-4xl leading-tight"
+    className: "w-4 h-4 text-blue-400 animate-spin"
+  }), /*#__PURE__*/React.createElement("span", null, HERO_IMAGES[activeImgIndex].badge, " · Live Spatial Intelligence")), /*#__PURE__*/React.createElement("h1", {
+    className: "text-4xl sm:text-6xl md:text-7xl font-extrabold tracking-tight text-white leading-tight"
   }, "Precision Urban Flood ", /*#__PURE__*/React.createElement("br", {
     className: "hidden sm:inline"
   }), /*#__PURE__*/React.createElement("span", {
     className: "bg-gradient-to-r from-blue-400 via-sky-300 to-indigo-400 bg-clip-text text-transparent"
   }, "Nowcasting & Safe Routing")), /*#__PURE__*/React.createElement("p", {
-    className: "mt-6 text-base sm:text-lg md:text-xl text-slate-300 max-w-3xl leading-relaxed"
+    className: "mt-6 text-base sm:text-lg md:text-xl text-slate-200 max-w-3xl leading-relaxed drop-shadow-md"
   }, "RainDrop combines ", /*#__PURE__*/React.createElement("strong", null, "30-meter CartoDEM topography"), ", Doppler radar nowcasts, and fast", /*#__PURE__*/React.createElement("strong", null, " AI hydraulics surrogate models"), " to predict neighborhood-level inundation, monitor critical drainage bottlenecks, and guide emergency transit along 100% dry elevation corridors."), /*#__PURE__*/React.createElement("div", {
     className: "mt-8 flex flex-wrap justify-center gap-4"
   }, /*#__PURE__*/React.createElement("button", {
     onClick: onEnter,
-    className: "flex items-center gap-2 px-6 py-3.5 rounded-xl bg-blue-600 hover:bg-blue-500 text-white font-extrabold text-sm shadow-xl shadow-blue-600/30 transition-all cursor-pointer border border-blue-400/40"
+    className: "flex items-center gap-2 px-6 py-3.5 rounded-xl bg-blue-600 hover:bg-blue-500 text-white font-extrabold text-sm shadow-2xl shadow-blue-600/40 transition-all cursor-pointer border border-blue-400/40 transform hover:-translate-y-0.5"
   }, /*#__PURE__*/React.createElement(Activity, {
     className: "w-4 h-4"
   }), /*#__PURE__*/React.createElement("span", null, "Explore RainDrop Operations Workspace")), /*#__PURE__*/React.createElement("button", {
     onClick: onEnter,
-    className: "flex items-center gap-2 px-6 py-3.5 rounded-xl bg-slate-900 hover:bg-slate-800 text-slate-200 font-bold text-sm border border-slate-700 shadow-md transition-all cursor-pointer"
+    className: "flex items-center gap-2 px-6 py-3.5 rounded-xl bg-slate-900/90 hover:bg-slate-800 backdrop-blur-md text-slate-200 font-bold text-sm border border-slate-700 shadow-lg transition-all cursor-pointer transform hover:-translate-y-0.5"
   }, /*#__PURE__*/React.createElement(Navigation, {
     className: "w-4 h-4 text-emerald-400"
   }), /*#__PURE__*/React.createElement("span", null, "Open Route Safety Check"))), /*#__PURE__*/React.createElement("div", {
-    className: "mt-14 grid grid-cols-2 sm:grid-cols-4 gap-4 w-full max-w-4xl text-left"
+    className: "mt-10 flex items-center justify-center gap-3"
+  }, /*#__PURE__*/React.createElement("button", {
+    onClick: () => {
+      setIsAutoPlay(false);
+      setActiveImgIndex(prev => prev > 0 ? prev - 1 : HERO_IMAGES.length - 1);
+    },
+    className: "p-2 rounded-xl bg-slate-900/80 hover:bg-slate-800 border border-slate-700 text-slate-300 text-xs font-bold cursor-pointer transition-colors",
+    title: "Previous Slide"
+  }, "←"), /*#__PURE__*/React.createElement("div", {
+    className: "flex gap-2"
+  }, HERO_IMAGES.map((img, idx) => /*#__PURE__*/React.createElement("button", {
+    key: idx,
+    onClick: () => {
+      setIsAutoPlay(false);
+      setActiveImgIndex(idx);
+    },
+    className: `h-2 rounded-full transition-all duration-300 cursor-pointer ${activeImgIndex === idx ? "w-8 bg-blue-400" : "w-2 bg-slate-700 hover:bg-slate-500"}`,
+    title: img.title
+  }))), /*#__PURE__*/React.createElement("button", {
+    onClick: () => {
+      setIsAutoPlay(false);
+      setActiveImgIndex(prev => (prev + 1) % HERO_IMAGES.length);
+    },
+    className: "p-2 rounded-xl bg-slate-900/80 hover:bg-slate-800 border border-slate-700 text-slate-300 text-xs font-bold cursor-pointer transition-colors",
+    title: "Next Slide"
+  }, "→"), /*#__PURE__*/React.createElement("button", {
+    onClick: () => setIsAutoPlay(!isAutoPlay),
+    className: `px-2.5 py-1 rounded-xl text-[10px] font-mono font-bold border transition-colors cursor-pointer ${isAutoPlay ? "bg-blue-500/20 text-blue-300 border-blue-500/40" : "bg-slate-800 text-slate-400 border-slate-700"}`
+  }, isAutoPlay ? "⏸️ Auto" : "▶️ Play")), /*#__PURE__*/React.createElement("div", {
+    className: "mt-3 text-xs font-mono text-slate-300 bg-slate-900/80 backdrop-blur border border-slate-800 px-4 py-1.5 rounded-full shadow-md"
+  }, /*#__PURE__*/React.createElement("strong", null, HERO_IMAGES[activeImgIndex].title), " — ", HERO_IMAGES[activeImgIndex].subtitle), /*#__PURE__*/React.createElement("div", {
+    className: "mt-12 grid grid-cols-2 sm:grid-cols-4 gap-4 w-full max-w-4xl text-left"
   }, /*#__PURE__*/React.createElement("div", {
     className: "p-4 rounded-2xl bg-slate-900/80 border border-slate-800 backdrop-blur"
   }, /*#__PURE__*/React.createElement("span", {
@@ -2744,7 +2823,61 @@ function HeroView({
     className: "text-xl font-bold font-mono text-indigo-400 mt-1"
   }, "100% Safe"), /*#__PURE__*/React.createElement("span", {
     className: "text-[11px] text-slate-400"
-  }, "Dry Elevation Corridors")))), /*#__PURE__*/React.createElement("section", {
+  }, "Dry Elevation Corridors"))))), /*#__PURE__*/React.createElement("section", {
+    id: "gallery",
+    className: "py-16 px-4 sm:px-8 max-w-7xl mx-auto"
+  }, /*#__PURE__*/React.createElement("div", {
+    className: "text-center max-w-2xl mx-auto mb-12"
+  }, /*#__PURE__*/React.createElement("span", {
+    className: "text-xs uppercase font-mono font-bold tracking-widest text-sky-400 bg-sky-500/10 px-3 py-1 rounded-full border border-sky-500/20"
+  }, "Real-World Visual Intelligence"), /*#__PURE__*/React.createElement("h2", {
+    className: "text-3xl sm:text-4xl font-extrabold text-white tracking-tight mt-3"
+  }, "Urban Flood Scenarios & Resilience"), /*#__PURE__*/React.createElement("p", {
+    className: "text-slate-400 text-sm mt-2"
+  }, "Actual flood vulnerability photography demonstrating cloudburst runoff, lowland submersions, and dewatering responses.")), /*#__PURE__*/React.createElement("div", {
+    className: "grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6"
+  }, HERO_IMAGES.map((img, idx) => /*#__PURE__*/React.createElement("div", {
+    key: img.url,
+    onClick: () => {
+      setActiveImgIndex(idx);
+      document.getElementById("overview")?.scrollIntoView({
+        behavior: "smooth"
+      });
+    },
+    className: "group relative rounded-3xl overflow-hidden border border-slate-800 bg-slate-900 shadow-xl cursor-pointer hover:border-blue-500/50 transition-all duration-300 hover:shadow-2xl hover:shadow-blue-500/10 transform hover:-translate-y-1"
+  }, /*#__PURE__*/React.createElement("div", {
+    className: "h-52 w-full overflow-hidden relative"
+  }, /*#__PURE__*/React.createElement("img", {
+    src: img.url,
+    alt: img.title,
+    className: "w-full h-full object-cover group-hover:scale-105 transition-transform duration-500 ease-out",
+    loading: "lazy"
+  }), /*#__PURE__*/React.createElement("div", {
+    className: "absolute inset-0 bg-gradient-to-t from-slate-950 via-slate-950/30 to-transparent opacity-80 group-hover:opacity-60 transition-opacity"
+  }), /*#__PURE__*/React.createElement("span", {
+    className: "absolute top-3 left-3 px-3 py-1 rounded-full text-[10px] font-mono font-bold bg-slate-950/80 backdrop-blur-md border border-slate-700 text-blue-300"
+  }, img.badge)), /*#__PURE__*/React.createElement("div", {
+    className: "p-5"
+  }, /*#__PURE__*/React.createElement("h3", {
+    className: "text-base font-bold text-white group-hover:text-blue-400 transition-colors"
+  }, img.title), /*#__PURE__*/React.createElement("p", {
+    className: "text-xs text-slate-400 mt-1.5 leading-relaxed"
+  }, img.subtitle), /*#__PURE__*/React.createElement("div", {
+    className: "mt-3 flex items-center justify-between text-[11px] font-mono text-blue-400 font-semibold pt-2 border-t border-slate-800/80"
+  }, /*#__PURE__*/React.createElement("span", null, "Inspect Scenario"), /*#__PURE__*/React.createElement("span", null, "→"))))), /*#__PURE__*/React.createElement("div", {
+    className: "p-6 rounded-3xl bg-gradient-to-br from-blue-900/30 via-slate-900 to-indigo-950/40 border border-blue-500/30 shadow-xl flex flex-col justify-between"
+  }, /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("div", {
+    className: "p-3 rounded-2xl bg-blue-500/20 border border-blue-400/30 text-blue-300 w-fit mb-4"
+  }, /*#__PURE__*/React.createElement(Droplets, {
+    className: "w-6 h-6"
+  })), /*#__PURE__*/React.createElement("h3", {
+    className: "text-lg font-bold text-white mb-2"
+  }, "Real-Time Sensor Verification"), /*#__PURE__*/React.createElement("p", {
+    className: "text-slate-300 text-xs leading-relaxed"
+  }, "Telemetry is validated against ultrasonic municipal sumps & CCTV water-level markers, guaranteeing high confidence predictions.")), /*#__PURE__*/React.createElement("button", {
+    onClick: onEnter,
+    className: "mt-5 w-full py-2.5 px-4 rounded-xl bg-blue-600 hover:bg-blue-500 text-white font-bold text-xs shadow-md transition-all cursor-pointer text-center"
+  }, "Open Live Map Operations")))), /*#__PURE__*/React.createElement("section", {
     id: "architecture",
     className: "py-16 px-4 sm:px-8 bg-slate-900/50 border-y border-slate-800/80"
   }, /*#__PURE__*/React.createElement("div", {
