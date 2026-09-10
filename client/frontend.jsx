@@ -1,7 +1,38 @@
 /* @jsx React.createElement */
 /* @jsxFrag React.Fragment */
 // Global references — loaded via UMD scripts in index.html
-const { useState, useEffect, useMemo, useRef } = React;
+const { useState, useEffect, useMemo, useRef, useCallback } = React;
+
+const ICON_SVGS = {
+    ArrowRight: <g><path d="M5 12h14"/><path d="m12 5 7 7-7 7"/></g>,
+    ArrowLeft: <g><path d="m12 19-7-7 7-7"/><path d="M19 12H5"/></g>,
+    Play: <polygon points="6 3 20 12 6 21 6 3" fill="currentColor" stroke="none" />,
+    Pause: <g><rect x="6" y="4" width="4" height="16" fill="currentColor" stroke="none"/><rect x="14" y="4" width="4" height="16" fill="currentColor" stroke="none"/></g>,
+    Droplets: <g><path d="M7 16.3c2.2 0 4-1.83 4-4.05 0-1.16-.57-2.26-1.71-3.19S7.29 6.75 7 5.3c-.29 1.45-1.14 2.84-2.29 3.76S3 11.1 3 12.25c0 2.22 1.8 4.05 4 4.05z"/><path d="M12.56 6.6A10.97 10.97 0 0 0 14 3.02c.5 2.5 2 4.9 4 6.5s3 3.5 3 5.5a6.98 6.98 0 0 1-11.91 4.97"/></g>,
+    Radio: <g><circle cx="12" cy="12" r="2"/><path d="M16.24 7.76a6 6 0 0 1 0 8.49m-8.48-.01a6 6 0 0 1 0-8.49m11.31-2.82a10 10 0 0 1 0 14.14m-14.14 0a10 10 0 0 1 0-14.14"/></g>,
+    Layers: <g><path d="m12.83 2.18a2 2 0 0 0-1.66 0L2.6 6.08a1 1 0 0 0 0 1.83l8.58 3.91a2 2 0 0 0 1.66 0l8.58-3.9a1 1 0 0 0 0-1.83Z"/><path d="m22 12.5-9.17 4.16a2 2 0 0 1-1.66 0L2 12.5"/><path d="m22 17.5-9.17 4.16a2 2 0 0 1-1.66 0L2 17.5"/></g>,
+    AlertTriangle: <g><path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3Z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></g>,
+    Route: <g><circle cx="6" cy="19" r="3"/><path d="M9 19h8.5a3.5 3.5 0 0 0 0-7h-11a3.5 3.5 0 0 1 0-7H15"/><circle cx="18" cy="5" r="3"/></g>,
+    FileText: <g><path d="M15 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7Z"/><path d="M14 2v4a2 2 0 0 0 2 2h4"/><line x1="10" y1="13" x2="14" y2="13"/><line x1="10" y1="17" x2="14" y2="17"/></g>,
+    Building2: <g><path d="M6 22V4a2 2 0 0 1 2-2h8a2 2 0 0 1 2 2v18Z"/><path d="M6 12H4a2 2 0 0 0-2 2v6a2 2 0 0 0 2 2h2"/><path d="M18 9h2a2 2 0 0 1 2 2v9a2 2 0 0 1-2 2h-2"/><path d="M10 6h4"/><path d="M10 10h4"/><path d="M10 14h4"/><path d="M10 18h4"/></g>,
+    Waves: <g><path d="M2 6c.6.5 1.2 1 2.5 1C7 7 7 5 9.5 5c2.6 0 2.4 2 5 2 2.5 0 2.5-2 5-2 1.3 0 1.9.5 2.5 1"/><path d="M2 12c.6.5 1.2 1 2.5 1 2.5 0 2.5-2 5-2 2.6 0 2.4 2 5 2 2.5 0 2.5-2 5-2 1.3 0 1.9.5 2.5 1"/><path d="M2 18c.6.5 1.2 1 2.5 1 2.5 0 2.5-2 5-2 2.6 0 2.4 2 5 2 2.5 0 2.5-2 5-2 1.3 0 1.9.5 2.5 1"/></g>,
+    Navigation: <polygon points="3 11 22 2 13 21 11 13 3 11" fill="currentColor" />,
+    MapPin: <g><path d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0Z"/><circle cx="12" cy="10" r="3"/></g>,
+    Search: <g><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></g>,
+    Check: <polyline points="20 6 9 17 4 12"/>,
+    X: <g><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></g>,
+    ChevronDown: <polyline points="6 9 12 15 18 9"/>,
+    ChevronUp: <polyline points="18 15 12 9 6 15"/>,
+    Clock: <g><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></g>,
+    Activity: <polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/>,
+    ShieldCheck: <g><path d="M20 13c0 5-3.5 7.5-7.66 8.95a1 1 0 0 1-.67-.01C7.5 20.5 4 18 4 13V6a1 1 0 0 1 1-1c2 0 4.5-1.2 6.24-2.72a1.17 1.17 0 0 1 1.52 0C14.51 3.81 17 5 19 5a1 1 0 0 1 1 1z"/><polyline points="9 12 11 14 15 10"/></g>,
+    RefreshCw: <g><polyline points="23 4 23 10 17 10"/><polyline points="1 20 1 14 7 14"/><path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"/></g>,
+    Sliders: <g><line x1="4" y1="21" x2="4" y2="14"/><line x1="4" y1="10" x2="4" y2="3"/><line x1="12" y1="21" x2="12" y2="12"/><line x1="12" y1="8" x2="12" y2="3"/><line x1="20" y1="21" x2="20" y2="16"/><line x1="20" y1="12" x2="20" y2="3"/><line x1="1" y1="14" x2="7" y2="14"/><line x1="9" y1="8" x2="15" y2="8"/><line x1="17" y1="16" x2="23" y2="16"/></g>,
+    Eye: <g><path d="M2 12s3-7 10-7 10 7 10 7-3 7-10 7-10-7-10-7Z"/><circle cx="12" cy="12" r="3"/></g>,
+    EyeOff: <g><path d="M9.88 9.88a3 3 0 1 0 4.24 4.24"/><path d="M10.73 5.08A10.43 10.43 0 0 1 12 5c7 0 10 7 10 7a13.16 13.16 0 0 1-1.67 2.68"/><path d="M6.61 6.61A13.526 13.526 0 0 0 2 12s3 7 10 7a9.74 9.74 0 0 0 5.39-1.61"/><line x1="2" y1="2" x2="22" y2="22"/></g>,
+    Sparkles: <g><path d="m12 3-1.912 5.813a2 2 0 0 1-1.275 1.275L3 12l5.813 1.912a2 2 0 0 1 1.275 1.275L12 21l1.912-5.813a2 2 0 0 1 1.275-1.275L21 12l-5.813-1.912a2 2 0 0 1-1.275-1.275L12 3Z"/></g>,
+    CheckCircle2: <g><circle cx="12" cy="12" r="10"/><polyline points="9 12 11 14 15 10"/></g>
+};
 
 // Safe Lucide icon accessor helper to guarantee no icon is ever undefined
 const getIcon = (name, fallbackChildren) => {
@@ -10,6 +41,7 @@ const getIcon = (name, fallbackChildren) => {
         if (window.lucideReact && window.lucideReact[name]) return window.lucideReact[name];
         if (window.lucide && window.lucide[name]) return window.lucide[name];
     } catch (_) {}
+    const defaultSvg = fallbackChildren || ICON_SVGS[name] || <circle cx="12" cy="12" r="8" />;
     return function SafeIcon(props) {
         return (
             <svg
@@ -17,14 +49,14 @@ const getIcon = (name, fallbackChildren) => {
                 width={props.size || props.width || 16}
                 height={props.size || props.height || 16}
                 viewBox="0 0 24 24"
-                fill="none"
-                stroke="currentColor"
-                strokeWidth={2}
+                fill={props.fill || "none"}
+                stroke={props.stroke || "currentColor"}
+                strokeWidth={props.strokeWidth || 2}
                 strokeLinecap="round"
                 strokeLinejoin="round"
                 className={props.className || ""}
             >
-                {fallbackChildren || <circle cx="12" cy="12" r="8" />}
+                {defaultSvg}
             </svg>
         );
     };
@@ -85,6 +117,11 @@ const Route = getIcon("Route", (
         <circle cx="18" cy="5" r="3" />
     </g>
 ));
+const Bell = getIcon("Bell");
+const Calendar = getIcon("Calendar");
+const Plus = getIcon("Plus");
+const Minus = getIcon("Minus");
+
 
 // ============================================================================
 // Static Configuration & Data
@@ -424,6 +461,306 @@ const WARDS_DATA = {
             { id: 1, name: "Deen Dayal Upadhaya Marg Sump", baseDepth: 42, elevation: 203.1, coords: "28.636, 77.232" },
         ],
     },
+    "Madipakkam": {
+        code: "Ward 188-MDP",
+        name: "Madipakkam",
+        city: "Chennai",
+        riskLevel: "HIGH RISK",
+        riskColor: "text-rose-400 bg-rose-500/10 border-rose-500/30",
+        riverName: "Kilkattalai Surplus Channel",
+        riverLevel: 3.50,
+        dangerLevel: 3.90,
+        rainfallForecast: "55 mm",
+        activePumps: "12 / 14",
+        evacShelters: "4 Active (58% cap)",
+        sectors: [
+            { id: 0, name: "Madipakkam Lake Weirs", baseDepth: 46, elevation: 2.4, coords: "12.962, 80.198" },
+            { id: 1, name: "Balaiah Nagar Low Culvert", baseDepth: 38, elevation: 3.1, coords: "12.968, 80.204" },
+            { id: 2, name: "Kilkattalai Link Drain", baseDepth: 30, elevation: 3.9, coords: "12.955, 80.191" },
+        ],
+    },
+
+    // --- BENGALURU WARDS ---
+    "Bellandur Lake Basin": {
+        code: "BBMP Ward 150-BLR",
+        name: "Bellandur Lake Basin",
+        city: "Bengaluru",
+        riskLevel: "HIGH RISK",
+        riskColor: "text-rose-400 bg-rose-500/10 border-rose-500/30",
+        riverName: "K-Valley Stormwater Drain",
+        riverLevel: 884.60,
+        dangerLevel: 885.00,
+        rainfallForecast: "48 mm",
+        activePumps: "12 / 14",
+        evacShelters: "5 Active (68% cap)",
+        sectors: [
+            { id: 0, name: "Yemlur Sump & Culvert", baseDepth: 42, elevation: 884.2, coords: "12.946, 77.678" },
+            { id: 1, name: "Rainbow Drive Spillway", baseDepth: 36, elevation: 886.5, coords: "12.923, 77.689" },
+            { id: 2, name: "EcoSpace Outer Ring Road", baseDepth: 48, elevation: 883.8, coords: "12.926, 77.679" },
+            { id: 3, name: "Bellandur Inflow Gate", baseDepth: 28, elevation: 888.1, coords: "12.938, 77.662" },
+            { id: 4, name: "Kadur Agro Elevated Link", baseDepth: 6, elevation: 899.0, coords: "12.931, 77.694" },
+        ],
+    },
+    "Koramangala Valley": {
+        code: "BBMP Ward 151-KRM",
+        name: "Koramangala Valley",
+        city: "Bengaluru",
+        riskLevel: "MODERATE RISK",
+        riskColor: "text-amber-400 bg-amber-500/10 border-amber-500/30",
+        riverName: "Koramangala Intermediate Drain",
+        riverLevel: 891.20,
+        dangerLevel: 892.00,
+        rainfallForecast: "35 mm",
+        activePumps: "8 / 10",
+        evacShelters: "3 Active (42% cap)",
+        sectors: [
+            { id: 0, name: "Sony World Junction Underpass", baseDepth: 38, elevation: 891.4, coords: "12.936, 77.625" },
+            { id: 1, name: "ST Bed Layout Lowland Sump", baseDepth: 44, elevation: 889.7, coords: "12.928, 77.629" },
+            { id: 2, name: "Intermediate Ring Road Culvert", baseDepth: 26, elevation: 894.2, coords: "12.943, 77.632" },
+            { id: 3, name: "Koramangala 4th Block Drain", baseDepth: 32, elevation: 892.0, coords: "12.931, 77.619" },
+        ],
+    },
+    "HSR Layout Sector 6": {
+        code: "BBMP Ward 174-HSR",
+        name: "HSR Layout Sector 6",
+        city: "Bengaluru",
+        riskLevel: "HIGH RISK",
+        riskColor: "text-rose-400 bg-rose-500/10 border-rose-500/30",
+        riverName: "Silk Board Feeder Canal",
+        riverLevel: 897.40,
+        dangerLevel: 898.00,
+        rainfallForecast: "52 mm",
+        activePumps: "10 / 12",
+        evacShelters: "4 Active (55% cap)",
+        sectors: [
+            { id: 0, name: "Silk Board Junction Depression", baseDepth: 52, elevation: 895.0, coords: "12.917, 77.623" },
+            { id: 1, name: "14th Main Road Feeder Sump", baseDepth: 30, elevation: 898.5, coords: "12.909, 77.636" },
+            { id: 2, name: "Agara Lake Overflow Weir", baseDepth: 24, elevation: 897.2, coords: "12.921, 77.647" },
+            { id: 3, name: "Sector 7 Park Retention Basin", baseDepth: 18, elevation: 902.1, coords: "12.904, 77.642" },
+        ],
+    },
+    "Manyata Tech Park": {
+        code: "BBMP Ward 024-MNY",
+        name: "Manyata Tech Park",
+        city: "Bengaluru",
+        riskLevel: "HIGH RISK",
+        riskColor: "text-rose-400 bg-rose-500/10 border-rose-500/30",
+        riverName: "Hebbal Lake Surplus Channel",
+        riverLevel: 914.80,
+        dangerLevel: 915.00,
+        rainfallForecast: "46 mm",
+        activePumps: "14 / 16",
+        evacShelters: "4 Active (60% cap)",
+        sectors: [
+            { id: 0, name: "Hebbal Valley Outfall Canal", baseDepth: 46, elevation: 912.8, coords: "13.042, 77.612" },
+            { id: 1, name: "Manyata Backgate Sump", baseDepth: 38, elevation: 914.5, coords: "13.053, 77.624" },
+            { id: 2, name: "Nagavara Lake Inundation Sump", baseDepth: 28, elevation: 916.2, coords: "13.037, 77.621" },
+        ],
+    },
+    "Varthur Spillway": {
+        code: "BBMP Ward 149-VTR",
+        name: "Varthur Spillway",
+        city: "Bengaluru",
+        riskLevel: "MODERATE RISK",
+        riskColor: "text-amber-400 bg-amber-500/10 border-amber-500/30",
+        riverName: "Dakshina Pinakini Basin",
+        riverLevel: 877.20,
+        dangerLevel: 878.00,
+        rainfallForecast: "38 mm",
+        activePumps: "8 / 10",
+        evacShelters: "2 Active (35% cap)",
+        sectors: [
+            { id: 0, name: "Varthur Kodi Bridge Lower Point", baseDepth: 40, elevation: 875.8, coords: "12.944, 77.749" },
+            { id: 1, name: "Gunjur Lake Drainage Spur", baseDepth: 22, elevation: 881.0, coords: "12.928, 77.738" },
+            { id: 2, name: "Balagere Main Road Sump", baseDepth: 34, elevation: 878.4, coords: "12.937, 77.731" },
+        ],
+    },
+
+    // --- KOLKATA WARDS ---
+    "Circular Canal & Ultadanga": {
+        code: "KMC Ward 013-ULT",
+        name: "Circular Canal & Ultadanga",
+        city: "Kolkata",
+        riskLevel: "HIGH RISK",
+        riskColor: "text-rose-400 bg-rose-500/10 border-rose-500/30",
+        riverName: "Circular Canal Outfall",
+        riverLevel: 6.40,
+        dangerLevel: 6.80,
+        rainfallForecast: "64 mm",
+        activePumps: "16 / 18",
+        evacShelters: "6 Active (75% cap)",
+        sectors: [
+            { id: 0, name: "Ultadanga Underpass Sump", baseDepth: 50, elevation: 4.1, coords: "22.598, 88.381" },
+            { id: 1, name: "Bagbazar Lock Gate Outfall", baseDepth: 36, elevation: 4.8, coords: "22.604, 88.368" },
+            { id: 2, name: "Maniktala Main Road Crossing", baseDepth: 28, elevation: 5.6, coords: "22.586, 88.379" },
+            { id: 3, name: "Kankurgachi Railway Culvert", baseDepth: 38, elevation: 4.5, coords: "22.581, 88.388" },
+        ],
+    },
+    "Park Circus Connector": {
+        code: "KMC Ward 059-PKC",
+        name: "Park Circus Connector",
+        city: "Kolkata",
+        riskLevel: "MODERATE RISK",
+        riskColor: "text-amber-400 bg-amber-500/10 border-amber-500/30",
+        riverName: "Eastern Drainage Channel",
+        riverLevel: 6.10,
+        dangerLevel: 6.50,
+        rainfallForecast: "45 mm",
+        activePumps: "12 / 14",
+        evacShelters: "4 Active (50% cap)",
+        sectors: [
+            { id: 0, name: "Park Circus 7-Point Sump", baseDepth: 42, elevation: 4.4, coords: "22.542, 88.369" },
+            { id: 1, name: "Topsia Canal Outfall", baseDepth: 35, elevation: 4.0, coords: "22.538, 88.382" },
+            { id: 2, name: "EM Bypass Science City Jn", baseDepth: 18, elevation: 6.2, coords: "22.539, 88.396" },
+        ],
+    },
+    "Tolly's Nullah (Kalighat)": {
+        code: "KMC Ward 083-KLG",
+        name: "Tolly's Nullah (Kalighat)",
+        city: "Kolkata",
+        riskLevel: "HIGH RISK",
+        riskColor: "text-rose-400 bg-rose-500/10 border-rose-500/30",
+        riverName: "Adi Ganga / Tolly's Nullah",
+        riverLevel: 5.60,
+        dangerLevel: 5.90,
+        rainfallForecast: "56 mm",
+        activePumps: "10 / 12",
+        evacShelters: "4 Active (62% cap)",
+        sectors: [
+            { id: 0, name: "Kalighat Temple Causeway", baseDepth: 46, elevation: 3.6, coords: "22.518, 88.344" },
+            { id: 1, name: "Chetla Lock Drainage Sump", baseDepth: 32, elevation: 4.5, coords: "22.524, 88.338" },
+            { id: 2, name: "Alipore Zoo Southern Culvert", baseDepth: 24, elevation: 5.2, coords: "22.533, 88.334" },
+        ],
+    },
+    "Salt Lake Sector V": {
+        code: "BMC Ward 031-SLK",
+        name: "Salt Lake Sector V",
+        city: "Kolkata",
+        riskLevel: "MODERATE RISK",
+        riskColor: "text-amber-400 bg-amber-500/10 border-amber-500/30",
+        riverName: "East Kolkata Wetlands Canal",
+        riverLevel: 5.10,
+        dangerLevel: 5.50,
+        rainfallForecast: "40 mm",
+        activePumps: "14 / 16",
+        evacShelters: "3 Active (45% cap)",
+        sectors: [
+            { id: 0, name: "College More Lowland Crossing", baseDepth: 36, elevation: 3.2, coords: "22.571, 88.431" },
+            { id: 1, name: "Technopolis Canal Regulator", baseDepth: 28, elevation: 3.8, coords: "22.582, 88.439" },
+            { id: 2, name: "Sector V Ring Drain Sump", baseDepth: 22, elevation: 4.2, coords: "22.566, 88.428" },
+        ],
+    },
+    "Behala Lowlands": {
+        code: "KMC Ward 118-BHL",
+        name: "Behala Lowlands",
+        city: "Kolkata",
+        riskLevel: "HIGH RISK",
+        riskColor: "text-rose-400 bg-rose-500/10 border-rose-500/30",
+        riverName: "Churial Canal Sump",
+        riverLevel: 4.90,
+        dangerLevel: 5.20,
+        rainfallForecast: "58 mm",
+        activePumps: "10 / 12",
+        evacShelters: "5 Active (70% cap)",
+        sectors: [
+            { id: 0, name: "Diamond Harbour Road Chowrasta", baseDepth: 44, elevation: 2.8, coords: "22.498, 88.312" },
+            { id: 1, name: "Taratala Flyover Underpass", baseDepth: 38, elevation: 3.5, coords: "22.512, 88.318" },
+            { id: 2, name: "Parnasree Lake Basin", baseDepth: 30, elevation: 3.9, coords: "22.502, 88.305" },
+        ],
+    },
+
+    // --- HYDERABAD WARDS ---
+    "Musi River Corridor": {
+        code: "GHMC Ward 045-MSI",
+        name: "Musi River Corridor",
+        city: "Hyderabad",
+        riskLevel: "CRITICAL RISK",
+        riskColor: "text-rose-400 bg-rose-500/10 border-rose-500/30",
+        riverName: "Musi River Central Channel",
+        riverLevel: 507.90,
+        dangerLevel: 508.50,
+        rainfallForecast: "60 mm",
+        activePumps: "15 / 16",
+        evacShelters: "7 Active (80% cap)",
+        sectors: [
+            { id: 0, name: "Moosarambagh Causeway", baseDepth: 56, elevation: 503.2, coords: "17.371, 78.508" },
+            { id: 1, name: "Chaderghat Bridge Approach", baseDepth: 46, elevation: 505.5, coords: "17.378, 78.491" },
+            { id: 2, name: "Puranapul Low Pier Basin", baseDepth: 42, elevation: 507.0, coords: "17.359, 78.468" },
+            { id: 3, name: "Afzalgunj Nala Confluence", baseDepth: 34, elevation: 508.8, coords: "17.373, 78.479" },
+        ],
+    },
+    "Begumpet Nala": {
+        code: "GHMC Ward 149-BGP",
+        name: "Begumpet Nala",
+        city: "Hyderabad",
+        riskLevel: "HIGH RISK",
+        riskColor: "text-rose-400 bg-rose-500/10 border-rose-500/30",
+        riverName: "Begumpet Major Storm Drain",
+        riverLevel: 514.40,
+        dangerLevel: 515.00,
+        rainfallForecast: "50 mm",
+        activePumps: "11 / 12",
+        evacShelters: "4 Active (65% cap)",
+        sectors: [
+            { id: 0, name: "Prakash Nagar Culvert Sump", baseDepth: 48, elevation: 511.5, coords: "17.446, 78.462" },
+            { id: 1, name: "Rasoolpura Junction Underpass", baseDepth: 38, elevation: 513.2, coords: "17.439, 78.478" },
+            { id: 2, name: "Mayur Marg Lowland Runoff", baseDepth: 28, elevation: 515.0, coords: "17.448, 78.471" },
+        ],
+    },
+    "Hussain Sagar Surplus": {
+        code: "GHMC Ward 092-HSR",
+        name: "Hussain Sagar Surplus",
+        city: "Hyderabad",
+        riskLevel: "HIGH RISK",
+        riskColor: "text-rose-400 bg-rose-500/10 border-rose-500/30",
+        riverName: "Hussain Sagar Outlet Weir",
+        riverLevel: 513.80,
+        dangerLevel: 514.20,
+        rainfallForecast: "48 mm",
+        activePumps: "13 / 14",
+        evacShelters: "4 Active (58% cap)",
+        sectors: [
+            { id: 0, name: "Necklace Road Outlet Weir", baseDepth: 40, elevation: 511.0, coords: "17.427, 78.469" },
+            { id: 1, name: "Lower Tank Bund Sump", baseDepth: 34, elevation: 512.6, coords: "17.419, 78.484" },
+            { id: 2, name: "Buddha Bhavan Spillway Gate", baseDepth: 26, elevation: 514.8, coords: "17.432, 78.472" },
+        ],
+    },
+    "Kukatpally Y-Junction": {
+        code: "GHMC Ward 120-KPT",
+        name: "Kukatpally Y-Junction",
+        city: "Hyderabad",
+        riskLevel: "MODERATE RISK",
+        riskColor: "text-amber-400 bg-amber-500/10 border-amber-500/30",
+        riverName: "IDL Lake Drainage Runoff",
+        riverLevel: 527.10,
+        dangerLevel: 528.00,
+        rainfallForecast: "36 mm",
+        activePumps: "9 / 10",
+        evacShelters: "3 Active (40% cap)",
+        sectors: [
+            { id: 0, name: "Balaji Nagar Drainage Choke", baseDepth: 42, elevation: 524.2, coords: "17.491, 78.392" },
+            { id: 1, name: "IDL Lake Sump Overflow", baseDepth: 36, elevation: 526.0, coords: "17.502, 78.404" },
+            { id: 2, name: "KPHB Colony Main Canal", baseDepth: 24, elevation: 529.5, coords: "17.487, 78.388" },
+        ],
+    },
+    "Tolichowki Basin": {
+        code: "GHMC Ward 071-TCK",
+        name: "Tolichowki Basin",
+        city: "Hyderabad",
+        riskLevel: "HIGH RISK",
+        riskColor: "text-rose-400 bg-rose-500/10 border-rose-500/30",
+        riverName: "Shah Hatim Talab Drain",
+        riverLevel: 511.20,
+        dangerLevel: 512.00,
+        rainfallForecast: "54 mm",
+        activePumps: "11 / 12",
+        evacShelters: "4 Active (62% cap)",
+        sectors: [
+            { id: 0, name: "Nadeem Colony Lowland Sump", baseDepth: 52, elevation: 508.0, coords: "17.403, 78.405" },
+            { id: 1, name: "Tolichowki Flyover Underpass", baseDepth: 38, elevation: 510.4, coords: "17.398, 78.416" },
+            { id: 2, name: "Shaikpet Nala Regulator", baseDepth: 26, elevation: 513.5, coords: "17.409, 78.411" },
+        ],
+    },
 };
 
 const WARDS = Object.keys(WARDS_DATA);
@@ -450,13 +787,13 @@ function playAlertChime() {
 
 // Hydrograph forecast timeline data
 const HYDROGRAPH_DATA = [
-    { t: "T-1h", rain: 18, surge: 1.8, label: "11:45 AM" },
-    { t: "T+0h", rain: 36, surge: 2.6, label: "12:45 PM (Now)" },
-    { t: "T+1h", rain: 52, surge: 3.4, label: "01:45 PM" },
-    { t: "T+2h", rain: 44, surge: 3.8, label: "02:45 PM (Peak)" },
-    { t: "T+3h", rain: 26, surge: 3.2, label: "03:45 PM" },
-    { t: "T+4h", rain: 14, surge: 2.5, label: "04:45 PM" },
-    { t: "T+6h", rain: 8, surge: 1.9, label: "06:45 PM" },
+    { t: "T-1h", rain: 1.2, surge: 1.2, label: "-1h Past" },
+    { t: "Now", rain: 2.8, surge: 1.5, label: "Live Telemetry" },
+    { t: "+1h", rain: 4.5, surge: 1.8, label: "+1h Forecast" },
+    { t: "+2h", rain: 3.2, surge: 2.1, label: "+2h Forecast" },
+    { t: "+3h", rain: 2.0, surge: 1.9, label: "+3h Forecast" },
+    { t: "+4h", rain: 1.1, surge: 1.6, label: "+4h Forecast" },
+    { t: "+6h", rain: 0.5, surge: 1.3, label: "+6h Forecast" },
 ];
 
 // Route definitions for interactive routing
@@ -629,15 +966,77 @@ function WaterDepthWave({ depth, maxDepth = 60 }) {
 // ============================================================================
 
 function RainDrop() {
-    const [view, setView] = useState("hero"); // 'hero' | 'command'
+    const [view, setView] = useState("hero"); // 'hero' (Editorial Light Landing) | 'command' (Operations Center)
     const [activeTab, setActiveTab] = useState("telemetry"); // 'telemetry' | 'routes' | 'scenario' | 'map'
-    const [selectedCity, setSelectedCity] = useState("All Cities"); // 'All Cities' | 'Chennai' | 'Mumbai' | 'Delhi'
-    const [ward, setWard] = useState("Kurla West");
+    const [selectedCity, setSelectedCity] = useState("Chennai"); // Default city displayed in top bar
+    const [ward, setWard] = useState("Velachery");
     const [wardOpen, setWardOpen] = useState(false);
     const [toasts, setToasts] = useState([]);
-    const [soundEnabled, setSoundEnabled] = useState(true);
+    const [soundEnabled, setSoundEnabled] = useState(false);
+    const [gisSpecsModalOpen, setGisSpecsModalOpen] = useState(false);
     const [sitRepOpen, setSitRepOpen] = useState(false);
     const [selectedSector, setSelectedSector] = useState(null);
+    const [dataLayersModalOpen, setDataLayersModalOpen] = useState(false);
+    const [riverCardMinimized, setRiverCardMinimized] = useState(false);
+
+    useEffect(() => {
+        window._openGisSpecsModal = () => setGisSpecsModalOpen(true);
+        return () => {
+            delete window._openGisSpecsModal;
+        };
+    }, []);
+
+    // Layout & Replica States
+    const [mapStyle, setMapStyle] = useState("Map"); // 'Map' | 'Satellite' | 'Terrain'
+    const [mapToggles, setMapToggles] = useState({
+        hotspots: true,
+        pumps: true,
+        shelters: false,
+        metro: true,
+        boundaries: false,
+    });
+    const [cityDropdownOpen, setCityDropdownOpen] = useState(false);
+    const [wardDropdownOpen, setWardDropdownOpen] = useState(false);
+    const cityDropdownRef = useRef(null);
+    const wardDropdownRef = useRef(null);
+
+    // Global outside-click listener for header dropdowns
+    useEffect(() => {
+        const handleOutsideClick = (e) => {
+            if (cityDropdownRef.current && !cityDropdownRef.current.contains(e.target)) {
+                setCityDropdownOpen(false);
+            }
+            if (wardDropdownRef.current && !wardDropdownRef.current.contains(e.target)) {
+                setWardDropdownOpen(false);
+            }
+        };
+        document.addEventListener("mousedown", handleOutsideClick);
+        return () => document.removeEventListener("mousedown", handleOutsideClick);
+    }, []);
+
+    // Global bridge for Leaflet popup button to open Sector Drawer
+    useEffect(() => {
+        window._openSectorDrawer = (idx) => {
+            setSelectedSector(idx);
+        };
+        return () => {
+            delete window._openSectorDrawer;
+        };
+    }, []);
+
+    const [currentTime, setCurrentTime] = useState(new Date());
+
+    useEffect(() => {
+        const timer = setInterval(() => setCurrentTime(new Date()), 1000);
+        return () => clearInterval(timer);
+    }, []);
+    const [timelineIndex, setTimelineIndex] = useState(1); // 0=Now, 1=+1h, 2=+3h, 3=+6h, 4=+12h
+    const [activeNav, setActiveNav] = useState("overview"); // 'overview' | 'simulate' | 'routes' | 'layers' | 'reports'
+    const [simulationModalOpen, setSimulationModalOpen] = useState(false);
+    const [rightCardCollapsed, setRightCardCollapsed] = useState(false);
+    const [searchQuery, setSearchQuery] = useState("");
+    const [searchOpen, setSearchOpen] = useState(false);
+    const searchRef = useRef(null);
 
     // Map Enable Toggle State (Default enabled for live map API display)
     const [isMapEnabled, setIsMapEnabled] = useState(true);
@@ -685,7 +1084,7 @@ function RainDrop() {
     const [mlCorrection, setMlCorrection] = useState(true);
     const [soilMoisture, setSoilMoisture] = useState(true);
     const [coupling, setCoupling] = useState(true);
-    const [radarTime, setRadarTime] = useState("12:45 PM");
+    const [radarTime, setRadarTime] = useState(() => new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }));
     const [latency, setLatency] = useState(11);
     const [updatedAgo, setUpdatedAgo] = useState(1);
 
@@ -707,39 +1106,41 @@ function RainDrop() {
     const pushToast = (msg) => {
         const id = ++toastId.current;
         setToasts((t) => [...t, { id, msg }]);
-        if (soundEnabled) playAlertChime();
         setTimeout(() => setToasts((t) => t.filter((x) => x.id !== id)), 2800);
     };
 
-    // Fetch Live ML Ward Forecast from FastAPI Backend
-    useEffect(() => {
-        async function loadWardForecast() {
-            setIsFetchingForecast(true);
-            try {
-                const res = await fetch(`/api/ward_forecast?ward_name=${encodeURIComponent(ward)}`);
-                if (res.ok) {
-                    const data = await res.json();
-                    setLiveForecast(data);
-                    
-                    if (data.prediction && data.prediction.timeseries_mm_hr && data.prediction.timeseries_mm_hr.length > 0) {
-                        const newHydro = data.prediction.timeseries_mm_hr.slice(0, 7).map((val, idx) => ({
-                            t: data.prediction.timeseries_labels[idx] || `T+${idx}h`,
-                            rain: Math.round(val * 10) / 10,
-                            surge: Number((1.5 + val * 0.04).toFixed(1)),
-                            label: data.prediction.timeseries_labels[idx] || `Horizon +${idx}h`
-                        }));
-                        setHydrograph(newHydro);
-                    }
-                    pushToast(`Live ML forecast sync complete for ${ward} (${data.source || 'FastAPI'})`);
+    // Fetch Live Real-Time ML Ward Forecast from FastAPI Backend
+    const loadWardForecast = useCallback(async (targetWard = ward, targetCity = selectedCity) => {
+        setIsFetchingForecast(true);
+        try {
+            const res = await fetch(`/api/ward_forecast?ward_name=${encodeURIComponent(targetWard)}&city=${encodeURIComponent(targetCity)}`);
+            if (res.ok) {
+                const data = await res.json();
+                setLiveForecast(data);
+                setRadarTime(new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' }));
+                
+                if (data.prediction && data.prediction.timeseries_mm_hr && data.prediction.timeseries_mm_hr.length > 0) {
+                    const newHydro = data.prediction.timeseries_mm_hr.slice(0, 7).map((val, idx) => ({
+                        t: data.prediction.timeseries_labels[idx] || `+${idx}h`,
+                        rain: Math.round(val * 10) / 10,
+                        surge: Number((1.2 + val * 0.05).toFixed(1)),
+                        label: data.prediction.timeseries_labels[idx] || `+${idx}h Forecast`
+                    }));
+                    setHydrograph(newHydro);
                 }
-            } catch (err) {
-                console.warn("Backend API sync offline, using local model state:", err);
-            } finally {
-                setIsFetchingForecast(false);
             }
+        } catch (err) {
+            console.warn("Backend API sync offline, using local model state:", err);
+        } finally {
+            setIsFetchingForecast(false);
         }
-        loadWardForecast();
-    }, [ward]);
+    }, [ward, selectedCity]);
+
+    useEffect(() => {
+        loadWardForecast(ward, selectedCity);
+        const pollId = setInterval(() => loadWardForecast(ward, selectedCity), 30000);
+        return () => clearInterval(pollId);
+    }, [ward, selectedCity, loadWardForecast]);
 
     // --- Telemetry Polling (every 30 s) ---
     useEffect(() => {
@@ -783,17 +1184,33 @@ function RainDrop() {
         return () => clearInterval(interval);
     }, [isSimulatingRoute]);
 
-    const currentWardData = useMemo(() => WARDS_DATA[ward] || WARDS_DATA["Kurla West"], [ward]);
+    const currentWardData = useMemo(() => {
+        const base = WARDS_DATA[ward] || WARDS_DATA["Velachery"] || Object.values(WARDS_DATA)[0];
+        if (!liveForecast || liveForecast.ward_name !== base.name) return base;
+        return {
+            ...base,
+            riverLevel: liveForecast.river_level_m !== undefined ? liveForecast.river_level_m : base.riverLevel,
+            rainfallForecast: liveForecast.rainfall_forecast_mm !== undefined ? `${liveForecast.rainfall_forecast_mm} mm` : base.rainfallForecast,
+            activePumps: liveForecast.active_pumps || base.activePumps,
+            riskLevel: liveForecast.status || base.riskLevel,
+        };
+    }, [ward, liveForecast]);
 
     const sectorDepths = useMemo(() => {
-        const livePeak = (liveForecast && liveForecast.prediction && liveForecast.prediction.peak_intensity_mm_hr) || 45;
-        const rainRatio = livePeak / 45;
-        const timeMultiplier = (timeStep * 0.45) + 0.6;
+        const predDepth = (liveForecast && liveForecast.predicted_flood_depth_cm !== undefined) ? liveForecast.predicted_flood_depth_cm : null;
+        const livePeak = (liveForecast && liveForecast.prediction && liveForecast.prediction.peak_intensity_mm_hr) || 15;
+        const rainRatio = Math.max(0.1, livePeak / 30.0);
+        const timeMultiplier = (timeStep * 0.35) + 0.65;
         const rainFactor = scenario.rainfallMultiplier * (rainRatio > 0 ? rainRatio : 1.0);
         const tideFactor = 1 + (scenario.tideOffset * 0.25);
         const pumpFactor = 1.3 - (scenario.pumpEfficiency / 100) * 0.4;
 
         return currentWardData.sectors.map((sec) => {
+            if (predDepth !== null && predDepth > 0) {
+                const elevAdjustment = Math.max(-8, Math.min(8, 6.0 - sec.elevation));
+                const calc = Math.round(Math.max(0, (predDepth + elevAdjustment) * timeMultiplier * rainFactor * tideFactor * pumpFactor));
+                return calc;
+            }
             const calc = Math.round(
                 sec.baseDepth * timeMultiplier * rainFactor * tideFactor * pumpFactor - (sec.elevation * 0.8)
             );
@@ -873,19 +1290,92 @@ function RainDrop() {
         }
     };
 
-    return (
-        <div className="min-h-screen w-full bg-slate-100 text-slate-900 relative selection:bg-blue-600 selection:text-white font-sans">
-            <div
-                className="pointer-events-none fixed inset-0 opacity-40"
-                style={{
-                    background:
-                        "radial-gradient(circle 800px at 10% 0%, rgba(37, 99, 235, 0.08), transparent 70%), radial-gradient(circle 800px at 90% 20%, rgba(5, 150, 105, 0.08), transparent 70%)",
-                }}
-            />
+    // Search Filter Logic for instant location/ward/landmark finder
+    const searchResults = useMemo(() => {
+        if (!searchQuery.trim()) return [];
+        const q = searchQuery.toLowerCase();
+        const results = [];
 
+        Object.keys(WARDS_DATA).forEach((wKey) => {
+            const w = WARDS_DATA[wKey];
+            if (
+                w.name.toLowerCase().includes(q) ||
+                w.city.toLowerCase().includes(q) ||
+                (w.code && w.code.toLowerCase().includes(q))
+            ) {
+                results.push({
+                    type: "ward",
+                    title: w.name,
+                    subtitle: `${w.city} • ${w.code || "Municipal Zone"}`,
+                    wardKey: wKey,
+                    city: w.city,
+                    coords: [w.coords?.lat || 19.0728, w.coords?.lng || 72.8797],
+                });
+            }
+            if (w.sectors) {
+                w.sectors.forEach((sec, idx) => {
+                    if (sec.name.toLowerCase().includes(q) || (sec.risk && sec.risk.toLowerCase().includes(q))) {
+                        results.push({
+                            type: "hotspot",
+                            title: sec.name,
+                            subtitle: `${w.name}, ${w.city} • Hotspot (${sec.risk})`,
+                            wardKey: wKey,
+                            city: w.city,
+                            sectorIdx: idx,
+                            coords: [sec.coords?.lat || 19.0728, sec.coords?.lng || 72.8797],
+                        });
+                    }
+                });
+            }
+        });
+        return results.slice(0, 8);
+    }, [searchQuery]);
+
+    const handleSelectSearchResult = (res) => {
+        if (res.city) setSelectedCity(res.city);
+        if (res.wardKey) setWard(res.wardKey);
+        if (res.sectorIdx !== undefined) setSelectedSector(res.sectorIdx);
+        setSearchOpen(false);
+        setSearchQuery("");
+        if (window._rainDropMap && res.coords) {
+            window._rainDropMap.flyTo(res.coords, 15, { duration: 1.2 });
+        }
+        pushToast(`Focused on ${res.title}`);
+    };
+
+    // Keyboard shortcut for Cmd+K / Ctrl+K
+    useEffect(() => {
+        const handleKeyDown = (e) => {
+            if ((e.metaKey || e.ctrlKey) && e.key === "k") {
+                e.preventDefault();
+                searchRef.current?.focus();
+            }
+        };
+        window.addEventListener("keydown", handleKeyDown);
+        return () => window.removeEventListener("keydown", handleKeyDown);
+    }, []);
+
+    if (view === "hero") {
+        return (
+            <div className="min-h-screen w-full bg-white text-slate-900 selection:bg-blue-600 selection:text-white font-sans antialiased overflow-x-hidden">
+                <ToastStack toasts={toasts} />
+                <HeroView
+                    ward={ward}
+                    wardData={currentWardData}
+                    onEnter={() => {
+                        setView("command");
+                        setIsMapEnabled(true);
+                    }}
+                />
+            </div>
+        );
+    }
+
+    return (
+        <div className="h-screen w-screen bg-[#F8FAFC] text-slate-900 relative selection:bg-blue-600 selection:text-white font-sans overflow-hidden flex flex-col">
             <ToastStack toasts={toasts} />
 
-            {selectedSector !== null && (
+            {selectedSector !== null && currentWardData?.sectors?.[selectedSector] && (
                 <SectorDrawer
                     sector={currentWardData.sectors[selectedSector]}
                     depth={sectorDepths[selectedSector]}
@@ -895,471 +1385,1597 @@ function RainDrop() {
                 />
             )}
 
-            {/* Route Check Modal */}
+            {/* GIS Data Layers & Provenance Modal */}
+            <DataLayersModal
+                isOpen={dataLayersModalOpen}
+                onClose={() => {
+                    setDataLayersModalOpen(false);
+                    if (activeNav === "layers") setActiveNav("live");
+                }}
+                mapToggles={mapToggles}
+                setMapToggles={setMapToggles}
+                pushToast={pushToast}
+            />
+
+            {/* Dual Corridor Route Check Modal */}
             {routeCheckOpen && (
-                <div className="fixed inset-0 z-[90] flex items-center justify-center p-4" style={{ background: "rgba(15,23,42,0.75)", backdropFilter: "blur(8px)" }}>
-                    <div className="relative w-full max-w-lg rounded-2xl border border-slate-700 bg-slate-900 shadow-2xl p-6 text-slate-100 font-sans">
-                        <button onClick={() => { setRouteCheckOpen(false); setRouteCheckResult(null); }} className="absolute top-4 right-4 text-slate-400 hover:text-slate-200 cursor-pointer" type="button">
+                <div
+                    className="fixed inset-0 z-[900] flex items-center justify-center p-4"
+                    style={{ background: "rgba(15,23,42,0.65)", backdropFilter: "blur(8px)" }}
+                >
+                    <div className="relative w-full max-w-lg rounded-3xl border border-slate-200 bg-white shadow-2xl p-6 text-slate-900 font-sans animate-in fade-in zoom-in-95 duration-200">
+                        <button
+                            onClick={() => {
+                                setRouteCheckOpen(false);
+                                setRouteCheckResult(null);
+                            }}
+                            className="absolute top-4 right-4 p-2 text-slate-400 hover:text-slate-600 rounded-full hover:bg-slate-100 cursor-pointer"
+                            type="button"
+                        >
                             <X className="w-5 h-5" />
                         </button>
 
-                        <div className="flex items-center gap-3 mb-5 border-b border-slate-800 pb-4">
-                            <div className="p-2.5 rounded-xl bg-blue-500/10 border border-blue-500/30 text-blue-400">
+                        <div className="flex items-center gap-3 mb-5 border-b border-slate-100 pb-4">
+                            <div className="p-2.5 rounded-2xl bg-blue-50 text-blue-600">
                                 <Route className="w-5 h-5" />
                             </div>
                             <div>
-                                <h2 className="text-base font-bold text-slate-100 flex items-center gap-2">
-                                    Dual-Corridor Route Safety Check
-                                    <span className="text-[10px] px-2 py-0.5 rounded-full bg-blue-500/20 text-blue-300 font-mono">LIVE GIS ENGINE</span>
+                                <h2 className="text-base font-bold text-slate-900 flex items-center gap-2">
+                                    Dual-Corridor Safe Routing
+                                    <span className="text-[10px] px-2 py-0.5 rounded-full bg-blue-100 text-blue-700 font-bold uppercase">
+                                        30m DEM High-Ground
+                                    </span>
                                 </h2>
-                                <p className="text-xs text-slate-400">Avoid submerged underpasses &amp; lowlands using 30m CartoDEM surface elevation</p>
+                                <p className="text-xs text-slate-500">
+                                    Bypasses inundated underpasses &amp; lowlands using surface elevation data
+                                </p>
                             </div>
                         </div>
 
                         <form onSubmit={handleRouteCheck} className="grid grid-cols-1 sm:grid-cols-2 gap-3 mb-4">
                             <div>
-                                <label className="block text-[11px] font-semibold text-slate-300 mb-1">Origin Location</label>
+                                <label className="block text-[11px] font-bold text-slate-600 mb-1">Origin Landmark</label>
                                 <input
                                     value={routeOrigin}
-                                    onChange={e => setRouteOrigin(e.target.value)}
+                                    onChange={(e) => setRouteOrigin(e.target.value)}
                                     placeholder="e.g. Kurla Station"
                                     required
-                                    className="w-full rounded-xl border border-slate-700 bg-slate-800/80 px-3 py-2 text-xs text-slate-100 placeholder-slate-500 focus:border-blue-500 focus:outline-none"
+                                    className="w-full rounded-2xl border border-slate-200 bg-slate-50 px-3.5 py-2 text-xs text-slate-900 placeholder-slate-400 focus:border-blue-500 focus:bg-white focus:outline-none"
                                 />
                             </div>
                             <div>
-                                <label className="block text-[11px] font-semibold text-slate-300 mb-1">Destination</label>
+                                <label className="block text-[11px] font-bold text-slate-600 mb-1">Destination</label>
                                 <input
                                     value={routeDest}
-                                    onChange={e => setRouteDest(e.target.value)}
-                                    placeholder="e.g. BKC Contractor"
+                                    onChange={(e) => setRouteDest(e.target.value)}
+                                    placeholder="e.g. BKC Connector"
                                     required
-                                    className="w-full rounded-xl border border-slate-700 bg-slate-800/80 px-3 py-2 text-xs text-slate-100 placeholder-slate-500 focus:border-blue-500 focus:outline-none"
+                                    className="w-full rounded-2xl border border-slate-200 bg-slate-50 px-3.5 py-2 text-xs text-slate-900 placeholder-slate-400 focus:border-blue-500 focus:bg-white focus:outline-none"
                                 />
                             </div>
                             <div className="sm:col-span-2">
-                                <label className="block text-[11px] font-semibold text-slate-300 mb-1">Simulated Water Depth (cm)</label>
+                                <label className="block text-[11px] font-bold text-slate-600 mb-1">
+                                    Simulated Flood Water Depth (cm)
+                                </label>
                                 <input
-                                    type="number" min="0" max="200" step="1"
+                                    type="number"
+                                    min="0"
+                                    max="200"
+                                    step="1"
                                     value={routeDepth}
-                                    onChange={e => setRouteDepth(Number(e.target.value))}
-                                    className="w-full rounded-xl border border-slate-700 bg-slate-800/80 px-3 py-2 text-xs text-slate-100 placeholder-slate-500 focus:border-blue-500 focus:outline-none"
+                                    onChange={(e) => setRouteDepth(Number(e.target.value))}
+                                    className="w-full rounded-2xl border border-slate-200 bg-slate-50 px-3.5 py-2 text-xs text-slate-900 placeholder-slate-400 focus:border-blue-500 focus:bg-white focus:outline-none"
                                 />
                             </div>
                             <div className="sm:col-span-2 mt-1">
                                 <button
                                     type="submit"
                                     disabled={routeCheckBusy}
-                                    className="w-full flex items-center justify-center gap-2 py-2.5 rounded-xl bg-blue-600 hover:bg-blue-500 text-white text-xs font-bold shadow-lg shadow-blue-600/30 transition-all cursor-pointer disabled:opacity-50"
+                                    className="w-full flex items-center justify-center gap-2 py-2.5 rounded-2xl bg-blue-600 hover:bg-blue-700 text-white text-xs font-bold shadow-md shadow-blue-500/20 transition-all cursor-pointer disabled:opacity-50"
                                 >
-                                    {routeCheckBusy ? <><RefreshCw className="w-3.5 h-3.5 animate-spin" /> Analyzing 30m Elevation Corridors…</> : <><Send className="w-3.5 h-3.5" /> Check Dual-Corridor Safety</>}
+                                    {routeCheckBusy ? (
+                                        <>
+                                            <RefreshCw className="w-3.5 h-3.5 animate-spin" /> Analyzing 30m Elevation Corridors…
+                                        </>
+                                    ) : (
+                                        <>
+                                            <Send className="w-3.5 h-3.5" /> Check Dual-Corridor Safety
+                                        </>
+                                    )}
                                 </button>
                             </div>
                         </form>
 
                         {routeCheckResult && !routeCheckResult.error && (
-                            <div className="space-y-3 border-t border-slate-800 pt-4">
-                                {/* Standard Route Card */}
-                                <div className="rounded-xl p-3.5 bg-rose-950/40 border border-rose-500/30 text-rose-200">
+                            <div className="space-y-3 border-t border-slate-100 pt-4">
+                                <div className="rounded-2xl p-3.5 bg-rose-50 border border-rose-200 text-rose-900">
                                     <div className="flex items-center justify-between mb-1.5">
-                                        <span className="text-xs font-bold flex items-center gap-1.5 text-rose-400">
+                                        <span className="text-xs font-bold flex items-center gap-1.5 text-rose-700">
                                             🔴 Standard Direct Route
                                         </span>
-                                        <span className="text-[10px] font-extrabold px-2 py-0.5 rounded-md bg-rose-500/20 border border-rose-500/40 text-rose-300">
+                                        <span className="text-[10px] font-extrabold px-2 py-0.5 rounded-full bg-rose-200 text-rose-800">
                                             {routeCheckResult.standard_route?.status_label || "HAZARDOUS"}
                                         </span>
                                     </div>
-                                    <div className="grid grid-cols-3 gap-2 text-[11px] text-slate-300 my-2">
-                                        <div>Distance: <strong className="text-white">{routeCheckResult.standard_route?.distance_km} km</strong></div>
-                                        <div>Travel: <strong className="text-white">{routeCheckResult.standard_route?.est_time_min} mins</strong></div>
-                                        <div>Max Flood: <strong className="text-rose-400">🌊 {routeCheckResult.standard_route?.max_water_depth_cm} cm</strong></div>
+                                    <div className="grid grid-cols-3 gap-2 text-[11px] text-slate-600 my-2">
+                                        <div>
+                                            Distance: <strong className="text-slate-900">{routeCheckResult.standard_route?.distance_km} km</strong>
+                                        </div>
+                                        <div>
+                                            Travel: <strong className="text-slate-900">{routeCheckResult.standard_route?.est_time_min} mins</strong>
+                                        </div>
+                                        <div>
+                                            Max Flood: <strong className="text-rose-600">🌊 {routeCheckResult.standard_route?.max_water_depth_cm} cm</strong>
+                                        </div>
                                     </div>
                                     {routeCheckResult.standard_route?.danger_points?.[0] && (
-                                        <div className="text-[10px] text-rose-300 bg-rose-900/30 px-2.5 py-1.5 rounded-lg border border-rose-500/20">
+                                        <div className="text-[10px] text-rose-800 bg-rose-100/80 px-2.5 py-1.5 rounded-xl">
                                             ⚠️ <strong>Hazard Bottleneck:</strong> {routeCheckResult.standard_route.danger_points[0].name} ({routeCheckResult.standard_route.danger_points[0].hazard})
                                         </div>
                                     )}
                                 </div>
 
-                                {/* Safe Elevation Corridor Card */}
-                                <div className="rounded-xl p-3.5 bg-emerald-950/40 border border-emerald-500/30 text-emerald-200">
+                                <div className="rounded-2xl p-3.5 bg-emerald-50 border border-emerald-200 text-emerald-900">
                                     <div className="flex items-center justify-between mb-1.5">
-                                        <span className="text-xs font-bold flex items-center gap-1.5 text-emerald-400">
+                                        <span className="text-xs font-bold flex items-center gap-1.5 text-emerald-700">
                                             🟢 Safe Elevation Corridor (Recommended)
                                         </span>
-                                        <span className="text-[10px] font-extrabold px-2 py-0.5 rounded-md bg-emerald-500/20 border border-emerald-500/40 text-emerald-300">
+                                        <span className="text-[10px] font-extrabold px-2 py-0.5 rounded-full bg-emerald-200 text-emerald-800">
                                             {routeCheckResult.safe_corridor?.status_label || "SAFE PASSAGE"}
                                         </span>
                                     </div>
-                                    <div className="grid grid-cols-3 gap-2 text-[11px] text-slate-300 my-2">
-                                        <div>Distance: <strong className="text-white">{routeCheckResult.safe_corridor?.distance_km} km</strong></div>
-                                        <div>Travel: <strong className="text-white">{routeCheckResult.safe_corridor?.est_time_min} mins</strong></div>
-                                        <div>Max Flood: <strong className="text-emerald-400">🌊 {routeCheckResult.safe_corridor?.max_water_depth_cm} cm</strong></div>
+                                    <div className="grid grid-cols-3 gap-2 text-[11px] text-slate-600 my-2">
+                                        <div>
+                                            Distance: <strong className="text-slate-900">{routeCheckResult.safe_corridor?.distance_km} km</strong>
+                                        </div>
+                                        <div>
+                                            Travel: <strong className="text-slate-900">{routeCheckResult.safe_corridor?.est_time_min} mins</strong>
+                                        </div>
+                                        <div>
+                                            Max Flood: <strong className="text-emerald-600">🌊 {routeCheckResult.safe_corridor?.max_water_depth_cm} cm</strong>
+                                        </div>
                                     </div>
-                                    <div className="flex items-center justify-between text-[10px] text-emerald-300 bg-emerald-900/30 px-2.5 py-1.5 rounded-lg border border-emerald-500/20">
+                                    <div className="flex items-center justify-between text-[10px] text-emerald-800 bg-emerald-100/80 px-2.5 py-1.5 rounded-xl">
                                         <span>🛡️ <strong>Highland Bypass:</strong> Elevated Flyover Route</span>
-                                        <span className="font-bold text-emerald-200">+{routeCheckResult.safe_corridor?.detour_time_min} min detour (+{routeCheckResult.safe_corridor?.detour_dist_km} km)</span>
+                                        <span className="font-bold">+{routeCheckResult.safe_corridor?.detour_time_min} min detour (+{routeCheckResult.safe_corridor?.detour_dist_km} km)</span>
                                     </div>
                                 </div>
                             </div>
                         )}
                         {routeCheckResult && routeCheckResult.error && (
-                            <p className="mt-3 text-xs text-rose-400">{routeCheckResult.error}</p>
+                            <p className="mt-3 text-xs text-rose-500 font-semibold">{routeCheckResult.error}</p>
                         )}
                     </div>
                 </div>
             )}
 
-            {view === "hero" ? (
-                <HeroView
-                    ward={ward}
-                    wardData={currentWardData}
-                    onEnter={() => {
-                        setView("command");
-                        setIsMapEnabled(true);
-                    }}
-                />
-            ) : (
-                <div className="relative z-10 max-w-[1600px] mx-auto px-3 sm:px-6 py-4 flex flex-col min-h-screen">
-                    <TopNavbar
-                        selectedCity={selectedCity}
-                        setSelectedCity={setSelectedCity}
-                        ward={ward}
-                        wardOpen={wardOpen}
-                        setWardOpen={setWardOpen}
-                        setWard={setWard}
-                        setSelectedSector={setSelectedSector}
-                        soundEnabled={soundEnabled}
-                        setSoundEnabled={setSoundEnabled}
-                        isMapEnabled={isMapEnabled}
-                        setIsMapEnabled={setIsMapEnabled}
-                        onToggleMap={() => (isMapEnabled ? handleDisableMap() : handleEnableMap())}
-                        onOpenSitRep={() => setSitRepOpen(true)}
-                        onSwitchToHero={() => setView("hero")}
-                        updatedAgo={updatedAgo}
-                        floodStats={floodStats}
-                        pushToast={pushToast}
-                    />
-
-                    <EmergencyBanner
-                        wardData={currentWardData}
-                        floodStats={floodStats}
-                        timeStep={timeStep}
-                        onInspectHotspot={() => {
-                            setIsMapEnabled(true);
-                            let maxIdx = 0;
-                            sectorDepths.forEach((d, idx) => {
-                                if (d > sectorDepths[maxIdx]) maxIdx = idx;
-                            });
-                            setSelectedSector(maxIdx);
-                        }}
-                    />
-
-                    {/* ── Nowcast + Telemetry Action Row ── */}
-                    <div className="flex flex-wrap items-center gap-3 mt-3 mb-1">
-                        {/* Refresh Nowcast Button */}
+            {/* Run Flood Simulation What-If Modal */}
+            {simulationModalOpen && (
+                <div
+                    className="fixed inset-0 z-[900] flex items-center justify-center p-4"
+                    style={{ background: "rgba(15,23,42,0.65)", backdropFilter: "blur(8px)" }}
+                >
+                    <div className="relative w-full max-w-lg rounded-3xl border border-slate-200 bg-white shadow-2xl p-6 text-slate-900 font-sans animate-in fade-in zoom-in-95 duration-200">
                         <button
-                            onClick={handleRefreshNowcast}
-                            disabled={nowcastBusy}
-                            type="button"
-                            className="flex items-center gap-2 px-4 py-2 rounded-xl bg-blue-600 hover:bg-blue-700 text-white text-xs font-bold shadow-md shadow-blue-600/20 transition-all cursor-pointer disabled:opacity-50"
+                            onClick={() => setSimulationModalOpen(false)}
+                            className="absolute top-4 right-4 p-2 text-slate-400 hover:text-slate-600 rounded-full hover:bg-slate-100 cursor-pointer"
                         >
-                            {nowcastBusy
-                                ? <><RefreshCw className="w-3.5 h-3.5 animate-spin" /> Running Nowcast…</>
-                                : <><Zap className="w-3.5 h-3.5" /> Refresh Nowcast</>}
-                        </button>
-                        {nowcastResult && (
-                            <span className={`text-[11px] font-mono px-2.5 py-1 rounded-full border ${
-                                nowcastResult.status === "SUCCESS"
-                                    ? "bg-emerald-50 border-emerald-200 text-emerald-700"
-                                    : "bg-red-50 border-red-200 text-red-700"
-                            }`}>{nowcastResult.status}</span>
-                        )}
-
-                        {/* Route Check Button */}
-                        <button
-                            onClick={() => setRouteCheckOpen(true)}
-                            type="button"
-                            className="flex items-center gap-2 px-4 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold shadow-md shadow-emerald-600/20 transition-all cursor-pointer"
-                        >
-                            <Route className="w-3.5 h-3.5" /> Route Safety Check
+                            <X className="w-5 h-5" />
                         </button>
 
-                        {/* Telemetry Pill */}
-                        {telemetry && (
-                            <div className="ml-auto flex items-center gap-2 px-3 py-1.5 rounded-xl border border-slate-200 bg-white text-[10px] font-mono shadow-sm text-slate-700">
-                                <span className="w-1.5 h-1.5 rounded-full bg-emerald-500" />
-                                <span className="text-emerald-700 font-bold">{telemetry.services && telemetry.services.imd_radar}</span>
-                                <span className="text-slate-300">·</span>
-                                <span className="text-blue-700 font-bold">{telemetry.services && telemetry.services.pysteps_nowcast}</span>
-                                <span className="text-slate-300">·</span>
-                                <span className="text-amber-700 font-bold">{telemetry.latency_ms}ms</span>
-                                <span className="text-slate-300">·</span>
-                                <Wifi className="w-3 h-3 text-slate-400" />
-                                <span className="text-slate-600">{telemetry.sensor_confidence_pct}%</span>
+                        <div className="flex items-center gap-3 mb-5 border-b border-slate-100 pb-4">
+                            <div className="p-2.5 rounded-2xl bg-indigo-50 text-indigo-600">
+                                <Play className="w-5 h-5" />
                             </div>
-                        )}
-                    </div>
+                            <div>
+                                <h2 className="text-base font-bold text-slate-900 flex items-center gap-2">
+                                    Hydrodynamic What-If Simulation
+                                    <span className="text-[10px] px-2 py-0.5 rounded-full bg-indigo-100 text-indigo-700 font-bold uppercase">
+                                        AI Surrogate Model
+                                    </span>
+                                </h2>
+                                <p className="text-xs text-slate-500">
+                                    Simulate intense precipitation pulses and ocean high-tide gate backflow
+                                </p>
+                            </div>
+                        </div>
 
-                    {!isMapEnabled ? (
-                        <div className="flex-1 grid grid-cols-1 xl:grid-cols-12 gap-5 mt-4">
-                            <div className="xl:col-span-4 flex flex-col gap-4">
-                                <div className="flex items-center p-1 rounded-xl bg-white border border-slate-200 shadow-sm">
+                        <div className="space-y-4">
+                            <div>
+                                <label className="block text-xs font-bold text-slate-700 mb-2">
+                                    Rainfall Intensity Scenario
+                                </label>
+                                <div className="grid grid-cols-2 gap-2">
                                     {[
-                                        { id: "telemetry", label: "📍 Telemetry", icon: Activity },
-                                        { id: "routes", label: "🚗 Safe Routes", icon: Navigation },
-                                        { id: "scenario", label: "⚡ Simulate Run", icon: Play },
-                                        { id: "map", label: "🗺️ Map Layers", icon: Layers },
-                                    ].map(({ id, label, icon: Icon }) => (
+                                        { label: "Normal Rain", val: 20, desc: "20 mm/hr" },
+                                        { label: "Heavy Monsoon", val: 50, desc: "50 mm/hr" },
+                                        { label: "Severe Storm", val: 100, desc: "100 mm/hr" },
+                                        { label: "Cloudburst Pulse", val: 150, desc: "150 mm/hr" },
+                                    ].map((scen) => (
                                         <button
-                                            key={id}
-                                            onClick={() => setActiveTab(id)}
-                                            className={`flex-1 flex items-center justify-center gap-1 py-2 px-1.5 text-xs font-bold rounded-lg transition-all cursor-pointer ${activeTab === id
-                                                    ? "bg-blue-600 text-white shadow-sm"
-                                                    : "text-slate-600 hover:text-blue-600 hover:bg-blue-50/50"
-                                                }`}
+                                            key={scen.val}
+                                            type="button"
+                                            onClick={() => {
+                                                setScenario((prev) => ({ ...prev, rainfallMm: scen.val }));
+                                                pushToast(`Scenario selected: ${scen.label} (${scen.desc})`);
+                                            }}
+                                            className={`p-3 rounded-2xl border text-left transition-all cursor-pointer ${
+                                                scenario.rainfallMm === scen.val
+                                                    ? "bg-indigo-50 border-indigo-500 text-indigo-900 ring-2 ring-indigo-200"
+                                                    : "bg-slate-50 border-slate-200 text-slate-700 hover:bg-slate-100"
+                                            }`}
                                         >
-                                            <Icon className="w-3.5 h-3.5" />
-                                            <span className="hidden sm:inline">{label}</span>
+                                            <div className="text-xs font-bold">{scen.label}</div>
+                                            <div className="text-[11px] text-slate-400">{scen.desc}</div>
                                         </button>
                                     ))}
                                 </div>
-
-                                {activeTab === "telemetry" && (
-                                    <HotspotTelemetryDeck
-                                        wardData={currentWardData}
-                                        sectorDepths={sectorDepths}
-                                        onSelectSector={setSelectedSector}
-                                        onEnableMap={handleEnableMap}
-                                    />
-                                )}
-
-                                {activeTab === "routes" && (
-                                    <SafeRoutingPanel
-                                        routes={ROUTE_OPTIONS}
-                                        activeRouteIndex={activeRouteIndex}
-                                        setActiveRouteIndex={setActiveRouteIndex}
-                                        isSimulatingRoute={isSimulatingRoute}
-                                        onStartSimulation={() => {
-                                            setIsMapEnabled(true);
-                                            setIsSimulatingRoute(true);
-                                        }}
-                                        routeProgress={routeProgress}
-                                        pushToast={pushToast}
-                                        wardData={currentWardData}
-                                        sectorDepths={sectorDepths}
-                                    />
-                                )}
-
-                                {activeTab === "scenario" && (
-                                    <ScenarioSandbox
-                                        scenario={scenario}
-                                        setScenario={setScenario}
-                                        pushToast={pushToast}
-                                    />
-                                )}
-
-                                {activeTab === "map" && (
-                                    <TacticalMapControls
-                                        layers={layers}
-                                        setLayers={setLayers}
-                                        floodStats={floodStats}
-                                        wardData={currentWardData}
-                                        selectedSector={selectedSector}
-                                        onSelectSector={setSelectedSector}
-                                        isMapEnabled={isMapEnabled}
-                                        onEnableMap={handleEnableMap}
-                                        onDisableMap={handleDisableMap}
-                                        pushToast={pushToast}
-                                    />
-                                )}
-
-                                <WardVitalMetrics
-                                    wardData={currentWardData}
-                                    timeStep={timeStep}
-                                    scenario={scenario}
-                                    onOpenSitRep={() => setSitRepOpen(true)}
-                                />
                             </div>
 
-                            <div className="xl:col-span-8 flex flex-col gap-4">
-                                <MapStandbyDeck
-                                    wardData={currentWardData}
-                                    floodStats={floodStats}
-                                    onEnableMap={handleEnableMap}
-                                />
+                            <div className="rounded-2xl p-4 bg-slate-50 border border-slate-200/90 flex items-center justify-between">
+                                <div>
+                                    <div className="text-xs font-bold text-slate-800">High Tide Barrier Backflow</div>
+                                    <div className="text-[11px] text-slate-500">Mithi River outfall throttled (+3.4m tide)</div>
+                                </div>
+                                <button
+                                    type="button"
+                                    onClick={() =>
+                                        setScenario((prev) => ({
+                                            ...prev,
+                                            highTideM: prev.highTideM > 0 ? 0 : 3.4,
+                                        }))
+                                    }
+                                    className={`w-11 h-6 rounded-full p-0.5 transition-colors cursor-pointer flex items-center ${
+                                        scenario.highTideM > 0 ? "bg-indigo-600" : "bg-slate-300"
+                                    }`}
+                                >
+                                    <div
+                                        className={`w-5 h-5 rounded-full bg-white shadow-md transform transition-transform duration-200 ${
+                                            scenario.highTideM > 0 ? "translate-x-5" : "translate-x-0"
+                                        }`}
+                                    />
+                                </button>
+                            </div>
+
+                            <div className="p-3.5 rounded-2xl bg-blue-50/70 border border-blue-100 text-xs text-blue-900 space-y-1">
+                                <div className="font-bold flex items-center gap-1.5">
+                                    <Activity className="w-3.5 h-3.5 text-blue-600" /> Projected Hydrologic Inundation
+                                </div>
+                                <div className="grid grid-cols-2 gap-2 text-[11px] text-blue-800 pt-1">
+                                    <div>
+                                        Est. Runoff: <strong>{(scenario.rainfallMm * 1.8).toFixed(1)} MLD</strong>
+                                    </div>
+                                    <div>
+                                        Peak River Stage: <strong>{(2.1 + scenario.rainfallMm * 0.015 + scenario.highTideM * 0.35).toFixed(2)} m</strong>
+                                    </div>
+                                    <div>
+                                        Critical Hotspots: <strong>{scenario.rainfallMm >= 100 ? "6 impassable" : "2 cautious"}</strong>
+                                    </div>
+                                    <div>
+                                        Pump Capacity: <strong>{scenario.pumpEfficiency}%</strong>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <button
+                                type="button"
+                                onClick={() => {
+                                    setSimulationModalOpen(false);
+                                    setTimeStep(2);
+                                    setTimelineIndex(2);
+                                    pushToast("Simulation Applied", "Interactive map updated with pulse forecast.", "success");
+                                }}
+                                className="w-full py-3 rounded-2xl bg-[#0F2942] hover:bg-[#163A5E] text-white text-xs font-bold transition-all shadow-md cursor-pointer flex items-center justify-center gap-2"
+                            >
+                                <span>Apply Scenario To Map</span>
+                                <ArrowRight className="w-4 h-4" />
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            )}
+
+            {/* Situation Report Modal */}
+            {sitRepOpen && (
+                <SitRepModal
+                    ward={ward}
+                    wardData={currentWardData}
+                    floodStats={floodStats}
+                    sectorDepths={sectorDepths}
+                    timeStep={timeStep}
+                    scenario={scenario}
+                    onClose={() => setSitRepOpen(false)}
+                    pushToast={pushToast}
+                />
+            )}
+
+            {/* ========================================================================= */}
+            {/* EXACT REPLICA: RainDrop Live Operations Center / Municipal Intelligence  */}
+            {/* ========================================================================= */}
+            <div className="flex-1 flex w-full h-full overflow-hidden">
+                {/* LEFT SIDEBAR */}
+                <aside className="w-64 bg-white border-r border-slate-200/80 h-full flex flex-col p-4 z-30 shrink-0 select-none overflow-y-auto">
+                    <div>
+                        {/* Brand Header */}
+                        <div 
+                            className="flex items-center gap-2.5 cursor-pointer group mb-1"
+                            onClick={() => setView("hero")}
+                            title="Back to Landing Page"
+                        >
+                            <div className="w-8 h-8 rounded-xl bg-blue-600 flex items-center justify-center text-white shadow-md shadow-blue-500/20 group-hover:scale-105 transition-transform">
+                                <Droplets className="w-4 h-4 text-white" />
+                            </div>
+                            <div>
+                                <h1 className="text-[17px] font-bold tracking-tight text-slate-900 leading-tight group-hover:text-blue-600 transition-colors">
+                                    RainDrop
+                                </h1>
+                                <p className="text-[9.5px] font-semibold text-slate-400 uppercase tracking-wider">
+                                    Municipal Intelligence
+                                </p>
                             </div>
                         </div>
-                    ) : (
-                        /* Overlay View: Dashboard Control Deck hovers directly over the Interactive Map */
-                        <div className="relative w-full flex-1 min-h-[660px] rounded-2xl overflow-hidden border border-slate-200 shadow-xl bg-slate-950 flex flex-col mt-4">
-                            {/* Full-bleed Leaflet Map */}
-                            <div className="relative flex-1 w-full h-full min-h-[660px]">
-                                <InteractiveVectorMap
-                                    wardData={currentWardData}
-                                    sectorDepths={sectorDepths}
-                                    selectedSector={selectedSector}
-                                    onSelectSector={setSelectedSector}
-                                    layers={layers}
-                                    activeRoute={ROUTE_OPTIONS[activeRouteIndex]}
-                                    isSimulatingRoute={isSimulatingRoute}
-                                    routeProgress={routeProgress}
-                                    routeCheckResult={routeCheckResult}
-                                />
 
-                                {/* Top Right Header Badges */}
-                                <div className="absolute top-4 right-4 z-[400] flex flex-wrap items-center gap-2 pointer-events-auto">
-                                    <div className="px-3 py-1.5 rounded-xl bg-white/95 backdrop-blur-md border border-slate-200 text-xs font-bold text-slate-800 shadow-lg flex items-center gap-2">
-                                        <span className="w-2 h-2 rounded-full bg-blue-600 animate-ping" />
-                                        <span>{currentWardData.name} GIS Grid</span>
-                                        <span className={`text-[10px] px-2 py-0.5 rounded-full border ${currentWardData.riskColor}`}>
-                                            {currentWardData.riskLevel}
+                        {/* Main Navigation Links */}
+                        <nav className="mt-3 flex flex-col gap-1">
+                            <button
+                                onClick={() => setActiveNav("overview")}
+                                className={`w-full px-3 py-2 rounded-xl flex items-center gap-2.5 text-xs font-semibold transition-all cursor-pointer ${
+                                    activeNav === "overview"
+                                        ? "bg-[#EEF4FF] text-[#1D4ED8] border border-blue-100/80 shadow-2xs"
+                                        : "text-slate-600 hover:bg-slate-50"
+                                }`}
+                            >
+                                <Activity className="w-3.5 h-3.5 text-blue-600" />
+                                <span>Live Overview</span>
+                            </button>
+
+                            <button
+                                onClick={() => {
+                                    setActiveNav("simulate");
+                                    setSimulationModalOpen(true);
+                                }}
+                                className={`w-full px-3 py-2 rounded-xl flex items-center gap-2.5 text-xs font-semibold transition-all cursor-pointer ${
+                                    activeNav === "simulate"
+                                        ? "bg-[#EEF4FF] text-[#1D4ED8] border border-blue-100/80 shadow-2xs"
+                                        : "text-slate-600 hover:bg-slate-50"
+                                }`}
+                            >
+                                <Play className="w-3.5 h-3.5 text-slate-500" />
+                                <span>Simulate</span>
+                            </button>
+
+                            <button
+                                onClick={() => {
+                                    setActiveNav("routes");
+                                    setRouteCheckOpen(true);
+                                }}
+                                className={`w-full px-3 py-2 rounded-xl flex items-center gap-2.5 text-xs font-semibold transition-all cursor-pointer ${
+                                    activeNav === "routes"
+                                        ? "bg-[#EEF4FF] text-[#1D4ED8] border border-blue-100/80 shadow-2xs"
+                                        : "text-slate-600 hover:bg-slate-50"
+                                }`}
+                            >
+                                <Navigation className="w-3.5 h-3.5 text-slate-500" />
+                                <span>Safe Routes</span>
+                            </button>
+
+                            <button
+                                onClick={() => {
+                                    setActiveNav("layers");
+                                    setDataLayersModalOpen(true);
+                                }}
+                                className={`w-full px-3 py-2 rounded-xl flex items-center gap-2.5 text-xs font-semibold transition-all cursor-pointer ${
+                                    activeNav === "layers" || dataLayersModalOpen
+                                        ? "bg-[#EEF4FF] text-[#1D4ED8] border border-blue-100/80 shadow-2xs"
+                                        : "text-slate-600 hover:bg-slate-50"
+                                }`}
+                            >
+                                <Layers className="w-3.5 h-3.5 text-slate-500" />
+                                <span>Data Layers</span>
+                            </button>
+
+                            <button
+                                onClick={() => {
+                                    setActiveNav("reports");
+                                    setSitRepOpen(true);
+                                }}
+                                className={`w-full px-3 py-2 rounded-xl flex items-center gap-2.5 text-xs font-semibold transition-all cursor-pointer ${
+                                    activeNav === "reports"
+                                        ? "bg-[#EEF4FF] text-[#1D4ED8] border border-blue-100/80 shadow-2xs"
+                                        : "text-slate-600 hover:bg-slate-50"
+                                }`}
+                            >
+                                <FileText className="w-3.5 h-3.5 text-slate-500" />
+                                <span>Reports</span>
+                            </button>
+                        </nav>
+
+                        {/* DEDICATED METROPOLITAN GRID & WARD SELECTOR */}
+                        <div className="mt-4 pt-3 border-t border-slate-100">
+                            <div className="flex items-center justify-between mb-1.5">
+                                <span className="text-[10px] uppercase font-bold text-slate-400 tracking-wider">Metropolitan Zone</span>
+                                <span className="text-[9.5px] font-bold text-blue-700 bg-blue-50 px-2 py-0.5 rounded-full border border-blue-100/80">6 Cities</span>
+                            </div>
+                            <div className="grid grid-cols-2 gap-1.5 mb-2.5">
+                                {["Chennai", "Mumbai", "Delhi", "Bengaluru", "Kolkata", "Hyderabad"].map((cityName) => (
+                                    <button
+                                        key={cityName}
+                                        type="button"
+                                        onClick={() => {
+                                            setSelectedCity(cityName);
+                                            const cityWards = Object.keys(WARDS_DATA).filter((w) => WARDS_DATA[w].city.toLowerCase() === cityName.toLowerCase());
+                                            const firstWard = cityWards[0] || Object.keys(WARDS_DATA)[0];
+                                            setWard(firstWard);
+                                            setSelectedSector(null);
+                                            loadWardForecast(firstWard, cityName);
+                                        }}
+                                        className={`px-2 py-1.5 rounded-xl text-[11px] font-semibold text-left transition-all cursor-pointer flex items-center justify-between ${
+                                            selectedCity.toLowerCase() === cityName.toLowerCase()
+                                                ? "bg-blue-600 text-white font-bold shadow-xs"
+                                                : "bg-slate-50 text-slate-700 hover:bg-slate-100 border border-slate-200/70"
+                                        }`}
+                                    >
+                                        <span className="truncate">{cityName}</span>
+                                        {selectedCity.toLowerCase() === cityName.toLowerCase() && (
+                                            <span className="w-1.5 h-1.5 rounded-full bg-white shrink-0" />
+                                        )}
+                                    </button>
+                                ))}
+                            </div>
+
+                            {/* Active Ward Selector Select Box */}
+                            <div>
+                                <label className="block text-[10px] uppercase font-bold text-slate-400 tracking-wider mb-1">
+                                    Active Ward ({selectedCity})
+                                </label>
+                                <select
+                                    value={ward}
+                                    onChange={(e) => {
+                                        const newWard = e.target.value;
+                                        setWard(newWard);
+                                        setSelectedSector(null);
+                                        loadWardForecast(newWard, selectedCity);
+                                    }}
+                                    className="w-full px-2.5 py-1.5 rounded-xl bg-slate-50 border border-slate-200 text-xs font-semibold text-slate-800 focus:outline-none focus:ring-2 focus:ring-blue-500 cursor-pointer shadow-2xs"
+                                >
+                                    {Object.entries(WARDS_DATA)
+                                        .filter(([_, data]) => data.city.toLowerCase() === selectedCity.toLowerCase())
+                                        .map(([wardKey, data]) => (
+                                            <option key={wardKey} value={wardKey}>
+                                                {data.name} ({data.code})
+                                            </option>
+                                        ))}
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+
+                    {/* Bottom Signature & User Profile */}
+                    <div className="mt-auto pt-3 border-t border-slate-200/80">
+                        {/* Serif Italic Signature */}
+                        <div className="font-serif italic text-slate-800 text-[20px] leading-[1.12] font-normal tracking-tight mb-3 select-none">
+                            Safer<br />Cities,<br />Together.
+                        </div>
+
+                        {/* User Profile Card */}
+                        <div className="flex items-center justify-between pt-1">
+                            <div className="flex items-center gap-2.5">
+                                <div className="w-8 h-8 rounded-full bg-[#E0E7FF] text-[#4F46E5] font-bold text-xs flex items-center justify-center shadow-2xs">
+                                    SS
+                                </div>
+                                <div>
+                                    <div className="text-xs font-bold text-slate-900 leading-tight">
+                                            Shubham Singh
+                                        </div>
+                                        <div className="text-[11px] font-medium text-slate-400">
+                                            Municipal Viewer
+                                        </div>
+                                    </div>
+                                </div>
+                                <button
+                                    onClick={() => setView("hero")}
+                                    className="p-1.5 rounded-lg text-slate-400 hover:text-slate-700 hover:bg-slate-100 transition-colors cursor-pointer"
+                                    title="Switch to Hero Public Landing"
+                                >
+                                    <Sliders className="w-4 h-4" />
+                                </button>
+                            </div>
+                        </div>
+                    </aside>
+
+                    {/* MAIN CONTENT AREA */}
+                    <div className="flex-1 flex flex-col h-full relative overflow-hidden bg-slate-100">
+                        {/* TOP HEADER BAR (Elevated z-index for dropdown layering) */}
+                        <header className="h-16 bg-white/95 backdrop-blur-md border-b border-slate-200/80 px-7 flex items-center justify-between relative z-[600] shrink-0">
+                            <div className="flex items-center gap-3.5">
+                                {/* Back Arrow Button to Hero Page */}
+                                <button
+                                    type="button"
+                                    onClick={() => setView("hero")}
+                                    className="w-9 h-9 rounded-full bg-slate-50 hover:bg-slate-100 border border-slate-200/90 flex items-center justify-center text-slate-600 hover:text-slate-900 transition-all cursor-pointer shadow-2xs hover:shadow-xs group shrink-0"
+                                    title="Back to Landing Page"
+                                    aria-label="Back to Landing Page"
+                                >
+                                    <ArrowLeft className="w-4 h-4 group-hover:-translate-x-0.5 transition-transform" />
+                                </button>
+
+                                {/* Search Pill */}
+                                <div className="relative w-96">
+                                    <div className="flex items-center gap-2.5 px-4 py-2 rounded-full bg-slate-50 border border-slate-200/90 shadow-2xs hover:border-slate-300 focus-within:border-blue-500 focus-within:bg-white focus-within:ring-2 focus-within:ring-blue-100 transition-all">
+                                        <Search className="w-4 h-4 text-slate-400 shrink-0" />
+                                        <input
+                                            ref={searchRef}
+                                            type="text"
+                                            placeholder="Search location, ward, or landmark..."
+                                            value={searchQuery}
+                                            onChange={(e) => {
+                                                setSearchQuery(e.target.value);
+                                                setSearchOpen(true);
+                                            }}
+                                            onFocus={() => setSearchOpen(true)}
+                                            className="bg-transparent text-xs text-slate-800 placeholder-slate-400 outline-none w-full font-medium"
+                                        />
+                                        <span className="text-[10px] font-semibold text-slate-400 bg-white px-1.5 py-0.5 rounded border border-slate-200 shadow-2xs shrink-0">
+                                            ⌘ K
                                         </span>
                                     </div>
-                                    <button
-                                        onClick={handleDisableMap}
-                                        className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl border border-slate-200 bg-white/90 hover:bg-white text-slate-700 text-xs font-bold shadow-md cursor-pointer transition-all"
-                                    >
-                                        <EyeOff className="w-3.5 h-3.5 text-amber-600" />
-                                        <span>Standby</span>
-                                    </button>
-                                </div>
 
-                                {/* Floating Dashboard Deck (Overlaying Map on Top-Left) */}
-                                <div className={`absolute top-4 left-4 z-[450] transition-all duration-300 pointer-events-auto ${
-                                    isDashboardMinimized
-                                        ? "w-auto"
-                                        : "w-[calc(100%-2rem)] max-w-md max-h-[calc(100%-6rem)]"
-                                }`}>
-                                    {isDashboardMinimized ? (
-                                        <button
-                                            onClick={() => setIsDashboardMinimized(false)}
-                                            className="flex items-center gap-2 px-4 py-2.5 rounded-2xl bg-blue-600 hover:bg-blue-700 text-white font-bold text-xs shadow-2xl border border-blue-500 cursor-pointer animate-in fade-in"
-                                        >
-                                            <Activity className="w-4 h-4" />
-                                            <span>Expand Telemetry Dashboard</span>
-                                        </button>
-                                    ) : (
-                                        <div className="flex flex-col gap-3 bg-white/95 backdrop-blur-md border border-slate-200/90 shadow-2xl rounded-2xl p-4 max-h-[580px] overflow-y-auto text-slate-900">
-                                            <div className="flex items-center justify-between border-b border-slate-100 pb-2">
-                                                <div className="flex items-center gap-2">
-                                                    <div className="p-1 rounded-lg bg-blue-50 text-blue-700">
-                                                        <Activity className="w-4 h-4" />
-                                                    </div>
-                                                    <h3 className="text-xs font-extrabold uppercase tracking-wide text-slate-900">
-                                                        Operations Control Deck
-                                                    </h3>
-                                                </div>
+                                    {/* Instant Autocomplete Results Dropdown */}
+                                    {searchOpen && searchResults.length > 0 && (
+                                        <div className="absolute top-12 left-0 w-full bg-white rounded-2xl shadow-2xl border border-slate-200 py-2 z-50 animate-in fade-in slide-in-from-top-2">
+                                            <div className="px-3.5 py-1 text-[10px] font-bold text-slate-400 uppercase tracking-wider">
+                                                Matching Municipal Sectors
+                                            </div>
+                                            {searchResults.map((res, idx) => (
                                                 <button
-                                                    onClick={() => setIsDashboardMinimized(true)}
-                                                    className="p-1 rounded-lg text-slate-400 hover:text-slate-700 hover:bg-slate-100 text-xs cursor-pointer flex items-center gap-1"
-                                                    title="Minimize Dashboard Overlay"
+                                                    key={idx}
+                                                    type="button"
+                                                    onClick={() => handleSelectSearchResult(res)}
+                                                    className="w-full text-left px-4 py-2.5 hover:bg-blue-50/70 flex items-center justify-between transition-colors cursor-pointer border-b border-slate-50 last:border-0"
                                                 >
-                                                    <span className="text-[10px] font-semibold text-slate-500">Minimize</span>
-                                                    <ChevronUp className="w-4 h-4" />
+                                                    <div className="flex items-center gap-2.5">
+                                                        <MapPin className="w-3.5 h-3.5 text-blue-600 shrink-0" />
+                                                        <div>
+                                                            <div className="text-xs font-bold text-slate-800">
+                                                                {res.title}
+                                                            </div>
+                                                            <div className="text-[10px] text-slate-400">
+                                                                {res.subtitle}
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                    <ArrowRight className="w-3 h-3 text-slate-400" />
                                                 </button>
+                                            ))}
+                                        </div>
+                                    )}
+                                </div>
+                            </div>
+
+                            {/* Right Status & Controls */}
+                            <div className="flex items-center gap-2.5">
+
+                                {/* City Selector Pill with Dropdown */}
+                                <div className="relative" ref={cityDropdownRef}>
+                                    <button
+                                        type="button"
+                                        onClick={() => {
+                                            setCityDropdownOpen((prev) => !prev);
+                                            setWardDropdownOpen(false);
+                                        }}
+                                        className="flex items-center gap-1.5 px-3.5 py-2 rounded-full bg-blue-50/90 border border-blue-200/90 text-xs font-bold text-blue-900 hover:bg-blue-100 transition-all cursor-pointer shadow-2xs"
+                                        title="Select Metropolitan City"
+                                    >
+                                        <Building2 className="w-3.5 h-3.5 text-blue-600 shrink-0" />
+                                        <span>{selectedCity}</span>
+                                        <ChevronDown className={`w-3.5 h-3.5 text-blue-600 transition-transform ${cityDropdownOpen ? "rotate-180" : ""}`} />
+                                    </button>
+
+                                    {cityDropdownOpen && (
+                                        <div className="absolute left-0 mt-2 w-56 bg-white rounded-2xl shadow-2xl border border-slate-200 py-2 z-[700] animate-in fade-in zoom-in-95 duration-150">
+                                            <div className="px-3.5 py-1 text-[10px] font-bold uppercase tracking-wider text-slate-400 border-b border-slate-100">
+                                                Select Metropolitan City (6 Metros)
                                             </div>
-
-                                            {/* Navigation Tabs */}
-                                            <div className="flex items-center p-1 rounded-xl bg-slate-100 border border-slate-200 shadow-inner">
-                                                {[
-                                                    { id: "telemetry", label: "Telemetry", icon: Activity },
-                                                    { id: "routes", label: "Safe Routes", icon: Navigation },
-                                                    { id: "scenario", label: "Simulate", icon: Play },
-                                                    { id: "map", label: "Layers", icon: Layers },
-                                                ].map(({ id, label, icon: Icon }) => (
-                                                    <button
-                                                        key={id}
-                                                        onClick={() => setActiveTab(id)}
-                                                        className={`flex-1 flex items-center justify-center gap-1 py-1.5 px-1 text-[11px] font-bold rounded-lg transition-all cursor-pointer ${
-                                                            activeTab === id
-                                                                ? "bg-blue-600 text-white shadow-sm"
-                                                                : "text-slate-600 hover:text-blue-700"
-                                                        }`}
-                                                    >
-                                                        <Icon className="w-3.5 h-3.5" />
-                                                        <span>{label}</span>
-                                                    </button>
-                                                ))}
-                                            </div>
-
-                                            {/* Active Tab Component */}
-                                            {activeTab === "telemetry" && (
-                                                <HotspotTelemetryDeck
-                                                    wardData={currentWardData}
-                                                    sectorDepths={sectorDepths}
-                                                    onSelectSector={setSelectedSector}
-                                                    onEnableMap={handleEnableMap}
-                                                />
-                                            )}
-
-                                            {activeTab === "routes" && (
-                                                <SafeRoutingPanel
-                                                    routes={ROUTE_OPTIONS}
-                                                    activeRouteIndex={activeRouteIndex}
-                                                    setActiveRouteIndex={setActiveRouteIndex}
-                                                    isSimulatingRoute={isSimulatingRoute}
-                                                    onStartSimulation={() => {
-                                                        setIsMapEnabled(true);
-                                                        setIsSimulatingRoute(true);
+                                            {["Chennai", "Mumbai", "Delhi", "Bengaluru", "Kolkata", "Hyderabad"].map((c) => (
+                                                <button
+                                                    key={c}
+                                                    type="button"
+                                                    onClick={() => {
+                                                        setSelectedCity(c);
+                                                        setCityDropdownOpen(false);
+                                                        const cityWards = Object.keys(WARDS_DATA).filter((w) => WARDS_DATA[w].city.toLowerCase() === c.toLowerCase());
+                                                        const nextWard = cityWards[0] || Object.keys(WARDS_DATA)[0];
+                                                        setWard(nextWard);
+                                                        setSelectedSector(null);
+                                                        loadWardForecast(nextWard, c);
                                                     }}
-                                                    routeProgress={routeProgress}
-                                                    pushToast={pushToast}
-                                                    wardData={currentWardData}
-                                                    sectorDepths={sectorDepths}
-                                                />
-                                            )}
-
-                                            {activeTab === "scenario" && (
-                                                <ScenarioSandbox
-                                                    scenario={scenario}
-                                                    setScenario={setScenario}
-                                                    pushToast={pushToast}
-                                                />
-                                            )}
-
-                                            {activeTab === "map" && (
-                                                <TacticalMapControls
-                                                    layers={layers}
-                                                    setLayers={setLayers}
-                                                    floodStats={floodStats}
-                                                    wardData={currentWardData}
-                                                    selectedSector={selectedSector}
-                                                    onSelectSector={setSelectedSector}
-                                                    isMapEnabled={isMapEnabled}
-                                                    onEnableMap={handleEnableMap}
-                                                    onDisableMap={handleDisableMap}
-                                                    pushToast={pushToast}
-                                                />
-                                            )}
-
-                                            <WardVitalMetrics
-                                                wardData={currentWardData}
-                                                timeStep={timeStep}
-                                                scenario={scenario}
-                                                onOpenSitRep={() => setSitRepOpen(true)}
-                                            />
+                                                    className={`w-full text-left px-3.5 py-2 text-xs font-semibold flex items-center justify-between transition-colors cursor-pointer ${
+                                                        selectedCity.toLowerCase() === c.toLowerCase()
+                                                            ? "text-blue-700 bg-blue-50 font-bold"
+                                                            : "text-slate-700 hover:bg-slate-50"
+                                                    }`}
+                                                >
+                                                    <span>{c}</span>
+                                                    {selectedCity.toLowerCase() === c.toLowerCase() && (
+                                                        <CheckCircle2 className="w-3.5 h-3.5 text-blue-600 shrink-0" />
+                                                    )}
+                                                </button>
+                                            ))}
                                         </div>
                                     )}
                                 </div>
 
-                                {/* Floating Time Machine Bar (Bottom of Map) */}
-                                <div className="absolute bottom-4 left-4 right-4 z-[400] max-w-2xl mx-auto pointer-events-auto">
-                                    <TimeMachineBar
-                                        timeStep={timeStep}
-                                        setTimeStep={setTimeStep}
-                                        isPlaying={isPlaying}
-                                        setIsPlaying={setIsPlaying}
-                                        playSpeed={playSpeed}
-                                        setPlaySpeed={setPlaySpeed}
-                                        hydrograph={HYDROGRAPH_DATA}
-                                    />
+                                {/* Ward Selector Pill with Dropdown */}
+                                <div className="relative" ref={wardDropdownRef}>
+                                    <button
+                                        type="button"
+                                        onClick={() => {
+                                            setWardDropdownOpen((prev) => !prev);
+                                            setCityDropdownOpen(false);
+                                        }}
+                                        className="flex items-center gap-1.5 px-3.5 py-2 rounded-full bg-slate-50 border border-slate-200/90 text-xs font-semibold text-slate-800 hover:bg-slate-100 transition-all cursor-pointer shadow-2xs"
+                                        title="Select Municipal Ward in Active City"
+                                    >
+                                        <MapPin className="w-3.5 h-3.5 text-blue-600 shrink-0" />
+                                        <span className="max-w-[140px] truncate">{ward}</span>
+                                        <ChevronDown className={`w-3.5 h-3.5 text-slate-400 transition-transform ${wardDropdownOpen ? "rotate-180" : ""}`} />
+                                    </button>
+
+                                    {wardDropdownOpen && (
+                                        <div className="absolute right-0 sm:left-0 mt-2 w-64 max-h-80 overflow-y-auto bg-white rounded-2xl shadow-2xl border border-slate-200 py-2 z-[700] animate-in fade-in zoom-in-95 duration-150">
+                                            <div className="px-3.5 py-1 text-[10px] font-bold uppercase tracking-wider text-slate-400 border-b border-slate-100">
+                                                {selectedCity} Municipal Wards
+                                            </div>
+                                            {Object.entries(WARDS_DATA)
+                                                .filter(([_, data]) => data.city.toLowerCase() === selectedCity.toLowerCase())
+                                                .map(([wardKey, data]) => (
+                                                    <button
+                                                        key={wardKey}
+                                                        type="button"
+                                                        onClick={() => {
+                                                            setWard(wardKey);
+                                                            setWardDropdownOpen(false);
+                                                            setSelectedSector(null);
+                                                            loadWardForecast(wardKey, selectedCity);
+                                                        }}
+                                                        className={`w-full text-left px-3.5 py-2 text-xs flex items-center justify-between transition-colors cursor-pointer ${
+                                                            ward === wardKey
+                                                                ? "text-blue-700 bg-blue-50 font-bold"
+                                                                : "text-slate-700 hover:bg-slate-50 font-medium"
+                                                        }`}
+                                                    >
+                                                        <div className="truncate pr-2">
+                                                            <div className="font-semibold text-xs text-slate-800">{data.name}</div>
+                                                            <div className="text-[10px] text-slate-400 font-mono truncate">{data.riverName}</div>
+                                                        </div>
+                                                        <span className={`text-[9px] px-1.5 py-0.5 rounded-full font-bold shrink-0 ${data.riskColor || 'text-slate-500 bg-slate-100'}`}>
+                                                            {data.riskLevel.replace(" RISK", "")}
+                                                        </span>
+                                                    </button>
+                                                ))}
+                                        </div>
+                                    )}
+                                </div>
+
+                                {/* Live Data Badge */}
+                                <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-emerald-50 border border-emerald-200/80 text-emerald-700 text-xs font-semibold shadow-2xs" title="Open-Meteo & IMD Live Radar Synchronized">
+                                    <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
+                                    <span>Live Telemetry</span>
+                                </div>
+
+                                {/* Real-Time Date and Time Clock */}
+                                <div className="text-xs font-medium text-slate-500 flex items-center bg-slate-50/90 px-3 py-1.5 rounded-full border border-slate-200/80 shadow-2xs">
+                                    <Clock className="w-3.5 h-3.5 text-blue-500 mr-1.5" />
+                                    <span className="text-slate-600 font-medium">
+                                        {currentTime.toLocaleDateString(undefined, { weekday: 'short', day: 'numeric', month: 'short' })}
+                                    </span>
+                                    <span className="ml-2 font-bold font-mono text-slate-800">
+                                        {currentTime.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' })}
+                                    </span>
+                                </div>
+
+                                {/* Notification Bell */}
+                                <button
+                                    type="button"
+                                    onClick={() =>
+                                        pushToast(
+                                            "Mithi River Alert: Water level at Kurla Lowland sensor 3.42m approaching danger threshold."
+                                        )
+                                    }
+                                    className="relative p-2 rounded-full hover:bg-slate-100 text-slate-600 transition-colors cursor-pointer"
+                                    title="Alerts Feed"
+                                >
+                                    <Bell className="w-4 h-4" />
+                                    <span className="absolute top-1.5 right-1.5 w-2 h-2 rounded-full bg-rose-500 ring-2 ring-white" />
+                                </button>
+                            </div>
+                        </header>
+
+                        {/* CENTER FULL-BLEED LEAFLET MAP CANVAS */}
+                        <div className="relative flex-1 w-full h-full overflow-hidden">
+                            <InteractiveVectorMap
+                                ward={ward}
+                                wardData={currentWardData}
+                                sectorDepths={sectorDepths}
+                                selectedSector={selectedSector}
+                                onSelectSector={setSelectedSector}
+                                layers={layers}
+                                mapStyle={mapStyle}
+                                mapToggles={mapToggles}
+                                timelineStep={timeStep}
+                            />
+
+                            {/* FLOATING BASEMAP SWITCHER (Top Center) */}
+                            <div className="absolute top-5 left-1/2 -translate-x-1/2 z-[400] flex items-center p-1 rounded-full bg-white/95 backdrop-blur-md border border-slate-200/90 shadow-xl gap-1">
+                                {["Map", "Satellite", "Terrain"].map((type) => (
+                                    <button
+                                        key={type}
+                                        type="button"
+                                        onClick={() => setMapStyle(type)}
+                                        className={`px-4 py-1.5 rounded-full text-xs font-semibold transition-all cursor-pointer ${
+                                            mapStyle === type
+                                                ? "bg-[#1E293B] text-white shadow-sm"
+                                                : "text-slate-600 hover:text-slate-900 hover:bg-slate-100"
+                                        }`}
+                                    >
+                                        {type}
+                                    </button>
+                                ))}
+                            </div>
+
+                            {/* FLOATING ZOOM & LOCATE CONTROLS (Top Right) */}
+                            <div className="absolute top-20 right-6 z-[400] flex flex-col gap-2">
+                                <div className="flex flex-col rounded-2xl bg-white/95 backdrop-blur-md border border-slate-200/90 shadow-lg overflow-hidden">
+                                    <button
+                                        type="button"
+                                        onClick={() => window._rainDropMap && window._rainDropMap.zoomIn()}
+                                        className="p-2.5 text-slate-600 hover:bg-slate-50 hover:text-slate-900 transition-colors border-b border-slate-100 cursor-pointer"
+                                        title="Zoom In"
+                                    >
+                                        <Plus className="w-4 h-4" />
+                                    </button>
+                                    <button
+                                        type="button"
+                                        onClick={() => window._rainDropMap && window._rainDropMap.zoomOut()}
+                                        className="p-2.5 text-slate-600 hover:bg-slate-50 hover:text-slate-900 transition-colors cursor-pointer"
+                                        title="Zoom Out"
+                                    >
+                                        <Minus className="w-4 h-4" />
+                                    </button>
+                                </div>
+                                <button
+                                    type="button"
+                                    onClick={() => {
+                                        if (window._rainDropMap) {
+                                            window._rainDropMap.flyTo([19.0728, 72.8797], 14, { duration: 1.2 });
+                                        }
+                                    }}
+                                    className="p-2.5 rounded-2xl bg-white/95 backdrop-blur-md border border-slate-200/90 shadow-lg text-slate-600 hover:bg-slate-50 hover:text-slate-900 transition-colors cursor-pointer"
+                                    title="Center Map"
+                                >
+                                    <Crosshair className="w-4 h-4" />
+                                </button>
+                            </div>
+
+                            {/* SCALE BAR & NORTH ARROW (Bottom Right) */}
+                            <div className="absolute bottom-24 right-8 z-[400] flex items-center gap-3 pointer-events-none select-none">
+                                <div className="flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-white/90 backdrop-blur-xs border border-slate-200/80 shadow-xs text-[10.5px] font-mono text-slate-600">
+                                    <span>0</span>
+                                    <span className="w-12 h-0.5 bg-slate-400 inline-block" />
+                                    <span>5 km</span>
+                                </div>
+                                <div className="w-7 h-7 rounded-full bg-white/90 backdrop-blur-xs border border-slate-200/80 shadow-xs flex items-center justify-center text-[10px] font-extrabold text-slate-700">
+                                    N ▲
+                                </div>
+                            </div>
+
+                            {/* FLOATING LEFT CARD: COMPACT EMERGENCY CORRIDOR BADGE */}
+                            <div className={`absolute top-5 left-6 z-[400] bg-white/95 backdrop-blur-xl rounded-2xl border border-slate-200/90 shadow-xl transition-all duration-300 ${
+                                riverCardMinimized ? "w-auto p-2.5" : "w-[310px] p-4 flex flex-col gap-2.5"
+                            }`}>
+                                <div className="flex items-center justify-between gap-2">
+                                    <span className={`px-2.5 py-0.5 rounded-full text-[10px] font-extrabold tracking-wider uppercase flex items-center gap-1.5 ${
+                                        currentWardData.riskLevel.includes("HIGH") || currentWardData.riskLevel.includes("EXTREME")
+                                            ? "bg-rose-50 border border-rose-200/80 text-rose-600"
+                                            : "bg-amber-50 border border-amber-200/80 text-amber-700"
+                                    }`}>
+                                        <span>⚠️</span> Emergency Watch
+                                    </span>
+                                    <div className="flex items-center gap-1">
+                                        <span className="text-[10px] font-bold text-slate-400 font-mono">
+                                            {currentWardData.city}
+                                        </span>
+                                        <button
+                                            type="button"
+                                            onClick={() => setRiverCardMinimized(!riverCardMinimized)}
+                                            className="p-1 text-slate-400 hover:text-slate-700 rounded-lg hover:bg-slate-100 transition-colors cursor-pointer"
+                                            title={riverCardMinimized ? "Expand Corridor Watch" : "Collapse to Pill"}
+                                        >
+                                            <ChevronUp className={`w-3.5 h-3.5 transition-transform duration-200 ${riverCardMinimized ? "rotate-180" : ""}`} />
+                                        </button>
+                                    </div>
+                                </div>
+
+                                {!riverCardMinimized && (
+                                    <>
+                                        <div>
+                                            <h3 className="text-sm font-extrabold text-slate-900 tracking-tight leading-snug">
+                                                {currentWardData.riverName} Basin
+                                            </h3>
+                                            <div className="flex items-center justify-between mt-1">
+                                                <p className="text-xs font-medium text-slate-600">
+                                                    Stage:{" "}
+                                                    <span className="text-rose-600 font-bold font-mono">
+                                                        {liveForecast?.river_level_m ? `${liveForecast.river_level_m}m` : `${currentWardData.riverLevel}m`}
+                                                    </span>
+                                                    <span className="text-[10px] text-slate-400 ml-1">(Danger: {currentWardData.dangerLevel}m)</span>
+                                                </p>
+                                                <button
+                                                    type="button"
+                                                    onClick={() => {
+                                                        if (window._rainDropMap && currentWardData.sectors?.[0]) {
+                                                            const c = currentWardData.sectors[0].coords.split(',').map(n => parseFloat(n.trim()));
+                                                            if (c.length >= 2) window._rainDropMap.flyTo([c[0], c[1]], 15, { duration: 1.2 });
+                                                        }
+                                                    }}
+                                                    className="w-6 h-6 rounded-full bg-slate-100 hover:bg-slate-200 flex items-center justify-center text-slate-600 transition-colors cursor-pointer shrink-0"
+                                                    title="Center on Basin"
+                                                >
+                                                    <ArrowRight className="w-3.5 h-3.5" />
+                                                </button>
+                                            </div>
+                                        </div>
+                                        <div className="pt-2 border-t border-slate-100 flex items-center justify-between text-[11px] text-slate-500 font-medium">
+                                            <span>⚡ {currentWardData.activePumps} pumps active</span>
+                                            <span className="text-rose-600 font-semibold">{currentWardData.sectors.filter((_, i) => (sectorDepths[i] || 0) >= 30).length} flooded spots</span>
+                                        </div>
+                                    </>
+                                )}
+                            </div>
+
+                            {/* FLOATING RIGHT CARD: "Flood Inundation (Live)" */}
+                            <div
+                                className={`absolute top-5 right-6 z-[400] w-[295px] bg-white/95 backdrop-blur-xl rounded-3xl border border-slate-200/90 shadow-2xl p-5 flex flex-col gap-3.5 transition-all duration-300 ${
+                                    rightCardCollapsed ? "h-14 overflow-hidden" : ""
+                                }`}
+                            >
+                                <div className="flex items-center justify-between">
+                                    <div className="flex items-center gap-2.5">
+                                        <div className="w-7 h-7 rounded-xl bg-gradient-to-tr from-blue-600 to-cyan-500 text-white flex items-center justify-center shadow-xs">
+                                            <Activity className="w-4 h-4" />
+                                        </div>
+                                        <div>
+                                            <div className="flex items-center gap-2">
+                                                <h3 className="text-xs font-bold text-slate-900">
+                                                    Flood Inundation
+                                                </h3>
+                                                <span className="inline-flex items-center gap-1 text-[9.5px] font-bold px-2 py-0.5 rounded-full bg-emerald-50 text-emerald-700 border border-emerald-200/60">
+                                                    <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
+                                                    Live
+                                                </span>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <button
+                                        type="button"
+                                        onClick={() => setRightCardCollapsed(!rightCardCollapsed)}
+                                        className="p-1.5 text-slate-400 hover:text-slate-700 rounded-xl hover:bg-slate-100 cursor-pointer transition-colors"
+                                        title={rightCardCollapsed ? "Expand Layer Deck" : "Collapse Layer Deck"}
+                                    >
+                                        <ChevronUp
+                                            className={`w-4 h-4 transition-transform duration-200 ${
+                                                rightCardCollapsed ? "rotate-180" : ""
+                                            }`}
+                                        />
+                                    </button>
+                                </div>
+
+                                {!rightCardCollapsed && (
+                                    <>
+                                        {/* Severity Legend */}
+                                        <div>
+                                            <div className="text-[10px] font-bold uppercase tracking-wider text-slate-400 mb-1.5">
+                                                Depth Classification
+                                            </div>
+                                            <div className="grid grid-cols-2 gap-1.5 bg-slate-50/80 p-2 rounded-2xl border border-slate-100">
+                                                <div className="flex items-center gap-2 p-1.5 rounded-xl bg-white/80 border border-rose-100 shadow-2xs">
+                                                    <span className="w-2.5 h-2.5 rounded-full bg-rose-500 shrink-0 ring-2 ring-rose-200" />
+                                                    <div className="leading-tight">
+                                                        <div className="text-[10.5px] font-bold text-slate-800">&gt; 30 cm</div>
+                                                        <div className="text-[9px] font-semibold text-rose-600">Critical</div>
+                                                    </div>
+                                                </div>
+                                                <div className="flex items-center gap-2 p-1.5 rounded-xl bg-white/80 border border-blue-100 shadow-2xs">
+                                                    <span className="w-2.5 h-2.5 rounded-full bg-blue-500 shrink-0 ring-2 ring-blue-200" />
+                                                    <div className="leading-tight">
+                                                        <div className="text-[10.5px] font-bold text-slate-800">15–30 cm</div>
+                                                        <div className="text-[9px] font-semibold text-blue-600">Caution</div>
+                                                    </div>
+                                                </div>
+                                                <div className="flex items-center gap-2 p-1.5 rounded-xl bg-white/80 border border-sky-100 shadow-2xs">
+                                                    <span className="w-2.5 h-2.5 rounded-full bg-sky-400 shrink-0 ring-2 ring-sky-200" />
+                                                    <div className="leading-tight">
+                                                        <div className="text-[10.5px] font-bold text-slate-800">&lt; 15 cm</div>
+                                                        <div className="text-[9px] font-semibold text-sky-600">Possible</div>
+                                                    </div>
+                                                </div>
+                                                <div className="flex items-center gap-2 p-1.5 rounded-xl bg-white/80 border border-emerald-100 shadow-2xs">
+                                                    <span className="w-2.5 h-2.5 rounded-full bg-emerald-500 shrink-0 ring-2 ring-emerald-200" />
+                                                    <div className="leading-tight">
+                                                        <div className="text-[10.5px] font-bold text-slate-800">0 cm Dry</div>
+                                                        <div className="text-[9px] font-semibold text-emerald-600">Passable</div>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+
+                                        {/* Toggle Switches */}
+                                        <div>
+                                            <div className="flex items-center justify-between text-[10px] font-bold uppercase tracking-wider text-slate-400 mb-2">
+                                                <span>GIS Layer Overlays</span>
+                                                <span className="text-[9px] font-normal text-slate-400">Active telemetry</span>
+                                            </div>
+                                            <div className="flex flex-col gap-2">
+                                                {[
+                                                    { id: "hotspots", label: "Critical Hotspots", desc: "6 inundation zones", activeColor: "bg-rose-500", dot: "bg-rose-500" },
+                                                    { id: "pumps", label: "Drainage Pumps", desc: "12 active stations", activeColor: "bg-blue-600", dot: "bg-blue-600" },
+                                                    { id: "shelters", label: "Relief Shelters", desc: "4 emergency hubs", activeColor: "bg-indigo-600", dot: "bg-indigo-600" },
+                                                    { id: "metro", label: "Metro & Transport", desc: "Subway & rail gates", activeColor: "bg-emerald-500", dot: "bg-emerald-500" },
+                                                    { id: "boundaries", label: "Ward Boundaries", desc: "BMC L-Ward zone", activeColor: "bg-slate-700", dot: "bg-slate-600" },
+                                                ].map((toggle) => (
+                                                    <div key={toggle.id} className="flex items-center justify-between py-1 px-1.5 rounded-xl hover:bg-slate-50 transition-colors">
+                                                        <div className="flex items-center gap-2">
+                                                            <span className={`w-2 h-2 rounded-full ${toggle.dot}`} />
+                                                            <div>
+                                                                <span className="text-xs font-semibold text-slate-800 block leading-tight">
+                                                                    {toggle.label}
+                                                                </span>
+                                                                <span className="text-[9.5px] text-slate-400 block">
+                                                                    {toggle.desc}
+                                                                </span>
+                                                            </div>
+                                                        </div>
+                                                        <button
+                                                            type="button"
+                                                            onClick={() =>
+                                                                setMapToggles((prev) => ({
+                                                                    ...prev,
+                                                                    [toggle.id]: !prev[toggle.id],
+                                                                }))
+                                                            }
+                                                            className={`relative inline-flex h-5 w-9 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none ${
+                                                                mapToggles[toggle.id] ? toggle.activeColor : "bg-slate-200"
+                                                            }`}
+                                                        >
+                                                            <span
+                                                                className={`pointer-events-none inline-block h-4 w-4 transform rounded-full bg-white shadow-sm ring-0 transition duration-200 ease-in-out ${
+                                                                    mapToggles[toggle.id]
+                                                                        ? "translate-x-4"
+                                                                        : "translate-x-0"
+                                                                }`}
+                                                            />
+                                                        </button>
+                                                    </div>
+                                                ))}
+                                            </div>
+                                        </div>
+
+                                        {/* Telemetry Status Line */}
+                                        <div className="pt-2 border-t border-slate-100 flex items-center justify-between text-[10px] text-slate-400 font-medium">
+                                            <span className="flex items-center gap-1.5">
+                                                <span className="w-1.5 h-1.5 rounded-full bg-emerald-500" />
+                                                {currentWardData.name} Basin
+                                            </span>
+                                            <span className="text-slate-600 font-semibold">{currentWardData.sectors.length} Nodes Active</span>
+                                        </div>
+                                    </>
+                                )}
+                            </div>
+
+                            {/* FLOATING BOTTOM BAR: "Simulation Timeline" */}
+                            <div className="absolute bottom-6 left-6 right-6 z-[400] bg-white/95 backdrop-blur-xl rounded-3xl border border-slate-200/90 shadow-2xl px-6 py-3 flex items-center justify-between gap-6 animate-in fade-in slide-in-from-bottom-2 duration-300">
+                                {/* Left Title */}
+                                <div className="flex items-center gap-2.5 shrink-0">
+                                    <div className="w-8 h-8 rounded-2xl bg-blue-50 text-blue-600 flex items-center justify-center">
+                                        <Activity className="w-4 h-4" />
+                                    </div>
+                                    <div>
+                                        <div className="text-xs font-bold text-slate-800">Simulation Timeline</div>
+                                        <div className="text-[10px] text-slate-400">Inundation model progression</div>
+                                    </div>
+                                </div>
+
+                                {/* Center Play & Scrubber */}
+                                <div className="flex-1 max-w-xl flex items-center gap-4">
+                                    <button
+                                        type="button"
+                                        onClick={() => setIsPlaying(!isPlaying)}
+                                        className="w-8 h-8 rounded-full bg-[#1E293B] text-white flex items-center justify-center hover:bg-slate-800 transition-colors shadow-sm cursor-pointer shrink-0"
+                                    >
+                                        {isPlaying ? (
+                                            <Pause className="w-3.5 h-3.5 fill-current" />
+                                        ) : (
+                                            <Play className="w-3.5 h-3.5 fill-current ml-0.5" />
+                                        )}
+                                    </button>
+
+                                    <div className="flex-1 relative flex items-center">
+                                        <div className="w-full h-1.5 bg-slate-200 rounded-full overflow-hidden">
+                                            <div
+                                                className="h-full bg-blue-600 transition-all duration-300"
+                                                style={{ width: `${(timelineIndex / 4) * 100}%` }}
+                                            />
+                                        </div>
+                                        {/* Step Markers */}
+                                        <div className="absolute inset-x-0 flex justify-between items-center px-1 pointer-events-none">
+                                            {["Now", "+1h", "+3h", "+6h", "+12h"].map((step, idx) => (
+                                                <button
+                                                    key={step}
+                                                    type="button"
+                                                    onClick={(e) => {
+                                                        e.stopPropagation();
+                                                        setTimelineIndex(idx);
+                                                        setTimeStep(idx);
+                                                        pushToast(`Timeline updated to ${step}`);
+                                                    }}
+                                                    className="pointer-events-auto flex flex-col items-center cursor-pointer group"
+                                                >
+                                                    <div
+                                                        className={`w-3 h-3 rounded-full border-2 transition-all ${
+                                                            timelineIndex === idx
+                                                                ? "bg-blue-600 border-white ring-2 ring-blue-600 scale-125"
+                                                                : "bg-white border-slate-300 group-hover:border-slate-400"
+                                                        }`}
+                                                    />
+                                                    <span
+                                                        className={`text-[10px] mt-1.5 font-bold ${
+                                                            timelineIndex === idx
+                                                                ? "text-blue-600 font-extrabold"
+                                                                : "text-slate-400"
+                                                        }`}
+                                                    >
+                                                        {step}
+                                                    </span>
+                                                </button>
+                                            ))}
+                                        </div>
+                                    </div>
+                                </div>
+
+                                {/* Right Live Telemetry Refresh & Run Simulation Button */}
+                                <div className="flex items-center gap-3 shrink-0">
+                                    <button
+                                        type="button"
+                                        onClick={() => {
+                                            loadWardForecast(ward, selectedCity);
+                                            pushToast(`Live radar & telemetry refreshed at ${currentTime.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' })}`);
+                                        }}
+                                        className="flex items-center gap-2 px-3.5 py-2 rounded-2xl bg-blue-50/90 hover:bg-blue-100/90 border border-blue-200/90 text-xs font-semibold text-blue-700 transition-all cursor-pointer shadow-2xs"
+                                        title="Click to fetch latest Open-Meteo Doppler observation and recompute ML depths"
+                                    >
+                                        <RefreshCw className={`w-3.5 h-3.5 text-blue-600 ${isFetchingForecast ? "animate-spin" : ""}`} />
+                                        <span>Live Feed · {currentTime.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' })}</span>
+                                    </button>
+
+                                    <button
+                                        type="button"
+                                        onClick={() => setSimulationModalOpen(true)}
+                                        className="flex items-center gap-2 px-5 py-2 rounded-2xl bg-[#0F2942] hover:bg-[#163A5E] text-white text-xs font-bold transition-all shadow-md shadow-slate-900/10 cursor-pointer"
+                                    >
+                                        <span>Run Flood Simulation</span>
+                                        <ArrowRight className="w-3.5 h-3.5" />
+                                    </button>
                                 </div>
                             </div>
                         </div>
-                    )}
+                    </div>
                 </div>
-            )}
+        </div>
+    );
+}
+
+// ============================================================================
+// Public Hero Landing Page (Exact Replica of Editorial Light Design)
+// ============================================================================
+
+function HeroView({ ward, wardData, onEnter }) {
+    return (
+        <div className="min-h-screen bg-white text-slate-900 flex flex-col font-sans selection:bg-blue-600 selection:text-white antialiased">
+            {/* Top Navigation Bar */}
+            <header className="sticky top-0 z-50 bg-white/95 backdrop-blur-md border-b border-slate-100 px-6 sm:px-12 py-4 flex items-center justify-between">
+                {/* Left Brand Logo */}
+                <div className="flex items-center gap-2.5 cursor-pointer" onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}>
+                    <div className="w-8 h-8 rounded-full bg-blue-600 flex items-center justify-center text-white shadow-sm">
+                        <Droplets className="w-4.5 h-4.5 fill-current" />
+                    </div>
+                    <div>
+                        <span className="text-[17px] font-bold text-slate-900 tracking-tight">RainDrop GIS</span>
+                        <span className="block text-[10px] font-medium text-slate-400 uppercase tracking-wider -mt-0.5">Municipal Intelligence</span>
+                    </div>
+                </div>
+
+                {/* Center Nav Links */}
+                <nav className="hidden md:flex items-center gap-8 nav-inter text-slate-600">
+                    <a href="#overview" className="hover:text-blue-600 transition-colors">Overview</a>
+                    <a href="#scenarios" className="hover:text-blue-600 transition-colors">Visual Gallery</a>
+                    <a href="#how-it-works" className="hover:text-blue-600 transition-colors">Architecture</a>
+                    <a href="#capabilities" className="hover:text-blue-600 transition-colors">Capabilities</a>
+                    <a href="#metros" className="hover:text-blue-600 transition-colors">Pilot Metros</a>
+                </nav>
+
+                {/* Right Launch Button */}
+                <button
+                    onClick={onEnter}
+                    className="flex items-center gap-2 px-5 py-2.5 rounded-full bg-[#0F172A] hover:bg-[#1E293B] text-white text-[13.5px] font-semibold shadow-xs transition-all cursor-pointer"
+                >
+                    <span>Launch Operations Center</span>
+                    <ArrowRight className="w-3.5 h-3.5" />
+                </button>
+            </header>
+
+            <main className="flex-1 max-w-7xl mx-auto w-full px-6 sm:px-12 py-12 flex flex-col gap-24">
+                {/* 1. HERO SECTION */}
+                <section id="overview" className="grid grid-cols-1 lg:grid-cols-12 gap-12 items-center pt-4">
+                    {/* Left Column */}
+                    <div className="lg:col-span-7 flex flex-col gap-6">
+                        <div className="flex items-center gap-2 badge-label-inter text-slate-400">
+                            <span>TURN DATA INTO SAFER CITIES</span>
+                            <span className="w-8 h-[1px] bg-slate-300 inline-block"></span>
+                        </div>
+
+                        <h1 className="hero-title text-slate-900">
+                            Predict Floods.<br />
+                            <em>Protect Lives.</em>
+                        </h1>
+
+                        <p className="body-inter text-slate-600 max-w-xl font-normal">
+                            RainDrop combines 30-meter CartoDEM topography, Doppler radar nowcasts, and AI hydraulics models to predict neighborhood-level inundation, monitor critical drainage bottlenecks, and guide emergency transit along 100% dry elevation corridors.
+                        </p>
+
+                        <div className="flex flex-wrap items-center gap-4 pt-2">
+                            <button
+                                onClick={onEnter}
+                                className="flex items-center gap-2.5 px-7 py-3.5 rounded-full bg-[#0F172A] hover:bg-[#1E293B] text-white text-[14px] font-semibold transition-all shadow-md cursor-pointer"
+                            >
+                                <span>Explore the Platform</span>
+                                <ArrowRight className="w-4 h-4" />
+                            </button>
+
+                            <button
+                                onClick={() => {
+                                    const el = document.getElementById('scenarios');
+                                    if (el) el.scrollIntoView({ behavior: 'smooth' });
+                                }}
+                                className="flex items-center gap-2 px-6 py-3.5 rounded-full bg-slate-50 hover:bg-slate-100 border border-slate-200 text-slate-700 text-[14px] font-medium transition-all cursor-pointer"
+                            >
+                                <Play className="w-3.5 h-3.5 fill-current text-blue-600" />
+                                <span>Watch Overview</span>
+                            </button>
+                        </div>
+
+                        {/* Metrics Row */}
+                        <div className="grid grid-cols-3 pt-6 border-t border-slate-100 max-w-xl">
+                            <div className="pr-6 border-r border-slate-200">
+                                <div className="metric-serif text-slate-900">30m</div>
+                                <div className="font-sans text-[11px] font-medium text-slate-400 mt-1 whitespace-nowrap">CartoDEM Resolution</div>
+                            </div>
+                            <div className="px-6 border-r border-slate-200">
+                                <div className="metric-serif text-slate-900 whitespace-nowrap">Real-time</div>
+                                <div className="font-sans text-[11px] font-medium text-slate-400 mt-1 whitespace-nowrap">Flood Nowcasting</div>
+                            </div>
+                            <div className="pl-6">
+                                <div className="metric-serif text-slate-900">100%</div>
+                                <div className="font-sans text-[11px] font-medium text-slate-400 mt-1 whitespace-nowrap">Dry Route Guidance</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    {/* Right Column: Arch Frame & Annotations */}
+                    <div className="lg:col-span-5 flex flex-col items-center justify-center relative">
+                        {/* Soft background aura contour */}
+                        <div className="absolute -top-12 -right-12 w-[520px] h-[520px] bg-gradient-to-br from-blue-100/50 via-cyan-50/30 to-transparent rounded-full blur-3xl -z-10 pointer-events-none"></div>
+
+                        {/* Floating handwritten note top right */}
+                        <div className="absolute -top-8 right-0 sm:right-1 z-20 pointer-events-none select-none text-right -rotate-3 transform origin-bottom-right">
+                            <div className="font-script text-[32px] sm:text-[38px] text-slate-700 leading-[1.05]">
+                                Smarter<br />Cities<br />Safer Tomorrows.
+                            </div>
+                            <div className="w-14 h-0.5 bg-slate-400 ml-auto mt-1 opacity-60"></div>
+                        </div>
+
+                        {/* Arch Photo Container */}
+                        <div className="w-full max-w-[420px] h-[480px] sm:h-[520px] rounded-t-full rounded-b-[40px] overflow-hidden border-2 border-white shadow-2xl relative bg-slate-100">
+                            <img
+                                src="/static/images/hero-aerial-drone.jpg"
+                                alt="Metropolitan Inundation Basin Aerial Drone View"
+                                className="w-full h-full object-cover"
+                            />
+                            {/* Gradient overlay on bottom */}
+                            <div className="absolute inset-0 bg-gradient-to-t from-black/40 via-transparent to-transparent"></div>
+
+                            {/* Floating pill card at bottom */}
+                            <div 
+                                onClick={onEnter}
+                                className="absolute bottom-6 left-6 right-6 bg-white/95 backdrop-blur-md p-3.5 rounded-2xl shadow-xl border border-slate-100 flex items-center justify-between cursor-pointer hover:bg-white transition-all group"
+                            >
+                                <div className="flex items-center gap-3">
+                                    <div className="w-9 h-9 rounded-full bg-blue-600 text-white flex items-center justify-center font-bold text-xs shadow-sm">
+                                        <Droplets className="w-4.5 h-4.5 fill-current" />
+                                    </div>
+                                    <div>
+                                        <div className="card-title-inter text-slate-900 group-hover:text-blue-600 transition-colors">Chennai</div>
+                                        <div className="font-sans text-[11px] text-slate-400">Live Flood View</div>
+                                    </div>
+                                </div>
+                                <div className="w-8 h-8 rounded-full bg-slate-100 group-hover:bg-blue-50 group-hover:text-blue-600 flex items-center justify-center text-slate-500 transition-colors">
+                                    <ArrowRight className="w-4 h-4" />
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+
+                {/* 2. REAL WORLD IMPACT: Flood Scenarios & Resilience */}
+                <section id="scenarios" className="flex flex-col gap-8">
+                    <div className="flex items-end justify-between border-b border-slate-100 pb-4">
+                        <div>
+                            <span className="badge-label-inter text-slate-400">REAL WORLD IMPACT</span>
+                            <h2 className="section-title text-slate-900 mt-1">
+                                Flood Scenarios &amp; Resilience
+                            </h2>
+                        </div>
+                        <button 
+                            onClick={onEnter}
+                            className="hidden sm:flex items-center gap-1.5 nav-inter text-blue-600 hover:text-blue-700 transition-colors cursor-pointer"
+                        >
+                            <span>See Full Gallery</span>
+                            <ArrowRight className="w-3.5 h-3.5" />
+                        </button>
+                    </div>
+
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                        {/* Card 1 */}
+                        <div 
+                            onClick={onEnter}
+                            className="group bg-white rounded-3xl border border-slate-200/90 shadow-sm hover:shadow-xl hover:border-blue-200 transition-all overflow-hidden flex flex-col cursor-pointer"
+                        >
+                            <div className="relative h-48 overflow-hidden bg-slate-100">
+                                <img
+                                    src="/static/images/dibakar-roy-DccG84ivd3k-unsplash.jpg"
+                                    alt="Monsoon Cloudburst Downpour"
+                                    className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+                                />
+                                <div className="absolute top-3 left-3 bg-[#0F172A]/85 backdrop-blur-xs text-white text-[10px] font-bold px-2.5 py-1 rounded-full flex items-center gap-1.5 border border-white/10">
+                                    <Radio className="w-3 h-3 text-blue-400" />
+                                    <span>IMD Radar Telemetry</span>
+                                </div>
+                            </div>
+                            <div className="p-6 flex flex-col justify-between flex-1">
+                                <div>
+                                    <h3 className="card-title-inter text-slate-900 group-hover:text-blue-600 transition-colors">
+                                        Monsoon Cloudburst Downpour
+                                    </h3>
+                                    <p className="font-sans text-[14px] text-slate-500 mt-1.5 leading-relaxed">
+                                        Flash surface runoff rapidly entering lowland municipal sumps.
+                                    </p>
+                                </div>
+                                <div className="mt-4 flex justify-end">
+                                    <div className="w-8 h-8 rounded-full bg-slate-100 group-hover:bg-blue-50 group-hover:text-blue-600 flex items-center justify-center text-slate-500 transition-colors">
+                                        <ArrowRight className="w-4 h-4" />
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        {/* Card 2 */}
+                        <div 
+                            onClick={onEnter}
+                            className="group bg-white rounded-3xl border border-slate-200/90 shadow-sm hover:shadow-xl hover:border-blue-200 transition-all overflow-hidden flex flex-col cursor-pointer"
+                        >
+                            <div className="relative h-48 overflow-hidden bg-slate-100">
+                                <img
+                                    src="/static/images/dibakar-roy-FbOchRlXaPs-unsplash.jpg"
+                                    alt="Metropolitan Inundation Basin"
+                                    className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+                                />
+                                <div className="absolute top-3 left-3 bg-[#0F172A]/85 backdrop-blur-xs text-white text-[10px] font-bold px-2.5 py-1 rounded-full flex items-center gap-1.5 border border-white/10">
+                                    <Layers className="w-3 h-3 text-emerald-400" />
+                                    <span>CartoDEM 30m</span>
+                                </div>
+                            </div>
+                            <div className="p-6 flex flex-col justify-between flex-1">
+                                <div>
+                                    <h3 className="card-title-inter text-slate-900 group-hover:text-blue-600 transition-colors">
+                                        Metropolitan Inundation Basin
+                                    </h3>
+                                    <p className="font-sans text-[14px] text-slate-500 mt-1.5 leading-relaxed">
+                                        Real-time spatial elevation modeling and flood extent prediction.
+                                    </p>
+                                </div>
+                                <div className="mt-4 flex justify-end">
+                                    <div className="w-8 h-8 rounded-full bg-slate-100 group-hover:bg-blue-50 group-hover:text-blue-600 flex items-center justify-center text-slate-500 transition-colors">
+                                        <ArrowRight className="w-4 h-4" />
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        {/* Card 3 */}
+                        <div 
+                            onClick={onEnter}
+                            className="group bg-white rounded-3xl border border-slate-200/90 shadow-sm hover:shadow-xl hover:border-blue-200 transition-all overflow-hidden flex flex-col cursor-pointer"
+                        >
+                            <div className="relative h-48 overflow-hidden bg-slate-100">
+                                <img
+                                    src="/static/images/dibakar-roy-P7Z3HwNWPeQ-unsplash.jpg"
+                                    alt="Submerged Bottlenecks &amp; Subways"
+                                    className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+                                />
+                                <div className="absolute top-3 left-3 bg-[#0F172A]/85 backdrop-blur-xs text-white text-[10px] font-bold px-2.5 py-1 rounded-full flex items-center gap-1.5 border border-white/10">
+                                    <AlertTriangle className="w-3 h-3 text-amber-400" />
+                                    <span>Passability Matrix</span>
+                                </div>
+                            </div>
+                            <div className="p-6 flex flex-col justify-between flex-1">
+                                <div>
+                                    <h3 className="card-title-inter text-slate-900 group-hover:text-blue-600 transition-colors">
+                                        Submerged Bottlenecks &amp; Subways
+                                    </h3>
+                                    <p className="font-sans text-[14px] text-slate-500 mt-1.5 leading-relaxed">
+                                        Automated hazard detection for roads exceeding 30cm water depth.
+                                    </p>
+                                </div>
+                                <div className="mt-4 flex justify-end">
+                                    <div className="w-8 h-8 rounded-full bg-slate-100 group-hover:bg-blue-50 group-hover:text-blue-600 flex items-center justify-center text-slate-500 transition-colors">
+                                        <ArrowRight className="w-4 h-4" />
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+
+                {/* 3. HOW IT WORKS: From Data to Decisions */}
+                <section id="how-it-works" className="grid grid-cols-1 lg:grid-cols-12 gap-12 items-center bg-slate-50/70 p-8 sm:p-12 rounded-3xl border border-slate-200/80 relative overflow-hidden">
+                    {/* Background subtle topography contour SVG lines */}
+                    <svg className="absolute right-0 top-0 bottom-0 w-96 h-full text-slate-200/50 pointer-events-none -z-0" viewBox="0 0 400 400" fill="none" stroke="currentColor" strokeWidth="1.2">
+                        <circle cx="350" cy="200" r="80" strokeDasharray="4 4" opacity="0.4" />
+                        <circle cx="350" cy="200" r="140" opacity="0.3" />
+                        <circle cx="350" cy="200" r="200" opacity="0.25" />
+                        <circle cx="350" cy="200" r="260" opacity="0.2" />
+                        <circle cx="350" cy="200" r="320" opacity="0.15" />
+                    </svg>
+
+                    <div className="lg:col-span-5 flex flex-col gap-4 relative z-10">
+                        <span className="badge-label-inter text-slate-400">HOW IT WORKS</span>
+                        <h2 className="section-title text-slate-900 leading-tight">
+                            From Data<br />to Decisions
+                        </h2>
+                        <p className="body-inter text-slate-600 leading-relaxed font-normal">
+                            Multiple data sources. One intelligent system. Real-time insights for faster, safer response.
+                        </p>
+                        <div className="pt-2">
+                            <button
+                                onClick={onEnter}
+                                className="flex items-center gap-2 px-6 py-3 rounded-full bg-[#0F172A] hover:bg-[#1E293B] text-white text-[13.5px] font-semibold transition-all shadow-sm cursor-pointer"
+                            >
+                                <span>Explore Architecture</span>
+                                <ArrowRight className="w-3.5 h-3.5" />
+                            </button>
+                        </div>
+                    </div>
+
+                    <div className="lg:col-span-7 relative flex flex-col gap-4 z-10">
+                        {/* Step 01 */}
+                        <div className="flex items-center gap-4 p-4 rounded-2xl bg-white border border-slate-200/80 shadow-xs">
+                            <div className="w-9 h-9 rounded-full bg-blue-50 text-blue-600 font-extrabold text-xs flex items-center justify-center shrink-0">
+                                01
+                            </div>
+                            <span className="text-slate-300">→</span>
+                            <div>
+                                <h4 className="card-title-inter text-slate-900 text-sm">Ingest DEM &amp; Radar</h4>
+                                <p className="font-sans text-[12px] text-slate-500">30m elevation rasters &amp; live nowcasts</p>
+                            </div>
+                        </div>
+
+                        {/* Step 02 */}
+                        <div className="flex items-center gap-4 p-4 rounded-2xl bg-white border border-slate-200/80 shadow-xs">
+                            <div className="w-9 h-9 rounded-full bg-emerald-50 text-emerald-600 font-extrabold text-xs flex items-center justify-center shrink-0">
+                                02
+                            </div>
+                            <span className="text-slate-300">→</span>
+                            <div>
+                                <h4 className="card-title-inter text-slate-900 text-sm">Run AI Hydraulics</h4>
+                                <p className="font-sans text-[12px] text-slate-500">Fast surrogate simulations</p>
+                            </div>
+                        </div>
+
+                        {/* Step 03 */}
+                        <div className="flex items-center gap-4 p-4 rounded-2xl bg-white border border-slate-200/80 shadow-xs">
+                            <div className="w-9 h-9 rounded-full bg-purple-50 text-purple-600 font-extrabold text-xs flex items-center justify-center shrink-0">
+                                03
+                            </div>
+                            <span className="text-slate-300">→</span>
+                            <div>
+                                <h4 className="card-title-inter text-slate-900 text-sm">Detect Hazards</h4>
+                                <p className="font-sans text-[12px] text-slate-500">Identify vulnerable zones</p>
+                            </div>
+                        </div>
+
+                        {/* Step 04 */}
+                        <div className="flex items-center gap-4 p-4 rounded-2xl bg-white border border-slate-200/80 shadow-xs">
+                            <div className="w-9 h-9 rounded-full bg-amber-50 text-amber-600 font-extrabold text-xs flex items-center justify-center shrink-0">
+                                04
+                            </div>
+                            <span className="text-slate-300">→</span>
+                            <div>
+                                <h4 className="card-title-inter text-slate-900 text-sm">Enable Safe Routing</h4>
+                                <p className="font-sans text-[12px] text-slate-500">Recommend 100% dry corridors</p>
+                            </div>
+                        </div>
+
+                        {/* Floating handwriting note */}
+                        <div className="absolute -bottom-8 right-4 select-none pointer-events-none text-right">
+                            <div className="font-script text-[32px] text-slate-700 leading-tight">
+                                Data<br />flows.<br />Communities<br />thrive.
+                            </div>
+                            <div className="w-12 h-0.5 bg-slate-400 ml-auto mt-1 opacity-60"></div>
+                        </div>
+                    </div>
+                </section>
+
+                {/* 4. BUILT FOR MUNICIPAL EMERGENCY TEAMS */}
+                <section id="capabilities" className="flex flex-col gap-6">
+                    <span className="badge-label-inter text-slate-400">BUILT FOR MUNICIPAL EMERGENCY TEAMS</span>
+                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
+                        <div className="p-6 rounded-3xl bg-white border border-slate-200/80 shadow-xs flex items-center gap-4">
+                            <div className="w-12 h-12 rounded-2xl bg-blue-50 text-blue-600 flex items-center justify-center shrink-0">
+                                <Droplets className="w-6 h-6 fill-current" />
+                            </div>
+                            <div>
+                                <h4 className="card-title-inter text-slate-900 text-sm">Inundation Grid</h4>
+                                <p className="font-sans text-xs text-slate-500 mt-0.5">0–60cm depth mapping</p>
+                            </div>
+                        </div>
+
+                        <div className="p-6 rounded-3xl bg-white border border-slate-200/80 shadow-xs flex items-center gap-4">
+                            <div className="w-12 h-12 rounded-2xl bg-emerald-50 text-emerald-600 flex items-center justify-center shrink-0">
+                                <Route className="w-6 h-6" />
+                            </div>
+                            <div>
+                                <h4 className="card-title-inter text-slate-900 text-sm">Route Safety</h4>
+                                <p className="font-sans text-xs text-slate-500 mt-0.5">Compare routes &amp; find dry corridors</p>
+                            </div>
+                        </div>
+
+                        <div className="p-6 rounded-3xl bg-white border border-slate-200/80 shadow-xs flex items-center gap-4">
+                            <div className="w-12 h-12 rounded-2xl bg-blue-50 text-blue-600 flex items-center justify-center shrink-0">
+                                <FileText className="w-6 h-6" />
+                            </div>
+                            <div>
+                                <h4 className="card-title-inter text-slate-900 text-sm">Incident Reports</h4>
+                                <p className="font-sans text-xs text-slate-500 mt-0.5">Generate SitRep instantly</p>
+                            </div>
+                        </div>
+
+                        <div className="p-6 rounded-3xl bg-white border border-slate-200/80 shadow-xs flex items-center gap-4">
+                            <div className="w-12 h-12 rounded-2xl bg-indigo-50 text-indigo-600 flex items-center justify-center shrink-0">
+                                <Building2 className="w-6 h-6" />
+                            </div>
+                            <div>
+                                <h4 className="card-title-inter text-slate-900 text-sm">Team Support</h4>
+                                <p className="font-sans text-xs text-slate-500 mt-0.5">Tools for police, disaster teams, and responders</p>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+
+                {/* 5. SUPPORTED METROPOLITAN DRAINAGE NETWORKS */}
+                <section id="metros" className="flex flex-col gap-6">
+                    <div className="flex items-center justify-between">
+                        <span className="badge-label-inter text-slate-400">SUPPORTED METROPOLITAN DRAINAGE NETWORKS</span>
+                        <button 
+                            onClick={onEnter}
+                            className="nav-inter text-blue-600 hover:text-blue-700 flex items-center gap-1 cursor-pointer font-semibold"
+                        >
+                            <span>View All Cities</span>
+                            <ArrowRight className="w-3.5 h-3.5" />
+                        </button>
+                    </div>
+
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
+                        <div 
+                            onClick={onEnter}
+                            className="p-5 rounded-3xl bg-slate-50/80 hover:bg-white border border-slate-200/80 hover:shadow-lg transition-all flex items-center justify-between cursor-pointer group"
+                        >
+                            <div className="flex items-center gap-3.5">
+                                <div className="w-10 h-10 rounded-2xl bg-blue-100 text-blue-700 flex items-center justify-center">
+                                    <Building2 className="w-5 h-5" />
+                                </div>
+                                <div>
+                                    <h4 className="card-title-inter text-slate-900 group-hover:text-blue-600 transition-colors">Chennai</h4>
+                                    <p className="text-[11px] text-slate-400 font-mono">Slope: 3.65° Elev: 46.57m MSL</p>
+                                </div>
+                            </div>
+                            <ArrowRight className="w-4 h-4 text-slate-400 group-hover:text-blue-600 transition-colors" />
+                        </div>
+
+                        <div 
+                            onClick={onEnter}
+                            className="p-5 rounded-3xl bg-slate-50/80 hover:bg-white border border-slate-200/80 hover:shadow-lg transition-all flex items-center justify-between cursor-pointer group"
+                        >
+                            <div className="flex items-center gap-3.5">
+                                <div className="w-10 h-10 rounded-2xl bg-emerald-100 text-emerald-700 flex items-center justify-center">
+                                    <Waves className="w-5 h-5" />
+                                </div>
+                                <div>
+                                    <h4 className="card-title-inter text-slate-900 group-hover:text-emerald-600 transition-colors">Mumbai</h4>
+                                    <p className="text-[11px] text-slate-400 font-mono">Slope: 0.86° Elev: 8.00m MSL</p>
+                                </div>
+                            </div>
+                            <ArrowRight className="w-4 h-4 text-slate-400 group-hover:text-emerald-600 transition-colors" />
+                        </div>
+
+                        <div 
+                            onClick={onEnter}
+                            className="p-5 rounded-3xl bg-slate-50/80 hover:bg-white border border-slate-200/80 hover:shadow-lg transition-all flex items-center justify-between cursor-pointer group"
+                        >
+                            <div className="flex items-center gap-3.5">
+                                <div className="w-10 h-10 rounded-2xl bg-amber-100 text-amber-700 flex items-center justify-center">
+                                    <Navigation className="w-5 h-5" />
+                                </div>
+                                <div>
+                                    <h4 className="card-title-inter text-slate-900 group-hover:text-amber-600 transition-colors">Delhi</h4>
+                                    <p className="text-[11px] text-slate-400 font-mono">Slope: 0.85° Elev: 215.0m MSL</p>
+                                </div>
+                            </div>
+                            <ArrowRight className="w-4 h-4 text-slate-400 group-hover:text-amber-600 transition-colors" />
+                        </div>
+                    </div>
+                </section>
+
+                {/* 6. GET STARTED: Call to Action Banner */}
+                <section className="rounded-3xl bg-[#EEF5FF] border border-blue-100/90 p-8 sm:p-12 flex flex-col md:flex-row items-center justify-between gap-8 relative overflow-hidden shadow-xs">
+                    {/* Wavy subtle contour background lines */}
+                    <svg className="absolute right-0 top-0 bottom-0 w-80 h-full text-blue-200/40 pointer-events-none -z-0" viewBox="0 0 300 200" fill="none" stroke="currentColor" strokeWidth="1.5">
+                        <path d="M0 100 C 50 50, 150 150, 300 50" />
+                        <path d="M0 130 C 70 80, 170 180, 300 80" />
+                        <path d="M0 160 C 90 110, 190 210, 300 110" />
+                    </svg>
+
+                    <div className="relative z-10 max-w-xl">
+                        <span className="badge-label-inter text-blue-600">GET STARTED</span>
+                        <h2 className="section-title text-slate-900 mt-1">
+                            Ready to Build a Safer Tomorrow?
+                        </h2>
+                        <p className="font-sans text-[14.5px] text-slate-600 mt-2 leading-relaxed">
+                            Jump into the interactive map, real-time telemetry deck, and flood simulation sandbox.
+                        </p>
+                    </div>
+                    <button
+                        onClick={onEnter}
+                        className="relative z-10 flex items-center gap-2 px-8 py-4 rounded-2xl bg-[#0F172A] hover:bg-[#1E293B] text-white text-[14px] font-semibold transition-all shadow-md cursor-pointer shrink-0"
+                    >
+                        <span>Launch Operations Center</span>
+                        <ArrowRight className="w-4 h-4" />
+                    </button>
+                </section>
+            </main>
+
+            {/* Footer */}
+            <footer className="border-t border-slate-100 bg-white py-8 px-6 sm:px-12 flex flex-col sm:flex-row items-center justify-between gap-4 text-xs text-slate-500">
+                <div className="flex items-center gap-2">
+                    <span className="font-bold text-slate-900">RainDrop GIS</span>
+                    <span>· Municipal Intelligence &copy; 2026</span>
+                </div>
+                <div className="flex items-center gap-6 nav-inter text-slate-500">
+                    <a href="#overview" className="hover:text-blue-600">Overview</a>
+                    <a href="#scenarios" className="hover:text-blue-600">Visual Gallery</a>
+                    <a href="#how-it-works" className="hover:text-blue-600">Architecture</a>
+                    <a href="#capabilities" className="hover:text-blue-600">Capabilities</a>
+                    <a href="#metros" className="hover:text-blue-600">Pilot Metros</a>
+                </div>
+            </footer>
         </div>
     );
 }
@@ -1448,7 +3064,7 @@ function TopNavbar(props) {
     const [searchOpen, setSearchOpen] = useState(false);
     const searchRef = useRef(null);
 
-    const CITIES = ["All Cities", "Chennai", "Mumbai", "Delhi"];
+    const CITIES = ["All Cities", "Chennai", "Mumbai", "Delhi", "Bengaluru", "Kolkata", "Hyderabad"];
 
     // Filter available wards based on selected city
     const filteredWards = useMemo(() => {
@@ -1463,7 +3079,7 @@ function TopNavbar(props) {
         const results = [];
 
         // 1. Match Cities
-        ["Chennai", "Mumbai", "Delhi"].forEach((cityName) => {
+        ["Chennai", "Mumbai", "Delhi", "Bengaluru", "Kolkata", "Hyderabad"].forEach((cityName) => {
             if (cityName.toLowerCase().includes(q)) {
                 const firstWard = Object.keys(WARDS_DATA).find((w) => WARDS_DATA[w].city === cityName);
                 results.push({
@@ -1510,7 +3126,7 @@ function TopNavbar(props) {
             }
 
             // Match Sector Locality Names
-            data.sectors.forEach((sec) => {
+            data.sectors.forEach((sec, sIdx) => {
                 if (sec.name.toLowerCase().includes(q)) {
                     results.push({
                         type: "sector",
@@ -1518,7 +3134,7 @@ function TopNavbar(props) {
                         subtitle: `${data.name} · Elev: ${sec.elevation}m · ${data.city}`,
                         city: data.city,
                         ward: wardKey,
-                        sectorId: sec.id,
+                        sectorId: sIdx,
                         badge: "🏘️ LOCALITY",
                         badgeColor: "bg-indigo-500/10 text-indigo-400 border-indigo-500/30",
                     });
@@ -1590,7 +3206,6 @@ function TopNavbar(props) {
                                     const first = Object.keys(WARDS_DATA).find((w) => WARDS_DATA[w].city === c);
                                     if (first) setWard(first);
                                 }
-                                pushToast(`City view filtered to ${c}`);
                             }}
                             className={`px-2.5 py-1 rounded-lg text-xs font-bold transition-all cursor-pointer ${
                                 selectedCity === c
@@ -1715,7 +3330,6 @@ function TopNavbar(props) {
                                         setWard(w);
                                         setSelectedCity(WARDS_DATA[w].city);
                                         setWardOpen(false);
-                                        pushToast(`Switched active operations area to ${w} (${WARDS_DATA[w].city})`);
                                     }}
                                     className={`w-full text-left px-4 py-2 text-xs flex items-center justify-between hover:bg-blue-50 cursor-pointer ${
                                         w === ward ? "text-blue-900 font-extrabold bg-blue-50/70" : "text-slate-700"
@@ -1804,34 +3418,50 @@ function InteractiveVectorMap(props) {
         isSimulatingRoute,
         routeProgress,
         routeCheckResult,
+        mapStyle = "Map",
+        mapToggles = { hotspots: true, pumps: true, shelters: false, metro: true, boundaries: false },
+        timelineStep = 1,
     } = props;
 
     const mapRef = useRef(null);
     const mapInstanceRef = useRef(null);
     const markersRef = useRef([]);
+    const sectorMarkersRef = useRef({});
+    const tileLayerRef = useRef(null);
+    const prevWardRef = useRef(null);
 
     useEffect(() => {
         if (!mapRef.current || !window.L) return;
 
+        let tileUrl = 'https://server.arcgisonline.com/ArcGIS/rest/services/World_Street_Map/MapServer/tile/{z}/{y}/{x}';
+        if (mapStyle === 'Satellite') {
+            tileUrl = 'https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}';
+        } else if (mapStyle === 'Terrain') {
+            tileUrl = 'https://server.arcgisonline.com/ArcGIS/rest/services/World_Topo_Map/MapServer/tile/{z}/{y}/{x}';
+        }
+
         // Initialize Leaflet map if not already created
         if (!mapInstanceRef.current) {
             const map = window.L.map(mapRef.current, {
-                center: [19.071, 72.880],
-                zoom: 14,
+                center: [13.0827, 80.2707],
+                zoom: 13,
                 zoomControl: false,
                 attributionControl: false,
             });
 
-            window.L.control.zoom({ position: 'bottomright' }).addTo(map);
+            window._rainDropMap = map;
 
-            // OpenStreetMap standard tile layer - 100% free & keyless
-            const tileLayer = window.L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-                attribution: '&copy; OpenStreetMap contributors',
-                maxZoom: 19
-            });
+            const tileLayer = window.L.tileLayer(tileUrl, {
+                attribution: '&copy; Esri, HERE, Garmin, USGS',
+                maxZoom: 19,
+            }).addTo(map);
 
-            tileLayer.addTo(map);
+            tileLayerRef.current = tileLayer;
             mapInstanceRef.current = map;
+        } else {
+            if (tileLayerRef.current) {
+                tileLayerRef.current.setUrl(tileUrl);
+            }
         }
 
         const map = mapInstanceRef.current;
@@ -1844,316 +3474,623 @@ function InteractiveVectorMap(props) {
         // Clear existing markers & overlays
         markersRef.current.forEach(layer => map.removeLayer(layer));
         markersRef.current = [];
+        sectorMarkersRef.current = {};
 
         const bounds = [];
 
-        // Render spatial inundation grid & sector water depth markers
-        wardData.sectors.forEach((sec, idx) => {
-            const depth = sectorDepths[idx] || 0;
+        // Collect sector coordinates
+        wardData.sectors.forEach((sec) => {
             const coords = sec.coords.split(',').map(n => parseFloat(n.trim()));
-            if (coords.length < 2 || isNaN(coords[0]) || isNaN(coords[1])) return;
-            const [lat, lon] = coords;
-            bounds.push([lat, lon]);
-
-            let fillColor = "#059669"; // Safety Emerald Green
-            let borderTone = "#10b981";
-            let statusText = "PASSABLE / SAFE";
-            if (depth >= 30) {
-                fillColor = "#dc2626"; // Crimson Red
-                borderTone = "#ef4444";
-                statusText = "CRITICAL FLOODING";
-            } else if (depth >= 15) {
-                fillColor = "#d97706"; // Amber Caution
-                borderTone = "#f59e0b";
-                statusText = "INUNDATION CAUTION";
+            if (coords.length >= 2 && !isNaN(coords[0]) && !isNaN(coords[1])) {
+                bounds.push([coords[0], coords[1]]);
             }
-
-            const isSelected = selectedSector === idx;
-
-            // 1. Spatial Inundation Water Radius Circle Overlay
-            if (layers.heatmap) {
-                const circleRadius = Math.max(70, depth * 4 + 40);
-                const circle = window.L.circle([lat, lon], {
-                    radius: circleRadius,
-                    color: borderTone,
-                    fillColor: fillColor,
-                    fillOpacity: isSelected ? 0.5 : 0.28,
-                    weight: isSelected ? 3 : 1.8,
-                }).addTo(map);
-
-                circle.on('click', () => onSelectSector(idx));
-                markersRef.current.push(circle);
-            }
-
-            // 2. Interactive Circular Marker Icon (Clean circular dot with water depth number; click reveals full locality name & details)
-            const htmlIcon = window.L.divIcon({
-                className: 'custom-circular-marker',
-                html: `<div style="background:#ffffff; border: ${isSelected ? '3.5px' : '2px'} solid ${borderTone}; color: #0f172a; width: 34px; height: 34px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 11px; font-weight: 800; font-family: Inter, sans-serif; box-shadow: 0 4px 12px rgba(15,23,42,0.22); cursor: pointer; transition: transform 0.2s;" title="Click to view locality name and details for ${sec.name}">
-                    <span style="color: ${borderTone}; font-size: 11px; font-weight: 900;">${depth}</span>
-                </div>`,
-                iconSize: [34, 34],
-                iconAnchor: [17, 17]
-            });
-
-            const marker = window.L.marker([lat, lon], { icon: htmlIcon })
-                .addTo(map)
-                .bindPopup(`
-                    <div style="font-family: Inter, sans-serif; padding: 6px; color: #0f172a; min-width: 210px;">
-                        <div style="font-size: 10px; font-weight: 800; text-transform: uppercase; color: #2563eb;">${wardData.name} · Sector #${sec.id}</div>
-                        <h4 style="margin: 3px 0 6px 0; font-size: 14px; font-weight: 800; color: #0f172a;">${sec.name}</h4>
-                        <div style="display: flex; justify-content: space-between; font-size: 11px; color: #475569; padding-bottom: 6px; border-bottom: 1px solid #e2e8f0;">
-                            <span>Elevation MSL:</span> <strong style="color: #0f172a;">${sec.elevation}m</strong>
-                        </div>
-                        <div style="margin-top: 6px; font-size: 13px; font-weight: 800; color: ${fillColor}; display: flex; align-items: center; justify-content: space-between;">
-                            <span>Water Level:</span>
-                            <span>${depth} cm</span>
-                        </div>
-                        <div style="font-size: 10px; font-weight: 800; color: ${fillColor}; margin-top: 3px; text-transform: uppercase;">
-                            ${statusText}
-                        </div>
-                    </div>
-                `);
-
-            marker.on('click', () => onSelectSector(idx));
-            markersRef.current.push(marker);
         });
 
-        // Auto Fit Map Bounds to Ward Sectors
-        if (bounds.length > 0) {
+        // 1. Render Flood Basin Water Polygon Overlay
+        if (bounds.length >= 3 && mapToggles.hotspots !== false) {
+            const basinPolygon = window.L.polygon(bounds, {
+                color: '#0284c7',
+                weight: 1.2,
+                fillColor: '#38bdf8',
+                fillOpacity: 0.22,
+                smoothFactor: 1.5,
+            }).addTo(map);
+            markersRef.current.push(basinPolygon);
+        }
+
+        // Find sector with highest water depth for primary callout
+        let maxDepthIdx = 0;
+        sectorDepths.forEach((d, i) => {
+            if (d > (sectorDepths[maxDepthIdx] || 0)) maxDepthIdx = i;
+        });
+
+        // 2. Render Sector Nodes & Hotspot Callout
+        if (mapToggles.hotspots !== false) {
+            wardData.sectors.forEach((sec, idx) => {
+                const depth = sectorDepths[idx] || 0;
+                const coords = sec.coords.split(',').map(n => parseFloat(n.trim()));
+                if (coords.length < 2 || isNaN(coords[0]) || isNaN(coords[1])) return;
+                const [lat, lon] = coords;
+
+                let nodeHtml = "";
+                let nodeSize = [28, 28];
+                let anchor = [14, 14];
+
+                if (depth >= 30) {
+                    // Critical hotspot: Red circle with white exclamation point & glowing pulse
+                    nodeHtml = `<div style="background:#ef4444; color:#ffffff; width:28px; height:28px; border-radius:50%; display:flex; align-items:center; justify-content:center; font-weight:900; font-size:14px; border:3px solid #ffffff; box-shadow:0 4px 12px rgba(239,68,68,0.6); cursor:pointer; font-family:Inter,sans-serif; transition:transform 0.2s;">!</div>`;
+                } else if (depth >= 15) {
+                    // Caution hotspot: Amber circle with warning triangle
+                    nodeHtml = `<div style="background:#f59e0b; color:#ffffff; width:26px; height:26px; border-radius:50%; display:flex; align-items:center; justify-content:center; font-weight:900; font-size:12px; border:2.5px solid #ffffff; box-shadow:0 3px 8px rgba(245,158,11,0.5); cursor:pointer; font-family:Inter,sans-serif; transition:transform 0.2s;">▲</div>`;
+                    nodeSize = [26, 26];
+                    anchor = [13, 13];
+                } else {
+                    // Clear safe corridor: Emerald circle with checkmark
+                    nodeHtml = `<div style="background:#10b981; color:#ffffff; width:24px; height:24px; border-radius:50%; display:flex; align-items:center; justify-content:center; font-weight:900; font-size:12px; border:2px solid #ffffff; box-shadow:0 3px 8px rgba(16,185,129,0.45); cursor:pointer; font-family:Inter,sans-serif; transition:transform 0.2s;">✓</div>`;
+                    nodeSize = [24, 24];
+                    anchor = [12, 12];
+                }
+
+                // Inundation radial pool
+                const circleRadius = Math.max(80, depth * 4.5 + 40);
+                const circle = window.L.circle([lat, lon], {
+                    radius: circleRadius,
+                    color: depth >= 30 ? '#f43f5e' : depth >= 15 ? '#fbbf24' : '#34d399',
+                    fillColor: depth >= 30 ? '#ef4444' : depth >= 15 ? '#3b82f6' : '#10b981',
+                    fillOpacity: 0.25,
+                    weight: 1,
+                }).addTo(map);
+
+                const icon = window.L.divIcon({
+                    className: 'custom-status-marker',
+                    html: nodeHtml,
+                    iconSize: nodeSize,
+                    iconAnchor: anchor
+                });
+
+                const marker = window.L.marker([lat, lon], { icon }).addTo(map);
+
+                // Rich Interactive Leaflet Popup with Full Telemetry
+                const riskBadge = depth >= 30 ? "CRITICAL RISK" : depth >= 15 ? "MODERATE HAZARD" : "SAFE ELEVATION";
+                const riskBg = depth >= 30 ? "#fef2f2" : depth >= 15 ? "#fffbeb" : "#ecfdf5";
+                const riskColor = depth >= 30 ? "#dc2626" : depth >= 15 ? "#d97706" : "#059669";
+                const riskBorder = depth >= 30 ? "#fca5a5" : depth >= 15 ? "#fcd34d" : "#6ee7b7";
+
+                const popupHtml = `
+                <div style="font-family:Inter,sans-serif; min-width:250px; padding:4px 2px;">
+                    <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:8px;">
+                        <span style="font-size:10px; font-weight:800; text-transform:uppercase; letter-spacing:0.04em; background:${riskBg}; color:${riskColor}; border:1px solid ${riskBorder}; padding:2.5px 8px; border-radius:9999px;">
+                            ${riskBadge}
+                        </span>
+                        <span style="font-size:10px; color:#64748b; font-family:monospace;">${sec.elevation}m MSL</span>
+                    </div>
+                    <div style="font-size:14px; font-weight:800; color:#0f172a; line-height:1.25; margin-bottom:3px;">
+                        ${sec.name}
+                    </div>
+                    <div style="font-size:11px; color:#64748b; margin-bottom:10px;">
+                        ${wardData.name} · ${wardData.city} (${wardData.riverName})
+                    </div>
+
+                    <div style="display:grid; grid-template-columns:1fr 1fr; gap:6px; margin-bottom:10px;">
+                        <div style="background:#f8fafc; border:1px solid #e2e8f0; border-radius:12px; padding:8px 10px;">
+                            <div style="font-size:9.5px; color:#64748b; font-weight:600;">Water Depth</div>
+                            <div style="font-size:15px; font-weight:800; color:${depth >= 30 ? '#dc2626' : depth >= 15 ? '#d97706' : '#2563eb'}; font-family:monospace;">
+                                ${depth.toFixed(1)} cm
+                            </div>
+                        </div>
+                        <div style="background:#f8fafc; border:1px solid #e2e8f0; border-radius:12px; padding:8px 10px;">
+                            <div style="font-size:9.5px; color:#64748b; font-weight:600;">Flow Velocity</div>
+                            <div style="font-size:15px; font-weight:800; color:#0f172a; font-family:monospace;">
+                                ${(1.1 + depth * 0.02).toFixed(1)} m/s
+                            </div>
+                        </div>
+                    </div>
+
+                    <div style="background:#f8fafc; border:1px solid #e2e8f0; border-radius:12px; padding:8px 10px; margin-bottom:10px; font-size:11px;">
+                        <div style="display:flex; justify-content:space-between; margin-bottom:4px;">
+                            <span style="color:#64748b;">Drainage Culvert:</span>
+                            <span style="font-weight:700; color:${depth >= 30 ? '#dc2626' : '#059669'};">
+                                ${depth >= 30 ? '92% Surcharged' : depth >= 15 ? '64% Flowing' : '28% Free Flow'}
+                            </span>
+                        </div>
+                        <div style="display:flex; justify-content:space-between; margin-bottom:4px;">
+                            <span style="color:#64748b;">Pedestrians:</span>
+                            <span style="font-weight:700; color:${depth >= 15 ? '#dc2626' : '#059669'};">
+                                ${depth >= 15 ? '⛔ Impassable' : '✅ Passable'}
+                            </span>
+                        </div>
+                        <div style="display:flex; justify-content:space-between;">
+                            <span style="color:#64748b;">Vehicles:</span>
+                            <span style="font-weight:700; color:${depth >= 25 ? '#dc2626' : depth >= 15 ? '#d97706' : '#059669'};">
+                                ${depth >= 25 ? '⛔ High Stall Risk' : depth >= 15 ? '⚠️ Caution' : '✅ Clear'}
+                            </span>
+                        </div>
+                    </div>
+
+                    <button type="button" onclick="window._openSectorDrawer && window._openSectorDrawer(${idx})" style="width:100%; background:#0f2942; color:#ffffff; border:none; padding:8px 12px; border-radius:12px; font-size:11.5px; font-weight:700; cursor:pointer; display:flex; align-items:center; justify-content:center; gap:6px; box-shadow:0 2px 6px rgba(15,41,66,0.2);">
+                        <span>Check Location Safety &rarr;</span>
+                    </button>
+                </div>
+                `;
+
+                marker.bindPopup(popupHtml, { maxWidth: 300, offset: [0, -10] });
+                circle.bindPopup(popupHtml, { maxWidth: 300, offset: [0, -10] });
+
+                const handleNodeClick = () => {
+                    onSelectSector(idx);
+                    try { marker.openPopup(); } catch (_) {}
+                };
+
+                marker.on('click', handleNodeClick);
+                circle.on('click', handleNodeClick);
+
+                sectorMarkersRef.current[idx] = marker;
+                markersRef.current.push(circle);
+                markersRef.current.push(marker);
+            });
+        }
+
+        // 3. Render Drainage Pumps
+        if (mapToggles.pumps && bounds.length >= 2) {
+            bounds.slice(1, 4).forEach((pt, i) => {
+                const pumpIcon = window.L.divIcon({
+                    className: 'pump-marker',
+                    html: `<div style="background:#2563eb; color:#ffffff; width:22px; height:22px; border-radius:50%; display:flex; align-items:center; justify-content:center; font-size:10px; font-weight:bold; border:2px solid #ffffff; box-shadow:0 2px 6px rgba(37,99,235,0.4);" title="Stormwater Dewatering Pump #0${i+1}">⚡</div>`,
+                    iconSize: [22, 22],
+                    iconAnchor: [11, 11]
+                });
+                const pMarker = window.L.marker([pt[0] + 0.003, pt[1] - 0.003], { icon: pumpIcon }).addTo(map);
+                pMarker.bindPopup(`<strong>⚡ Stormwater Dewatering Pump #0${i+1}</strong><br><span style="font-size:11px; color:#2563eb;">Status: 100% Active Suction</span>`);
+                markersRef.current.push(pMarker);
+            });
+        }
+
+        // 4. Render Transit & Metro
+        if (mapToggles.metro && bounds.length >= 2) {
+            bounds.slice(0, 3).forEach((pt, i) => {
+                const metroIcon = window.L.divIcon({
+                    className: 'metro-marker',
+                    html: `<div style="background:#059669; color:#ffffff; width:22px; height:22px; border-radius:50%; display:flex; align-items:center; justify-content:center; font-size:10px; font-weight:bold; border:2px solid #ffffff; box-shadow:0 2px 6px rgba(5,150,105,0.4);" title="Metro & Transit Station">🚇</div>`,
+                    iconSize: [22, 22],
+                    iconAnchor: [11, 11]
+                });
+                const mMarker = window.L.marker([pt[0] - 0.0035, pt[1] + 0.0035], { icon: metroIcon }).addTo(map);
+                mMarker.bindPopup(`<strong>🚇 Metro Station #M-${i+1}</strong><br><span style="font-size:11px; color:#059669;">Corridor: Elevated Dry Deck</span>`);
+                markersRef.current.push(mMarker);
+            });
+        }
+
+        // 5. Render Relief Shelters
+        if (mapToggles.shelters && bounds.length >= 2) {
+            bounds.slice(0, 3).forEach((pt, i) => {
+                const shelterIcon = window.L.divIcon({
+                    className: 'shelter-marker',
+                    html: `<div style="background:#7c3aed; color:#ffffff; width:22px; height:22px; border-radius:50%; display:flex; align-items:center; justify-content:center; font-size:11px; font-weight:bold; border:2px solid #ffffff; box-shadow:0 2px 6px rgba(124,58,237,0.4);" title="Emergency Relief Shelter">🏠</div>`,
+                    iconSize: [22, 22],
+                    iconAnchor: [11, 11]
+                });
+                const sMarker = window.L.marker([pt[0] + 0.004, pt[1] + 0.004], { icon: shelterIcon }).addTo(map);
+                sMarker.bindPopup(`<strong>🏠 Emergency Relief Shelter #${i+1}</strong><br><span style="font-size:11px; color:#7c3aed;">Capacity: Available</span>`);
+                markersRef.current.push(sMarker);
+            });
+        }
+
+        // 6. Render Ward Boundaries
+        if (mapToggles.boundaries && bounds.length >= 3) {
+            const boundaryLine = window.L.polygon(bounds, {
+                color: '#64748b',
+                weight: 2,
+                dashArray: '5, 6',
+                fill: false
+            }).addTo(map);
+            markersRef.current.push(boundaryLine);
+        }
+
+        // Auto Fit Map Bounds ONLY when active ward changes
+        if (bounds.length > 0 && prevWardRef.current !== wardData.name) {
+            prevWardRef.current = wardData.name;
             try {
-                map.fitBounds(bounds, { padding: [40, 40], maxZoom: 15 });
+                map.fitBounds(bounds, { padding: [60, 60], maxZoom: 14 });
             } catch (_) {}
         }
 
-        // Render Safe Corridor & Bypass Route Lines
+        // Render Safe Corridor & Bypass Route Lines if available
         if (routeCheckResult && routeCheckResult.standard_route && routeCheckResult.safe_corridor) {
             const stdCoords = routeCheckResult.standard_route.coordinates || [];
             const safeCoords = routeCheckResult.safe_corridor.coordinates || [];
 
             if (stdCoords.length >= 2) {
-                // Standard Direct Route (Red Dashed)
                 const stdPoly = window.L.polyline(stdCoords, {
                     color: '#dc2626',
                     weight: 4,
                     dashArray: '6, 8',
                     opacity: 0.9
                 }).addTo(map);
-                stdPoly.bindTooltip(`🔴 Standard Route: ${routeCheckResult.standard_route.status_label}`, { permanent: false });
                 markersRef.current.push(stdPoly);
-
-                // Add Hazard Warning Marker on Danger Point
-                if (routeCheckResult.standard_route.danger_points?.[0]) {
-                    const dp = routeCheckResult.standard_route.danger_points[0];
-                    const hazardIcon = window.L.divIcon({
-                        className: 'custom-hazard-marker',
-                        html: `<div style="background:#dc2626; color:#ffffff; width:28px; height:28px; border-radius:50%; display:flex; align-items:center; justify-content:center; font-size:14px; font-weight:bold; border:2px solid #ffffff; box-shadow:0 4px 10px rgba(220,38,38,0.5);" title="${dp.hazard}">⚠️</div>`,
-                        iconSize: [28, 28],
-                        iconAnchor: [14, 14]
-                    });
-                    const hazardMarker = window.L.marker([dp.lat, dp.lon], { icon: hazardIcon })
-                        .addTo(map)
-                        .bindPopup(`<strong>⚠️ ${dp.name}</strong><br><span style="color:#dc2626; font-size:11px;">Max Depth: ${dp.depth_cm} cm</span>`);
-                    markersRef.current.push(hazardMarker);
-                }
             }
 
             if (safeCoords.length >= 2) {
-                // Safe Elevation Corridor (Emerald Solid)
                 const safePoly = window.L.polyline(safeCoords, {
                     color: '#10b981',
                     weight: 6,
                     opacity: 0.95
                 }).addTo(map);
-                safePoly.bindTooltip(`🟢 Safe Elevation Corridor: +${routeCheckResult.safe_corridor.detour_time_min} min detour`, { permanent: false });
                 markersRef.current.push(safePoly);
 
-                // Fit map bounds to encompass both routes
                 const allRoutePoints = [...stdCoords, ...safeCoords];
                 try {
                     map.fitBounds(allRoutePoints, { padding: [50, 50] });
                 } catch (_) {}
             }
-        } else if (layers.safeCorridor && activeRoute) {
-            if (bounds.length >= 2) {
-                // Blocked Route Polyline (Red Dashed)
-                const blockedPoly = window.L.polyline([bounds[0], bounds[1]], {
-                    color: '#dc2626',
-                    weight: 4,
-                    dashArray: '6, 8',
-                    opacity: 0.85
-                }).addTo(map);
-
-                // Safe Corridor Polyline (Municipal Blue / Emerald Solid)
-                const safeCoords = bounds.slice(0, 4);
-                const safePoly = window.L.polyline(safeCoords, {
-                    color: '#2563eb',
-                    weight: 6,
-                    opacity: 0.95
-                }).addTo(map);
-
-                markersRef.current.push(blockedPoly);
-                markersRef.current.push(safePoly);
-            }
         }
 
-    }, [wardData, sectorDepths, selectedSector, layers, activeRoute, isSimulatingRoute, routeProgress, routeCheckResult]);
+    }, [wardData, sectorDepths, layers, mapStyle, mapToggles, timelineStep, activeRoute, isSimulatingRoute, routeProgress, routeCheckResult]);
+
+    // Dedicated pan & popup effect for selected sector (does not tear down map layers)
+    useEffect(() => {
+        if (selectedSector === null || !mapInstanceRef.current || !wardData?.sectors?.[selectedSector]) return;
+        const map = mapInstanceRef.current;
+        const sec = wardData.sectors[selectedSector];
+        const coords = sec.coords.split(',').map(n => parseFloat(n.trim()));
+        if (coords.length >= 2 && !isNaN(coords[0]) && !isNaN(coords[1])) {
+            try {
+                map.panTo([coords[0], coords[1]], { animate: true, duration: 0.4 });
+            } catch (_) {}
+        }
+        const marker = sectorMarkersRef.current?.[selectedSector];
+        if (marker) {
+            setTimeout(() => {
+                try { marker.openPopup(); } catch (_) {}
+            }, 80);
+        }
+    }, [selectedSector, wardData]);
 
     return (
-        <div className="relative w-full h-full min-h-[480px]">
-            <div ref={mapRef} className="w-full h-full min-h-[480px] rounded-xl overflow-hidden border border-slate-200 shadow-sm" />
-            
-            {/* Map Legend Overlay (White/Blue Theme) */}
-            <div className="absolute bottom-3 left-3 z-[400] bg-white/95 border border-slate-200 p-3 rounded-xl text-[11px] font-mono text-slate-700 space-y-1.5 backdrop-blur shadow-lg">
-                <div className="font-bold text-blue-900 mb-1 flex items-center gap-1.5 text-xs font-sans">
-                    <span className="w-2 h-2 rounded-full bg-blue-600 animate-ping" />
-                    Live Spatial Inundation Grid
-                </div>
-                <div className="flex items-center gap-2">
-                    <span className="w-3 h-3 rounded-full bg-red-600 border border-white" />
-                    <span>&ge;30cm Critical Flooding</span>
-                </div>
-                <div className="flex items-center gap-2">
-                    <span className="w-3 h-3 rounded-full bg-amber-500 border border-white" />
-                    <span>15-29cm Inundation Caution</span>
-                </div>
-                <div className="flex items-center gap-2">
-                    <span className="w-3 h-3 rounded-full bg-emerald-600 border border-white" />
-                    <span>&lt;15cm Clear Safe Corridor</span>
-                </div>
-            </div>
+        <div className="relative w-full h-full min-h-[500px]">
+            <div ref={mapRef} className="w-full h-full" />
         </div>
     );
 }
 
 // ============================================================================
-// Sector Telemetry Drawer (Click to Inspect)
+// Sector Telemetry Drawer (Click to Inspect) — Human-Friendly Spot Safety Check
 // ============================================================================
 
 function SectorDrawer({ sector, depth, wardName, onClose, pushToast }) {
     const isHigh = depth >= 30;
     const isMed = depth >= 15 && depth < 30;
 
+    // Interactive button states — ensures nothing goes unattended
+    const [pumpStatus, setPumpStatus] = useState(null); // null | 'dispatched'
+    const [divertStatus, setDivertStatus] = useState(null); // null | 'active'
+    const [showRouteTip, setShowRouteTip] = useState(false);
+
+    // Close on Escape key
+    useEffect(() => {
+        const handleKeyDown = (e) => {
+            if (e.key === "Escape") onClose();
+        };
+        window.addEventListener("keydown", handleKeyDown);
+        return () => window.removeEventListener("keydown", handleKeyDown);
+    }, [onClose]);
+
+    // Everyday human-friendly water level descriptions
+    const depthHuman = depth < 5
+        ? "Dry / Safe"
+        : depth < 15
+            ? "Puddle Level (Passable)"
+            : depth < 25
+                ? "Ankle to Shin Deep"
+                : depth < 40
+                    ? "Knee Deep (Hazardous)"
+                    : "Waist Deep (Severe Danger)";
+
+    const statusTitle = isHigh ? "Flooded · Hazard" : isMed ? "Waterlogged · Caution" : "Clear & Safe";
+    const statusBg = isHigh
+        ? "bg-rose-50 border-rose-200 text-rose-700"
+        : isMed
+            ? "bg-amber-50 border-amber-200 text-amber-800"
+            : "bg-emerald-50 border-emerald-200 text-emerald-800";
+    const statusDot = isHigh ? "bg-rose-500" : isMed ? "bg-amber-500" : "bg-emerald-500";
+
+    const handleDispatchPump = () => {
+        setPumpStatus("dispatched");
+        if (pushToast) pushToast(`⚡ Dewatering Pump Unit #14 dispatched to ${sector.name}`);
+    };
+
+    const handleDivertTraffic = () => {
+        setDivertStatus("active");
+        if (pushToast) pushToast(`📢 Traffic Diversion Notice issued for ${sector.name}`);
+    };
+
     return (
-        <div className="fixed inset-y-0 right-0 w-full sm:w-96 bg-[#111625]/98 border-l border-slate-700/80 shadow-2xl backdrop-blur-2xl z-[75] p-5 flex flex-col justify-between overflow-y-auto animate-in slide-in-from-right duration-250">
-            <div>
-                <div className="flex items-start justify-between pb-4 border-b border-slate-800">
-                    <div>
-                        <span className="text-[10px] uppercase font-bold tracking-widest text-indigo-400">
-                            {wardName} · Hotspot Telemetry
-                        </span>
-                        <h3 className="text-base font-bold text-white mt-0.5">{sector.name}</h3>
-                        <p className="text-[11px] font-mono text-slate-400">{sector.coords} · Elevation: {sector.elevation}m MSL</p>
+        <>
+            {/* Soft backdrop overlay */}
+            <div
+                className="fixed inset-0 bg-slate-900/30 backdrop-blur-[2px] z-[940] animate-in fade-in duration-200"
+                onClick={onClose}
+            />
+
+            {/* Clean Light-Theme Spot Safety Inspector Drawer */}
+            <div className="fixed inset-y-0 right-0 w-full sm:w-[440px] bg-white border-l border-slate-200 shadow-2xl z-[950] p-6 flex flex-col justify-between overflow-y-auto animate-in slide-in-from-right duration-250 text-slate-900 font-sans">
+                <div>
+                    {/* Header */}
+                    <div className="flex items-start justify-between pb-4 border-b border-slate-100">
+                        <div>
+                            <div className="flex items-center gap-2">
+                                <span className="text-[10px] uppercase font-bold tracking-wider px-2 py-0.5 rounded-full bg-blue-50 text-blue-700">
+                                    {wardName} · Spot Safety Check
+                                </span>
+                            </div>
+                            <h3 className="text-lg font-extrabold text-slate-900 mt-1">{sector.name}</h3>
+                            <p className="text-xs text-slate-500 mt-0.5">
+                                Critical Drainage &amp; Road Point · Low-lying Sector
+                            </p>
+                        </div>
+                        <button
+                            onClick={onClose}
+                            className="p-2 rounded-full text-slate-400 hover:text-slate-700 hover:bg-slate-100 transition-colors cursor-pointer"
+                            title="Close (Esc)"
+                        >
+                            <X className="w-5 h-5" />
+                        </button>
                     </div>
+
+                    {/* Water Depth Hero Card */}
+                    <div className="my-5 rounded-2xl border border-slate-200/90 bg-slate-50/60 p-4">
+                        <div className="flex items-center justify-between mb-3">
+                            <span className="text-xs font-semibold text-slate-500">Live Water Depth</span>
+                            <span className={`text-[11px] font-bold px-2.5 py-0.5 rounded-full border flex items-center gap-1.5 ${statusBg}`}>
+                                <span className={`w-1.5 h-1.5 rounded-full ${statusDot}`} />
+                                {statusTitle}
+                            </span>
+                        </div>
+
+                        <div className="flex items-baseline justify-between mb-2">
+                            <div className="flex items-baseline gap-1.5">
+                                <span className="text-3xl font-extrabold text-slate-900 font-mono tracking-tight">{depth}</span>
+                                <span className="text-sm font-bold text-slate-500">cm</span>
+                            </div>
+                            <span className="text-xs font-bold text-slate-700">{depthHuman}</span>
+                        </div>
+
+                        {/* Clean Horizontal Depth Gauge with Human Milestones */}
+                        <div className="w-full h-2.5 bg-slate-200 rounded-full overflow-hidden relative">
+                            <div
+                                className={`h-full transition-all duration-500 ${
+                                    isHigh ? "bg-rose-500" : isMed ? "bg-amber-500" : "bg-emerald-500"
+                                }`}
+                                style={{ width: `${Math.min(100, Math.max(8, (depth / 50) * 100))}%` }}
+                            />
+                        </div>
+                        <div className="flex justify-between items-center text-[10px] text-slate-400 mt-1.5 font-medium">
+                            <span>0 cm (Dry)</span>
+                            <span>15 cm (Ankles)</span>
+                            <span>30 cm (Knees)</span>
+                            <span>50+ cm (Danger)</span>
+                        </div>
+                    </div>
+
+                    {/* Quick Plain-English Condition Summary */}
+                    <div className="grid grid-cols-2 gap-2.5 mb-4">
+                        <div className="p-3 rounded-2xl bg-white border border-slate-200/80 shadow-2xs">
+                            <span className="text-[10px] uppercase tracking-wider font-semibold text-slate-400">Water Movement</span>
+                            <p className="text-xs font-bold text-slate-800 mt-1 flex items-center gap-1.5">
+                                {depth >= 25 ? (
+                                    <><span>⚠️</span> Fast moving current</>
+                                ) : depth >= 15 ? (
+                                    <><span>🌊</span> Slow moving runoff</>
+                                ) : (
+                                    <><span>✅</span> Standing puddles only</>
+                                )}
+                            </p>
+                        </div>
+
+                        <div className="p-3 rounded-2xl bg-white border border-slate-200/80 shadow-2xs">
+                            <span className="text-[10px] uppercase tracking-wider font-semibold text-slate-400">Local Drains</span>
+                            <p className="text-xs font-bold text-slate-800 mt-1 flex items-center gap-1.5">
+                                {depth >= 30 ? (
+                                    <><span>⚠️</span> Drains near full capacity</>
+                                ) : (
+                                    <><span>⚡</span> Pumps actively draining</>
+                                )}
+                            </p>
+                        </div>
+                    </div>
+
+                    {/* Can I travel through here? Clear Everyday User Guide */}
+                    <div className="rounded-2xl border border-slate-200/90 bg-white p-4 mb-4 shadow-xs">
+                        <h4 className="text-xs font-bold text-slate-900 mb-3 flex items-center justify-between">
+                            <span className="flex items-center gap-2">
+                                <Car className="w-4 h-4 text-blue-600" />
+                                Can I pass through this road?
+                            </span>
+                            <span className="text-[10px] font-semibold text-slate-400">Live Commuter Guide</span>
+                        </h4>
+
+                        <div className="space-y-2 text-xs">
+                            <div className="flex items-center justify-between py-1.5 border-b border-slate-100">
+                                <span className="text-slate-600 flex items-center gap-2 font-medium">
+                                    <span>🚶</span> Walking on foot
+                                </span>
+                                <span className={`font-bold px-2 py-0.5 rounded-md ${
+                                    depth >= 15 ? "bg-rose-50 text-rose-700" : "bg-emerald-50 text-emerald-700"
+                                }`}>
+                                    {depth >= 15 ? "⛔ Avoid — Water above ankles" : "✅ Safe to walk"}
+                                </span>
+                            </div>
+
+                            <div className="flex items-center justify-between py-1.5 border-b border-slate-100">
+                                <span className="text-slate-600 flex items-center gap-2 font-medium">
+                                    <span>🛵</span> Bikes &amp; Scooters
+                                </span>
+                                <span className={`font-bold px-2 py-0.5 rounded-md ${
+                                    depth >= 18 ? "bg-rose-50 text-rose-700" : "bg-emerald-50 text-emerald-700"
+                                }`}>
+                                    {depth >= 18 ? "⛔ High stall risk" : "✅ Safe to ride"}
+                                </span>
+                            </div>
+
+                            <div className="flex items-center justify-between py-1.5 border-b border-slate-100">
+                                <span className="text-slate-600 flex items-center gap-2 font-medium">
+                                    <span>🚗</span> Cars &amp; Autos
+                                </span>
+                                <span className={`font-bold px-2 py-0.5 rounded-md ${
+                                    depth >= 25 
+                                        ? "bg-rose-50 text-rose-700" 
+                                        : depth >= 15 
+                                            ? "bg-amber-50 text-amber-800" 
+                                            : "bg-emerald-50 text-emerald-700"
+                                }`}>
+                                    {depth >= 25 ? "⛔ Impassable — Do not enter" : depth >= 15 ? "⚠️ Caution — Slow down" : "✅ Passable"}
+                                </span>
+                            </div>
+
+                            <div className="flex items-center justify-between py-1.5">
+                                <span className="text-slate-600 flex items-center gap-2 font-medium">
+                                    <span>🚑</span> Buses &amp; Emergency Trucks
+                                </span>
+                                <span className={`font-bold px-2 py-0.5 rounded-md ${
+                                    depth >= 45 ? "bg-amber-50 text-amber-800" : "bg-emerald-50 text-emerald-700"
+                                }`}>
+                                    {depth >= 45 ? "⚠️ High clearance only" : "✅ Priority Corridor Clear"}
+                                </span>
+                            </div>
+                        </div>
+                    </div>
+
+                    {/* In-place Action Confirmation Banners — ensures no click goes unattended */}
+                    {(pumpStatus || divertStatus || showRouteTip) && (
+                        <div className="space-y-2 mb-4 animate-in fade-in slide-in-from-top-2 duration-200">
+                            {pumpStatus === "dispatched" && (
+                                <div className="p-3 rounded-xl bg-blue-50 border border-blue-200 text-blue-900 text-xs flex items-start justify-between gap-2">
+                                    <div className="flex items-start gap-2">
+                                        <span className="text-blue-600 mt-0.5 font-bold">⚡</span>
+                                        <div>
+                                            <strong className="font-bold block">Dewatering Pump Unit #14 Dispatched</strong>
+                                            <span className="text-blue-700 text-[11px]">En route to {sector.name} · Estimated suction start: ~10 mins</span>
+                                        </div>
+                                    </div>
+                                    <button
+                                        onClick={() => setPumpStatus(null)}
+                                        className="text-blue-500 hover:text-blue-700 text-[11px] font-bold underline cursor-pointer"
+                                    >
+                                        Dismiss
+                                    </button>
+                                </div>
+                            )}
+
+                            {divertStatus === "active" && (
+                                <div className="p-3 rounded-xl bg-amber-50 border border-amber-200 text-amber-900 text-xs flex items-start justify-between gap-2">
+                                    <div className="flex items-start gap-2">
+                                        <span className="text-amber-600 mt-0.5 font-bold">📢</span>
+                                        <div>
+                                            <strong className="font-bold block">Traffic Diversion Active</strong>
+                                            <span className="text-amber-800 text-[11px]">Advisory broadcast to municipal feeds &amp; local ward signs.</span>
+                                        </div>
+                                    </div>
+                                    <button
+                                        onClick={() => setDivertStatus(null)}
+                                        className="text-amber-600 hover:text-amber-800 text-[11px] font-bold underline cursor-pointer"
+                                    >
+                                        Dismiss
+                                    </button>
+                                </div>
+                            )}
+
+                            {showRouteTip && (
+                                <div className="p-3 rounded-xl bg-emerald-50 border border-emerald-200 text-emerald-900 text-xs flex items-start justify-between gap-2">
+                                    <div className="flex items-start gap-2">
+                                        <span className="text-emerald-600 mt-0.5 font-bold">🛣️</span>
+                                        <div>
+                                            <strong className="font-bold block">Recommended Dry Alternate Route</strong>
+                                            <span className="text-emerald-800 text-[11px]">Take the Kalina-CST Elevated Bypass. 100% dry (0 cm water), +3 min detour.</span>
+                                        </div>
+                                    </div>
+                                    <button
+                                        onClick={() => setShowRouteTip(false)}
+                                        className="text-emerald-600 hover:text-emerald-800 text-[11px] font-bold underline cursor-pointer"
+                                    >
+                                        Close
+                                    </button>
+                                </div>
+                            )}
+                        </div>
+                    )}
+
+                    {/* Verified Sensor Telemetry & Provenance */}
+                    <div className="rounded-2xl border border-slate-200/90 bg-slate-50/70 p-3.5 mb-4 text-xs">
+                        <div className="flex items-center justify-between mb-2">
+                            <span className="font-bold text-slate-800 flex items-center gap-1.5">
+                                <ShieldCheck className="w-4 h-4 text-blue-600" />
+                                Verified Sensor Telemetry
+                            </span>
+                            <span className="font-mono text-[10px] font-bold text-emerald-700 bg-emerald-100/80 px-2 py-0.5 rounded-full">
+                                96.4% Calibrated
+                            </span>
+                        </div>
+                        <div className="space-y-1.5 text-[11px] text-slate-600">
+                            <div className="flex justify-between items-center">
+                                <span className="text-slate-400">Sensor Station:</span>
+                                <span className="font-mono font-semibold text-slate-700">{sector.stationId || `CWC-${sector.id + 101}`}</span>
+                            </div>
+                            <div className="flex justify-between items-center">
+                                <span className="text-slate-400">Primary Authority:</span>
+                                <span className="font-medium text-slate-700">Municipal Stormwater Dept + IMD</span>
+                            </div>
+                            <div className="flex justify-between items-center">
+                                <span className="text-slate-400">Gauge Sensor:</span>
+                                <span className="font-medium text-slate-700">Hydrostatic Pressure Transducer</span>
+                            </div>
+                            <div className="flex justify-between items-center">
+                                <span className="text-slate-400">Telemetry Feed:</span>
+                                <span className="font-mono text-emerald-700 font-semibold flex items-center gap-1">
+                                    <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
+                                    Live (Updated 2 mins ago)
+                                </span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                {/* Bottom Action Controls */}
+                <div className="flex flex-col gap-2 pt-4 border-t border-slate-100">
                     <button
-                        onClick={onClose}
-                        className="p-1.5 rounded-lg text-slate-400 hover:text-white hover:bg-slate-800 transition-colors cursor-pointer"
+                        onClick={() => setShowRouteTip(!showRouteTip)}
+                        className="w-full flex items-center justify-center gap-2 py-2.5 px-4 rounded-xl bg-blue-600 hover:bg-blue-500 text-white text-xs font-bold shadow-md shadow-blue-600/20 transition-all cursor-pointer"
                     >
-                        <X className="w-4 h-4" />
+                        <Route className="w-4 h-4" />
+                        <span>{showRouteTip ? "Hide Dry Alternate Route" : "Show Dry Alternate Route"}</span>
                     </button>
-                </div>
 
-                <div className="my-5">
-                    <div className="flex items-center justify-between mb-2">
-                        <span className="text-xs font-semibold text-slate-300">Live Inundation Depth</span>
-                        <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full border ${isHigh
-                                ? "border-rose-500/40 bg-rose-500/10 text-rose-300"
-                                : isMed
-                                    ? "border-amber-500/40 bg-amber-500/10 text-amber-300"
-                                    : "border-emerald-500/40 bg-emerald-500/10 text-emerald-300"
-                            }`}>
-                            {isHigh ? "CRITICAL RISK" : isMed ? "MODERATE HAZARD" : "SAFE ELEVATION"}
-                        </span>
+                    <div className="grid grid-cols-2 gap-2">
+                        <button
+                            onClick={handleDispatchPump}
+                            className={`flex items-center justify-center gap-1.5 py-2 px-3 rounded-xl text-xs font-semibold transition-all cursor-pointer border ${
+                                pumpStatus === "dispatched"
+                                    ? "bg-emerald-50 border-emerald-200 text-emerald-700 font-bold"
+                                    : "border-slate-200 bg-slate-50 hover:bg-slate-100 text-slate-700"
+                            }`}
+                        >
+                            <Zap className="w-3.5 h-3.5 text-blue-600" />
+                            <span>{pumpStatus === "dispatched" ? "Pump Sent ✓" : "Send Pump"}</span>
+                        </button>
+
+                        <button
+                            onClick={handleDivertTraffic}
+                            className={`flex items-center justify-center gap-1.5 py-2 px-3 rounded-xl text-xs font-semibold transition-all cursor-pointer border ${
+                                divertStatus === "active"
+                                    ? "bg-amber-50 border-amber-200 text-amber-800 font-bold"
+                                    : "border-slate-200 bg-slate-50 hover:bg-slate-100 text-slate-700"
+                            }`}
+                        >
+                            <Send className="w-3.5 h-3.5 text-amber-600" />
+                            <span>{divertStatus === "active" ? "Diverted ✓" : "Divert Traffic"}</span>
+                        </button>
                     </div>
-                    <WaterDepthWave depth={depth} />
-                </div>
-
-                <div className="grid grid-cols-2 gap-2.5 mb-5">
-                    <div className="p-3 rounded-xl bg-slate-900/80 border border-slate-800">
-                        <span className="text-[10px] text-slate-400">Surface Flow Velocity</span>
-                        <p className="text-sm font-bold font-mono text-white mt-1">
-                            {depth > 0 ? (1.2 + (depth * 0.02)).toFixed(1) : "0.0"} m/s
-                        </p>
-                        <span className="text-[9px] text-slate-500">Vector: South Creek</span>
-                    </div>
-
-                    <div className="p-3 rounded-xl bg-slate-900/80 border border-slate-800">
-                        <span className="text-[10px] text-slate-400">Storm Culvert Status</span>
-                        <p className="text-sm font-bold font-mono text-white mt-1">
-                            {depth > 30 ? "92% Surcharged" : depth > 15 ? "64% Flowing" : "28% Free"}
-                        </p>
-                        <span className="text-[9px] text-slate-500">Gravity outfall active</span>
-                    </div>
-                </div>
-
-                <div className="rounded-xl border border-slate-800 bg-slate-900/80 p-3.5 mb-5">
-                    <h4 className="text-xs font-bold text-slate-200 mb-3 flex items-center gap-1.5">
-                        <Car className="w-3.5 h-3.5 text-indigo-400" />
-                        Vehicle Passability Matrix
-                    </h4>
-
-                    <div className="space-y-2 text-xs">
-                        <div className="flex items-center justify-between py-1 border-b border-slate-800/60">
-                            <span className="text-slate-400">🚶 Pedestrians</span>
-                            <span className={`font-semibold ${depth >= 15 ? "text-rose-400" : "text-emerald-400"}`}>
-                                {depth >= 15 ? "Hazardous (No cross)" : "Passable"}
-                            </span>
-                        </div>
-
-                        <div className="flex items-center justify-between py-1 border-b border-slate-800/60">
-                            <span className="text-slate-400">🛵 Two-Wheelers</span>
-                            <span className={`font-semibold ${depth >= 20 ? "text-rose-400" : "text-emerald-400"}`}>
-                                {depth >= 20 ? "Stall Risk" : "Passable"}
-                            </span>
-                        </div>
-
-                        <div className="flex items-center justify-between py-1 border-b border-slate-800/60">
-                            <span className="text-slate-400">🚗 Sedans &amp; Hatchbacks</span>
-                            <span className={`font-semibold ${depth >= 25 ? "text-rose-400" : "text-emerald-400"}`}>
-                                {depth >= 25 ? "Impassable" : "Passable with caution"}
-                            </span>
-                        </div>
-
-                        <div className="flex items-center justify-between py-1">
-                            <span className="text-slate-400">🚒 Emergency Trucks / Buses</span>
-                            <span className={`font-semibold ${depth >= 45 ? "text-amber-400" : "text-emerald-400"}`}>
-                                {depth >= 45 ? "High Clearance Only" : "Passable"}
-                            </span>
-                        </div>
-                    </div>
-                </div>
-
-                <div className="rounded-xl border border-slate-800 bg-slate-900/80 p-3 mb-4">
-                    <div className="flex items-center justify-between text-[11px] text-slate-400 mb-1.5">
-                        <span className="flex items-center gap-1 font-semibold text-slate-300">
-                            <Cpu className="w-3 h-3 text-indigo-400" />
-                            Sensor Confidence: 94.2%
-                        </span>
-                        <span className="font-mono text-[9px] text-emerald-400">Live AI Stream</span>
-                    </div>
-                    <p className="text-[10.5px] text-slate-400 leading-relaxed font-mono">
-                        Telemetry validated against Municipal Ultrasonic Sensor #KU-84 &amp; CCTV water-level marker algorithms.
-                    </p>
                 </div>
             </div>
-
-            <div className="flex flex-col gap-2 pt-3 border-t border-slate-800">
-                <button
-                    onClick={() => pushToast(`Mobile Dewatering Pump dispatched to ${sector.name}`)}
-                    className="w-full flex items-center justify-center gap-2 py-2.5 px-3 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-semibold shadow-lg shadow-indigo-600/20 transition-all cursor-pointer"
-                >
-                    <Zap className="w-3.5 h-3.5" />
-                    Dispatch Dewatering Pump
-                </button>
-
-                <button
-                    onClick={() => pushToast(`Traffic Diversion Alert broadcast for ${sector.name}`)}
-                    className="w-full flex items-center justify-center gap-2 py-2 px-3 rounded-xl border border-slate-700 hover:bg-slate-800 text-slate-300 text-xs font-medium transition-colors cursor-pointer"
-                >
-                    <Send className="w-3.5 h-3.5" />
-                    Issue Traffic Divert Notice
-                </button>
-            </div>
-        </div>
+        </>
     );
 }
 
@@ -2259,7 +4196,7 @@ function TimeMachineBar(props) {
 
 function HotspotTelemetryDeck({ wardData, sectorDepths, onSelectSector, onEnableMap }) {
     const sortedSectors = wardData.sectors
-        .map((s, idx) => ({ ...s, depth: sectorDepths[idx] || 0 }))
+        .map((s, idx) => ({ ...s, originalIdx: idx, depth: sectorDepths[idx] || 0 }))
         .sort((a, b) => b.depth - a.depth);
 
     const totalFlooded = sortedSectors.filter(s => s.depth >= 30).length;
@@ -2320,7 +4257,7 @@ function HotspotTelemetryDeck({ wardData, sectorDepths, onSelectSector, onEnable
                         key={sec.id}
                         onClick={() => {
                             onEnableMap();
-                            onSelectSector(sec.id);
+                            onSelectSector(sec.originalIdx !== undefined ? sec.originalIdx : sec.id);
                         }}
                         className="p-2.5 rounded-md border border-zinc-800 bg-zinc-900/90 hover:border-white/40 transition-all cursor-pointer flex items-center justify-between text-xs"
                     >
@@ -2328,6 +4265,11 @@ function HotspotTelemetryDeck({ wardData, sectorDepths, onSelectSector, onEnable
                             <div className="flex items-center gap-1.5">
                                 <span className="font-bold text-white">{sec.name}</span>
                             </div>
+                            <span className="text-[10px] text-zinc-400 font-mono">Elev: {sec.elevation}m · {sec.coords}</span>
+                        </div>
+
+                        <div className="text-right">
+                            <span className="font-mono font-bold text-sm block text-white">{sec.depth} cm</span>
                             <span className="text-[10px] text-zinc-400 font-mono">Elev: {sec.elevation}m · {sec.coords}</span>
                         </div>
 
@@ -2855,119 +4797,306 @@ function WardVitalMetrics({ wardData, timeStep, scenario, onOpenSitRep }) {
 }
 
 // ============================================================================
+// Data Layers & Telemetry Provenance Modal
+// ============================================================================
+
+function DataLayersModal({ isOpen, onClose, mapToggles, setMapToggles, pushToast }) {
+    if (!isOpen) return null;
+
+    const layersConfig = [
+        {
+            id: "hotspots",
+            name: "Critical Flood Hotspots",
+            badge: "CartoDEM 30m Grid",
+            badgeColor: "bg-rose-50 text-rose-700 border-rose-200",
+            source: "ISRO CartoDEM Elevation + Municipal Sump Gauges",
+            frequency: "Continuous (60s cycle)",
+            description: "Real-time surface water depth computed from rainfall accumulation and elevation runoff.",
+        },
+        {
+            id: "pumps",
+            name: "Stormwater Dewatering Pumps",
+            badge: "SCADA Telemetry",
+            badgeColor: "bg-blue-50 text-blue-700 border-blue-200",
+            source: "Municipal Stormwater Drainage Operations (BMC / GCC)",
+            frequency: "Live telemetry (active suction & diesel standby)",
+            description: "High-capacity submersible dewatering pump locations and active capacity percentages.",
+        },
+        {
+            id: "shelters",
+            name: "Relief & Evacuation Shelters",
+            badge: "Disaster Authority",
+            badgeColor: "bg-indigo-50 text-indigo-700 border-indigo-200",
+            source: "State Disaster Management Authority (SDMA / NDRF)",
+            frequency: "Updated per flood shift",
+            description: "Verified community schools and disaster halls with dry rations, medical kits, and boat staging.",
+        },
+        {
+            id: "metro",
+            name: "Transit & Metro Corridors",
+            badge: "Road Network",
+            badgeColor: "bg-emerald-50 text-emerald-700 border-emerald-200",
+            source: "Metropolitan Transit Police & Rail GIS Feeds",
+            frequency: "Real-time incident updates",
+            description: "Subway gate closure advisories and elevated highway safe-elevation corridors.",
+        },
+        {
+            id: "boundaries",
+            name: "Municipal Ward Catchments",
+            badge: "Survey of India",
+            badgeColor: "bg-slate-100 text-slate-700 border-slate-200",
+            source: "Municipal Administrative GIS Polygons",
+            frequency: "Static hydro-basin boundaries",
+            description: "Natural drainage basins and administrative municipal ward boundary borders.",
+        }
+    ];
+
+    const toggleLayer = (id) => {
+        const nextState = !mapToggles[id];
+        setMapToggles((prev) => ({ ...prev, [id]: nextState }));
+        if (pushToast) {
+            pushToast(`Layer "${layersConfig.find(l => l.id === id)?.name}" ${nextState ? "enabled" : "hidden"}`);
+        }
+    };
+
+    return (
+        <div className="fixed inset-0 z-[960] flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-xs animate-in fade-in duration-200 font-sans">
+            <div className="w-full max-w-xl bg-white rounded-3xl border border-slate-200 shadow-2xl p-6 flex flex-col max-h-[90vh] overflow-hidden text-slate-900">
+                <div className="flex items-start justify-between pb-4 border-b border-slate-100">
+                    <div>
+                        <div className="flex items-center gap-2">
+                            <span className="text-[10.5px] uppercase font-bold tracking-wider px-2 py-0.5 rounded-full bg-blue-50 text-blue-700">
+                                GIS Telemetry Overlays
+                            </span>
+                        </div>
+                        <h2 className="text-lg font-extrabold text-slate-900 mt-1">Data Layers &amp; Sensor Sources</h2>
+                        <p className="text-xs text-slate-500 mt-0.5">
+                            Toggle live spatial data layers and inspect their verification authorities.
+                        </p>
+                    </div>
+                    <button
+                        onClick={onClose}
+                        className="p-2 rounded-full text-slate-400 hover:text-slate-700 hover:bg-slate-100 transition-colors cursor-pointer"
+                        title="Close"
+                    >
+                        <X className="w-5 h-5" />
+                    </button>
+                </div>
+
+                <div className="flex-1 overflow-y-auto py-4 space-y-3">
+                    {layersConfig.map((layer) => {
+                        const active = !!mapToggles[layer.id];
+                        return (
+                            <div
+                                key={layer.id}
+                                className={`p-4 rounded-2xl border transition-all ${
+                                    active
+                                        ? "bg-slate-50/80 border-slate-200 shadow-2xs"
+                                        : "bg-white border-slate-100 opacity-60 hover:opacity-100"
+                                }`}
+                            >
+                                <div className="flex items-center justify-between gap-3">
+                                    <div className="flex-1">
+                                        <div className="flex items-center gap-2">
+                                            <span className="text-xs font-bold text-slate-900">{layer.name}</span>
+                                            <span className={`text-[9.5px] font-bold px-2 py-0.5 rounded-full border ${layer.badgeColor}`}>
+                                                {layer.badge}
+                                            </span>
+                                        </div>
+                                        <p className="text-xs text-slate-600 mt-1 leading-relaxed">
+                                            {layer.description}
+                                        </p>
+                                        <div className="flex flex-wrap items-center gap-x-4 gap-y-1 mt-2 text-[10.5px] text-slate-400">
+                                            <span>Authority: <strong className="text-slate-600">{layer.source}</strong></span>
+                                            <span>Frequency: <strong className="text-slate-600">{layer.frequency}</strong></span>
+                                        </div>
+                                    </div>
+                                    <button
+                                        type="button"
+                                        onClick={() => toggleLayer(layer.id)}
+                                        className={`w-11 h-6 rounded-full transition-colors relative cursor-pointer shrink-0 ${
+                                            active ? "bg-blue-600" : "bg-slate-200"
+                                        }`}
+                                    >
+                                        <span
+                                            className={`block w-4 h-4 rounded-full bg-white shadow-xs transition-transform absolute top-1 ${
+                                                active ? "right-1" : "left-1"
+                                            }`}
+                                        />
+                                    </button>
+                                </div>
+                            </div>
+                        );
+                    })}
+                </div>
+
+                <div className="pt-4 border-t border-slate-100 flex items-center justify-between">
+                    <span className="text-xs font-semibold text-slate-500">
+                        Active Overlays: <strong className="text-slate-900 font-bold">{Object.values(mapToggles).filter(Boolean).length} / 5</strong>
+                    </span>
+                    <button
+                        type="button"
+                        onClick={onClose}
+                        className="px-5 py-2 rounded-xl bg-blue-600 hover:bg-blue-500 text-white text-xs font-bold shadow-md shadow-blue-600/20 cursor-pointer transition-all"
+                    >
+                        Done
+                    </button>
+                </div>
+            </div>
+        </div>
+    );
+}
+
+// ============================================================================
 // Situation Report (SitRep) Modal
 // ============================================================================
 
 function SitRepModal({ ward, wardData, floodStats, sectorDepths, timeStep, scenario, onClose, pushToast }) {
     const currentForecast = HYDROGRAPH_DATA[timeStep] || HYDROGRAPH_DATA[0];
+    const wardName = ward || "Kurla";
+    const data = wardData || {
+        code: "KW-10",
+        riskLevel: "High Risk",
+        activePumps: 12,
+        riverName: "Mithi River",
+        riverLevel: "3.42",
+        dangerLevel: "3.00",
+        evacShelters: "4 Nodal Centers",
+    };
+    const stats = floodStats || { critical: 6, caution: 4, clear: 14 };
 
     const handlePrint = () => {
         window.print();
     };
 
     const handleCopyMarkdown = () => {
-        const text = `# AQUASIGHT SITUATION REPORT (SITREP)
-**Ward:** ${ward} (${wardData.code})
-**Timestamp:** ${new Date().toLocaleString()} | Forecast Horizon: ${currentForecast.t} (${currentForecast.label})
-**Overall Risk Status:** ${wardData.riskLevel}
+        const text = `# RAINDROP MUNICIPAL SITUATION REPORT (SITREP)
+**Ward:** ${wardName} (${data.code})
+**Timestamp:** ${new Date().toLocaleString()} | Horizon: ${currentForecast.t} (${currentForecast.label})
+**Overall Risk Status:** ${data.riskLevel}
 
 ## Flood Impact Metrics
-- Clear / Passable Sectors: ${floodStats.clear}
-- Caution / Waterlogged Sectors: ${floodStats.caution}
-- Critical / Impassable Sectors: ${floodStats.critical}
-- Active Drainage Pumps: ${wardData.activePumps}
-- River Channel Level: ${wardData.riverName} at ${wardData.riverLevel}m (Alert: ${wardData.dangerLevel}m)
-- Evacuation Shelters: ${wardData.evacShelters}
+- Critical / Inundated Sectors (>30cm): ${stats.critical}
+- Caution / Waterlogged Sectors (15-30cm): ${stats.caution}
+- Clear / Passable Corridors: ${stats.clear}
+- Active Drainage Pumps: ${data.activePumps}
+- River Stage: ${data.riverName} at ${data.riverLevel}m (Danger Level: ${data.dangerLevel}m)
+- Emergency Shelters: ${data.evacShelters}
 
-## Recommended Actions
-1. Deploy mobile dewatering units to lowest elevation sectors.
-2. Divert commuter transit along designated Safe Elevation Corridors.
-3. Alert local police & emergency dispatch for subway closures.
+## Incident Commander Directives
+1. Deploy mobile dewatering units to lowest elevation sectors in ${wardName}.
+2. Divert commuter transit along designated Safe Elevation Corridors via Kalina CST Flyover Upper Deck.
+3. Lower subway and underpass gates at critical waterlogged bottlenecks (Bail Bazar & Station West).
+4. Keep all ${data.activePumps} stormwater dewatering stations on continuous suction with auxiliary diesel backup.
 `;
         navigator.clipboard.writeText(text).then(() => {
-            pushToast("SitRep markdown copied to clipboard!");
+            if (pushToast) {
+                pushToast("SitRep Copied", "Markdown format ready for municipal dispatch.", "success");
+            }
         });
     };
 
     return (
-        <div className="fixed inset-0 z-[90] flex items-center justify-center p-4 bg-slate-950/80 backdrop-blur-md animate-in fade-in duration-200">
-            <div className="w-full max-w-2xl rounded-2xl border border-slate-700 bg-[#121624] shadow-2xl p-6 flex flex-col gap-5 max-h-[90vh] overflow-y-auto">
-                <div className="flex items-start justify-between border-b border-slate-800 pb-4">
-                    <div className="flex items-center gap-3">
-                        <div className="p-2.5 rounded-xl bg-indigo-600/20 border border-indigo-500/40 text-indigo-300">
+        <div
+            className="fixed inset-0 z-[1000] flex items-center justify-center p-4"
+            style={{ background: "rgba(15,23,42,0.65)", backdropFilter: "blur(8px)" }}
+        >
+            <div className="relative w-full max-w-2xl rounded-3xl border border-slate-200 bg-white shadow-2xl p-7 text-slate-900 font-sans animate-in fade-in zoom-in-95 duration-200 max-h-[90vh] overflow-y-auto flex flex-col gap-5">
+                {/* Header */}
+                <div className="flex items-start justify-between border-b border-slate-100 pb-4">
+                    <div className="flex items-center gap-3.5">
+                        <div className="w-10 h-10 rounded-2xl bg-blue-50 text-blue-600 flex items-center justify-center shadow-xs">
                             <FileText className="w-5 h-5" />
                         </div>
                         <div>
-                            <span className="text-[10px] uppercase font-bold tracking-wider text-indigo-400">
-                                Official Incident Log · BMC / NDRF
-                            </span>
-                            <h2 className="text-lg font-bold text-white">AquaSight Situation Report (SitRep)</h2>
-                            <p className="text-xs text-slate-400 font-mono">
-                                {ward} · {wardData.code} · Generated {new Date().toLocaleTimeString()}
+                            <div className="flex items-center gap-2">
+                                <span className="text-[10px] uppercase font-bold tracking-wider px-2 py-0.5 rounded-full bg-blue-100/80 text-blue-800">
+                                    Official Incident Dispatch · BMC / NDRF
+                                </span>
+                            </div>
+                            <h2 className="text-lg font-bold text-slate-900 mt-0.5">
+                                RainDrop Municipal Situation Report (SitRep)
+                            </h2>
+                            <p className="text-xs text-slate-500 font-medium">
+                                {wardName} · {data.code} · Generated {new Date().toLocaleTimeString()} · Horizon: {currentForecast.t} ({currentForecast.label})
                             </p>
                         </div>
                     </div>
                     <button
+                        type="button"
                         onClick={onClose}
-                        className="p-1.5 rounded-lg text-slate-400 hover:text-white hover:bg-slate-800 cursor-pointer"
+                        className="p-2 rounded-full text-slate-400 hover:text-slate-700 hover:bg-slate-100 cursor-pointer transition-colors"
+                        title="Close SitRep"
                     >
                         <X className="w-5 h-5" />
                     </button>
                 </div>
 
+                {/* KPI Cards */}
                 <div className="grid grid-cols-3 gap-3">
-                    <div className="p-3 rounded-xl bg-slate-900 border border-slate-800">
-                        <span className="text-[10px] text-slate-400">Flooded Sectors</span>
-                        <p className="text-xl font-bold font-mono text-rose-400 mt-1">{floodStats.critical}</p>
-                        <span className="text-[9px] text-slate-500">Roads submerged &gt;30cm</span>
+                    <div className="p-3.5 rounded-2xl bg-rose-50/70 border border-rose-100">
+                        <span className="text-[10.5px] font-bold text-rose-700 uppercase tracking-wider block">Flooded Sectors</span>
+                        <p className="text-2xl font-bold text-rose-900 mt-1">{stats.critical}</p>
+                        <span className="text-[10px] text-rose-600 font-medium block mt-0.5">Roads submerged &gt;30cm</span>
                     </div>
 
-                    <div className="p-3 rounded-xl bg-slate-900 border border-slate-800">
-                        <span className="text-[10px] text-slate-400">Passable Corridors</span>
-                        <p className="text-xl font-bold font-mono text-emerald-400 mt-1">{floodStats.clear}</p>
-                        <span className="text-[9px] text-slate-500">Dry emergency routes</span>
+                    <div className="p-3.5 rounded-2xl bg-emerald-50/70 border border-emerald-100">
+                        <span className="text-[10.5px] font-bold text-emerald-700 uppercase tracking-wider block">Passable Corridors</span>
+                        <p className="text-2xl font-bold text-emerald-900 mt-1">{stats.clear}</p>
+                        <span className="text-[10px] text-emerald-600 font-medium block mt-0.5">Dry elevation routes</span>
                     </div>
 
-                    <div className="p-3 rounded-xl bg-slate-900 border border-slate-800">
-                        <span className="text-[10px] text-slate-400">River Spillway</span>
-                        <p className="text-xl font-bold font-mono text-sky-400 mt-1">{wardData.riverLevel}m</p>
-                        <span className="text-[9px] text-slate-500">Alert threshold: {wardData.dangerLevel}m</span>
+                    <div className="p-3.5 rounded-2xl bg-sky-50/70 border border-sky-100">
+                        <span className="text-[10.5px] font-bold text-sky-700 uppercase tracking-wider block">River Spillway</span>
+                        <p className="text-2xl font-bold text-sky-900 mt-1">{data.riverLevel}m</p>
+                        <span className="text-[10px] text-sky-600 font-medium block mt-0.5">Alert limit: {data.dangerLevel}m ({data.riverName})</span>
                     </div>
                 </div>
 
-                <div className="p-4 rounded-xl border border-indigo-500/20 bg-indigo-950/20 space-y-2">
-                    <h4 className="text-xs font-bold text-indigo-300 uppercase tracking-wider">
-                        Incident Commander Directives
-                    </h4>
-                    <ul className="text-xs text-slate-300 space-y-1.5 list-disc pl-4 leading-relaxed">
-                        <li>Subway and underpass gates closed at <strong>Bail Bazar</strong> and <strong>Station West</strong>.</li>
-                        <li>Direct emergency ambulances via <strong>Kalina CST Flyover Upper Deck</strong>.</li>
-                        <li>All <strong>{wardData.activePumps}</strong> stormwater pumps energized on continuous suction.</li>
-                        <li>Disaster management teams pre-staged at 4 local shelter facilities.</li>
+                {/* Directives Section */}
+                <div className="p-4.5 rounded-2xl bg-slate-50 border border-slate-200/80 space-y-2.5">
+                    <div className="flex items-center justify-between">
+                        <h4 className="text-xs font-bold text-slate-800 uppercase tracking-wider flex items-center gap-2">
+                            <Activity className="w-3.5 h-3.5 text-blue-600" />
+                            Incident Commander Directives
+                        </h4>
+                        <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-amber-100 text-amber-800">
+                            High Priority
+                        </span>
+                    </div>
+                    <ul className="text-xs text-slate-700 space-y-2 list-disc pl-4 leading-relaxed">
+                        <li>Subway and underpass gates closed at <strong>Bail Bazar</strong> and <strong>Kurla Station West</strong> to prevent entrapment.</li>
+                        <li>Direct civilian and emergency transit along designated <strong>Safe Elevation Corridors</strong> via CST Flyover Upper Deck.</li>
+                        <li>All <strong>{data.activePumps}</strong> high-capacity stormwater pumps energized on continuous suction with auxiliary diesel standby.</li>
+                        <li>Disaster management rescue teams and NDRF personnel staged at <strong>{data.evacShelters}</strong> with dry rations and inflatable boats.</li>
                     </ul>
                 </div>
 
-                <div className="flex items-center justify-between pt-3 border-t border-slate-800">
-                    <div className="flex items-center gap-2">
+                {/* Footer Controls */}
+                <div className="flex items-center justify-between pt-3 border-t border-slate-100">
+                    <div className="flex items-center gap-2.5">
                         <button
+                            type="button"
                             onClick={handlePrint}
-                            className="flex items-center gap-1.5 px-3 py-2 rounded-xl border border-slate-700 bg-slate-800 hover:bg-slate-700 text-xs font-medium text-slate-200 cursor-pointer"
+                            className="flex items-center gap-2 px-4 py-2 rounded-2xl border border-slate-200 bg-white hover:bg-slate-50 text-xs font-semibold text-slate-700 shadow-2xs cursor-pointer transition-colors"
                         >
-                            <Printer className="w-3.5 h-3.5" />
+                            <Printer className="w-4 h-4 text-slate-500" />
                             Print SitRep
                         </button>
                         <button
+                            type="button"
                             onClick={handleCopyMarkdown}
-                            className="flex items-center gap-1.5 px-3 py-2 rounded-xl border border-slate-700 bg-slate-800 hover:bg-slate-700 text-xs font-medium text-slate-200 cursor-pointer"
+                            className="flex items-center gap-2 px-4 py-2 rounded-2xl border border-slate-200 bg-white hover:bg-slate-50 text-xs font-semibold text-slate-700 shadow-2xs cursor-pointer transition-colors"
                         >
-                            <Copy className="w-3.5 h-3.5" />
+                            <Copy className="w-4 h-4 text-slate-500" />
                             Copy Markdown
                         </button>
                     </div>
 
                     <button
+                        type="button"
                         onClick={onClose}
-                        className="px-4 py-2 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-bold shadow-lg shadow-indigo-600/30 cursor-pointer"
+                        className="px-5 py-2 rounded-2xl bg-blue-600 hover:bg-blue-700 text-white text-xs font-bold shadow-md shadow-blue-500/20 cursor-pointer transition-colors"
                     >
                         Close SitRep
                     </button>
@@ -2977,620 +5106,6 @@ function SitRepModal({ ward, wardData, floodStats, sectorDepths, timeStep, scena
     );
 }
 
-// ============================================================================
-// Hero Welcome View
-// ============================================================================
-
-// ============================================================================
-// Hero Welcome & Technical Project Details View (Scrollable with Images & Animations)
-// ============================================================================
-
-function HeroView({ ward, wardData, onEnter }) {
-    const [activeStep, setActiveStep] = useState(0);
-    const [activeImgIndex, setActiveImgIndex] = useState(0);
-    const [isAutoPlay, setIsAutoPlay] = useState(true);
-
-    const HERO_IMAGES = [
-        {
-            url: "/static/images/dibakar-roy-DccG84ivd3k-unsplash.jpg",
-            title: "Monsoon Cloudburst Downpour",
-            subtitle: "Flash surface runoff rapidly entering lowland municipal sumps",
-            badge: "IMD Radar Telemetry"
-        },
-        {
-            url: "/static/images/dibakar-roy-FbOchRlXaPs-unsplash.jpg",
-            title: "Metropolitan Inundation Basin",
-            subtitle: "Real-time 30m CartoDEM spatial elevation modeling",
-            badge: "CartoDEM 30m Rasters"
-        },
-        {
-            url: "/static/images/dibakar-roy-KbG3OsDKkCM-unsplash.jpg",
-            title: "Submerged Bottlenecks & Subways",
-            subtitle: "Automated hazard detection for roads exceeding 30cm water depth",
-            badge: "Passability Matrix"
-        },
-        {
-            url: "/static/images/dibakar-roy-P7Z3HwNWPeQ-unsplash.jpg",
-            title: "Drainage Sump & Outfall Operations",
-            subtitle: "1D-2D SWMM hydraulic modeling coupled with active pump telemetry",
-            badge: "SWMM Hydraulics"
-        },
-        {
-            url: "/static/images/dibakar-roy-aby-GGLtD-A-unsplash.jpg",
-            title: "Safe Elevation Transit Corridors",
-            subtitle: "Dynamic routing guiding emergency transit along dry flyover bypasses",
-            badge: "Dual-Corridor Route Engine"
-        }
-    ];
-
-    // Auto-advance carousel image every 4.5 seconds
-    useEffect(() => {
-        if (!isAutoPlay) return;
-        const timer = setInterval(() => {
-            setActiveImgIndex((prev) => (prev + 1) % HERO_IMAGES.length);
-        }, 4500);
-        return () => clearInterval(timer);
-    }, [isAutoPlay, HERO_IMAGES.length]);
-
-    const PIPELINE_STEPS = [
-        {
-            num: "01",
-            title: "30m CartoDEM GIS Data Ingestion",
-            icon: Layers,
-            color: "text-blue-400 bg-blue-500/10 border-blue-500/30",
-            desc: "Processes 30-meter high-precision CartoDEM elevation rasters for Chennai, Mumbai, and Delhi. Calculates localized slopes, flow accumulation channels, and lowland depression storage to identify natural runoff paths.",
-            tech: ["GeoTIFF 30m Rasters", "GDAL Topography", "Flow Accumulation"]
-        },
-        {
-            num: "02",
-            title: "Hydrographic Channel & Sump Extraction",
-            icon: Waves,
-            color: "text-sky-400 bg-sky-500/10 border-sky-500/30",
-            desc: "Extracts primary municipal drainage trunks (Mithi River, Buckingham Canal, Yamuna River, Otteri Nullah) and pinpoints critical underpass sumps (e.g. Kurla Station Subway, Bail Bazar Nullah) prone to flash inundation.",
-            tech: ["D8 Flow Directions", "Drainage Network Extractor", "Surcharge Sump Mapping"]
-        },
-        {
-            num: "03",
-            title: "AI Inundation Surrogate Model Engine",
-            icon: Cpu,
-            color: "text-indigo-400 bg-indigo-500/10 border-indigo-500/30",
-            desc: "Combines IMD Doppler Radar nowcast data with 1D-2D coupled SWMM hydraulic simulations. Uses an ultra-fast ML surrogate model to predict neighborhood water depth (0-60cm) in under 15ms latency.",
-            tech: ["SWMM-HEC Coupled Mesh", "FastAPI AI Surrogate", "Radar Optical Flow"]
-        },
-        {
-            num: "04",
-            title: "Dual-Corridor Route Safety Navigator",
-            icon: Navigation,
-            color: "text-emerald-400 bg-emerald-500/10 border-emerald-500/30",
-            desc: "Evaluates transit corridors against live water depths. Detects blocked lowland underpasses (>25cm hazard) and dynamically computes 100% dry elevation flyover bypass routes with exact time detours.",
-            tech: ["Spatial Route Engine", "Passability Matrix", "Elevated Bypass Corridors"]
-        },
-        {
-            num: "05",
-            title: "Incident Commander SitRep Dispatch",
-            icon: FileText,
-            color: "text-rose-400 bg-rose-500/10 border-rose-500/30",
-            desc: "Generates automated municipal Situation Reports (SitRep) detailing critical submerged hotspots, active dewatering pumps, shelter capacities, and printable police diversion advisories.",
-            tech: ["Markdown SitRep Export", "Printable Emergency Log", "Pump & Shelter Telemetry"]
-        }
-    ];
-
-    return (
-        <div className="min-h-screen bg-slate-950 text-slate-100 flex flex-col font-sans selection:bg-blue-600 selection:text-white">
-            {/* Sticky Top Navigation Bar */}
-            <header className="sticky top-0 z-50 bg-slate-950/90 backdrop-blur-md border-b border-slate-800/80 px-4 sm:px-8 py-3.5 flex items-center justify-between">
-                <div className="flex items-center gap-3">
-                    <div className="grid place-items-center w-10 h-10 rounded-xl bg-gradient-to-br from-blue-600 to-indigo-600 border border-blue-400/30 text-white shadow-lg shadow-blue-500/20">
-                        <Waves className="w-5 h-5 text-white animate-pulse" />
-                    </div>
-                    <div>
-                        <div className="flex items-center gap-2">
-                            <span className="text-base font-extrabold text-white tracking-tight">RainDrop GIS</span>
-                            <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-blue-500/20 text-blue-300 border border-blue-500/30">
-                                Municipal Intelligence
-                            </span>
-                        </div>
-                        <p className="text-[11px] text-slate-400 font-mono">Multi-City Urban Flood Nowcasting</p>
-                    </div>
-                </div>
-
-                <div className="hidden md:flex items-center gap-6 text-xs font-semibold text-slate-300">
-                    <a href="#overview" className="hover:text-blue-400 transition-colors">Overview</a>
-                    <a href="#gallery" className="hover:text-blue-400 transition-colors">Visual Gallery</a>
-                    <a href="#architecture" className="hover:text-blue-400 transition-colors">Architecture</a>
-                    <a href="#features" className="hover:text-blue-400 transition-colors">Capabilities</a>
-                    <a href="#cities" className="hover:text-blue-400 transition-colors">Pilot Metros</a>
-                </div>
-
-                <div className="flex items-center gap-3">
-                    <button
-                        onClick={onEnter}
-                        className="flex items-center gap-2 px-4 py-2 rounded-xl bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 text-white text-xs font-bold shadow-lg shadow-blue-600/30 transition-all cursor-pointer border border-blue-400/30"
-                    >
-                        <span>Launch Operations Center</span>
-                        <ArrowRight className="w-4 h-4" />
-                    </button>
-                </div>
-            </header>
-
-            {/* Main Scrollable Body */}
-            <main className="flex-1 overflow-y-auto">
-                {/* Hero Banner Section with Background Image Carousel */}
-                <section id="overview" className="relative min-h-[85vh] flex items-center justify-center overflow-hidden py-16 sm:py-24 px-4 sm:px-8 border-b border-slate-800/80">
-                    {/* Background Images with Crossfade Animation */}
-                    {HERO_IMAGES.map((img, idx) => (
-                        <div
-                            key={img.url}
-                            className={`absolute inset-0 bg-cover bg-center transition-opacity duration-1000 ease-in-out ${
-                                activeImgIndex === idx ? "opacity-35 scale-100" : "opacity-0 scale-105 pointer-events-none"
-                            }`}
-                            style={{ backgroundImage: `url('${img.url}')` }}
-                        />
-                    ))}
-
-                    {/* Gradient Overlay Mask */}
-                    <div className="absolute inset-0 bg-gradient-to-t from-slate-950 via-slate-950/80 to-slate-950/40 pointer-events-none" />
-
-                    {/* Hero Foreground Content */}
-                    <div className="relative z-10 max-w-5xl mx-auto text-center flex flex-col items-center">
-                        <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-blue-500/20 backdrop-blur-md border border-blue-400/30 text-blue-200 text-xs font-bold mb-6 shadow-xl animate-in fade-in duration-300">
-                            <Sparkles className="w-4 h-4 text-blue-400 animate-spin" />
-                            <span>{HERO_IMAGES[activeImgIndex].badge} · Live Spatial Intelligence</span>
-                        </div>
-
-                        <h1 className="text-4xl sm:text-6xl md:text-7xl font-extrabold tracking-tight text-white leading-tight">
-                            Precision Urban Flood <br className="hidden sm:inline" />
-                            <span className="bg-gradient-to-r from-blue-400 via-sky-300 to-indigo-400 bg-clip-text text-transparent">
-                                Nowcasting &amp; Safe Routing
-                            </span>
-                        </h1>
-
-                        <p className="mt-6 text-base sm:text-lg md:text-xl text-slate-200 max-w-3xl leading-relaxed drop-shadow-md">
-                            RainDrop combines <strong>30-meter CartoDEM topography</strong>, Doppler radar nowcasts, and fast 
-                            <strong> AI hydraulics surrogate models</strong> to predict neighborhood-level inundation, monitor critical drainage bottlenecks, 
-                            and guide emergency transit along 100% dry elevation corridors.
-                        </p>
-
-                        <div className="mt-8 flex flex-wrap justify-center gap-4">
-                            <button
-                                onClick={onEnter}
-                                className="flex items-center gap-2 px-6 py-3.5 rounded-xl bg-blue-600 hover:bg-blue-500 text-white font-extrabold text-sm shadow-2xl shadow-blue-600/40 transition-all cursor-pointer border border-blue-400/40 transform hover:-translate-y-0.5"
-                            >
-                                <Activity className="w-4 h-4" />
-                                <span>Explore RainDrop Operations Workspace</span>
-                            </button>
-
-                            <button
-                                onClick={onEnter}
-                                className="flex items-center gap-2 px-6 py-3.5 rounded-xl bg-slate-900/90 hover:bg-slate-800 backdrop-blur-md text-slate-200 font-bold text-sm border border-slate-700 shadow-lg transition-all cursor-pointer transform hover:-translate-y-0.5"
-                            >
-                                <Navigation className="w-4 h-4 text-emerald-400" />
-                                <span>Open Route Safety Check</span>
-                            </button>
-                        </div>
-
-                        {/* Interactive Carousel Controls */}
-                        <div className="mt-10 flex items-center justify-center gap-3">
-                            <button
-                                onClick={() => {
-                                    setIsAutoPlay(false);
-                                    setActiveImgIndex((prev) => (prev > 0 ? prev - 1 : HERO_IMAGES.length - 1));
-                                }}
-                                className="p-2 rounded-xl bg-slate-900/80 hover:bg-slate-800 border border-slate-700 text-slate-300 text-xs font-bold cursor-pointer transition-colors"
-                                title="Previous Slide"
-                            >
-                                &larr;
-                            </button>
-
-                            <div className="flex gap-2">
-                                {HERO_IMAGES.map((img, idx) => (
-                                    <button
-                                        key={idx}
-                                        onClick={() => {
-                                            setIsAutoPlay(false);
-                                            setActiveImgIndex(idx);
-                                        }}
-                                        className={`h-2 rounded-full transition-all duration-300 cursor-pointer ${
-                                            activeImgIndex === idx ? "w-8 bg-blue-400" : "w-2 bg-slate-700 hover:bg-slate-500"
-                                        }`}
-                                        title={img.title}
-                                    />
-                                ))}
-                            </div>
-
-                            <button
-                                onClick={() => {
-                                    setIsAutoPlay(false);
-                                    setActiveImgIndex((prev) => (prev + 1) % HERO_IMAGES.length);
-                                }}
-                                className="p-2 rounded-xl bg-slate-900/80 hover:bg-slate-800 border border-slate-700 text-slate-300 text-xs font-bold cursor-pointer transition-colors"
-                                title="Next Slide"
-                            >
-                                &rarr;
-                            </button>
-
-                            <button
-                                onClick={() => setIsAutoPlay(!isAutoPlay)}
-                                className={`px-2.5 py-1 rounded-xl text-[10px] font-mono font-bold border transition-colors cursor-pointer ${
-                                    isAutoPlay
-                                        ? "bg-blue-500/20 text-blue-300 border-blue-500/40"
-                                        : "bg-slate-800 text-slate-400 border-slate-700"
-                                }`}
-                            >
-                                {isAutoPlay ? "⏸️ Auto" : "▶️ Play"}
-                            </button>
-                        </div>
-
-                        {/* Carousel Image Caption */}
-                        <div className="mt-3 text-xs font-mono text-slate-300 bg-slate-900/80 backdrop-blur border border-slate-800 px-4 py-1.5 rounded-full shadow-md">
-                            <strong>{HERO_IMAGES[activeImgIndex].title}</strong> — {HERO_IMAGES[activeImgIndex].subtitle}
-                        </div>
-
-                        {/* Key System Metrics Grid */}
-                        <div className="mt-12 grid grid-cols-2 sm:grid-cols-4 gap-4 w-full max-w-4xl text-left">
-                            <div className="p-4 rounded-2xl bg-slate-900/80 border border-slate-800 backdrop-blur">
-                                <span className="text-[10px] uppercase font-mono tracking-wider text-slate-400 block">Elevation Resolution</span>
-                                <p className="text-xl font-bold font-mono text-blue-400 mt-1">30m CartoDEM</p>
-                                <span className="text-[11px] text-slate-400">ISRO GeoTIFF Rasters</span>
-                            </div>
-                            <div className="p-4 rounded-2xl bg-slate-900/80 border border-slate-800 backdrop-blur">
-                                <span className="text-[10px] uppercase font-mono tracking-wider text-slate-400 block">Surrogate Model Latency</span>
-                                <p className="text-xl font-bold font-mono text-emerald-400 mt-1">&lt; 15 ms</p>
-                                <span className="text-[11px] text-slate-400">Instant Depth Inference</span>
-                            </div>
-                            <div className="p-4 rounded-2xl bg-slate-900/80 border border-slate-800 backdrop-blur">
-                                <span className="text-[10px] uppercase font-mono tracking-wider text-slate-400 block">Pilot Metros</span>
-                                <p className="text-xl font-bold font-mono text-sky-400 mt-1">3 Major Cities</p>
-                                <span className="text-[11px] text-slate-400">Chennai · Mumbai · Delhi</span>
-                            </div>
-                            <div className="p-4 rounded-2xl bg-slate-900/80 border border-slate-800 backdrop-blur">
-                                <span className="text-[10px] uppercase font-mono tracking-wider text-slate-400 block">Emergency Routing</span>
-                                <p className="text-xl font-bold font-mono text-indigo-400 mt-1">100% Safe</p>
-                                <span className="text-[11px] text-slate-400">Dry Elevation Corridors</span>
-                            </div>
-                        </div>
-                    </div>
-                </section>
-
-                {/* Visual Imagery & Flood Resilience Showcase Section */}
-                <section id="gallery" className="py-16 px-4 sm:px-8 max-w-7xl mx-auto">
-                    <div className="text-center max-w-2xl mx-auto mb-12">
-                        <span className="text-xs uppercase font-mono font-bold tracking-widest text-sky-400 bg-sky-500/10 px-3 py-1 rounded-full border border-sky-500/20">
-                            Real-World Visual Intelligence
-                        </span>
-                        <h2 className="text-3xl sm:text-4xl font-extrabold text-white tracking-tight mt-3">
-                            Urban Flood Scenarios &amp; Resilience
-                        </h2>
-                        <p className="text-slate-400 text-sm mt-2">
-                            Actual flood vulnerability photography demonstrating cloudburst runoff, lowland submersions, and dewatering responses.
-                        </p>
-                    </div>
-
-                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                        {HERO_IMAGES.map((img, idx) => (
-                            <div
-                                key={img.url}
-                                onClick={() => {
-                                    setActiveImgIndex(idx);
-                                    document.getElementById("overview")?.scrollIntoView({ behavior: "smooth" });
-                                }}
-                                className="group relative rounded-3xl overflow-hidden border border-slate-800 bg-slate-900 shadow-xl cursor-pointer hover:border-blue-500/50 transition-all duration-300 hover:shadow-2xl hover:shadow-blue-500/10 transform hover:-translate-y-1"
-                            >
-                                <div className="h-52 w-full overflow-hidden relative">
-                                    <img
-                                        src={img.url}
-                                        alt={img.title}
-                                        className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500 ease-out"
-                                        loading="lazy"
-                                    />
-                                    <div className="absolute inset-0 bg-gradient-to-t from-slate-950 via-slate-950/30 to-transparent opacity-80 group-hover:opacity-60 transition-opacity" />
-                                    <span className="absolute top-3 left-3 px-3 py-1 rounded-full text-[10px] font-mono font-bold bg-slate-950/80 backdrop-blur-md border border-slate-700 text-blue-300">
-                                        {img.badge}
-                                    </span>
-                                </div>
-
-                                <div className="p-5">
-                                    <h3 className="text-base font-bold text-white group-hover:text-blue-400 transition-colors">
-                                        {img.title}
-                                    </h3>
-                                    <p className="text-xs text-slate-400 mt-1.5 leading-relaxed">
-                                        {img.subtitle}
-                                    </p>
-                                    <div className="mt-3 flex items-center justify-between text-[11px] font-mono text-blue-400 font-semibold pt-2 border-t border-slate-800/80">
-                                        <span>Inspect Scenario</span>
-                                        <span>&rarr;</span>
-                                    </div>
-                                </div>
-                            </div>
-                        ))}
-
-                        {/* Extra Interactive Summary Card */}
-                        <div className="p-6 rounded-3xl bg-gradient-to-br from-blue-900/30 via-slate-900 to-indigo-950/40 border border-blue-500/30 shadow-xl flex flex-col justify-between">
-                            <div>
-                                <div className="p-3 rounded-2xl bg-blue-500/20 border border-blue-400/30 text-blue-300 w-fit mb-4">
-                                    <Droplets className="w-6 h-6" />
-                                </div>
-                                <h3 className="text-lg font-bold text-white mb-2">Real-Time Sensor Verification</h3>
-                                <p className="text-slate-300 text-xs leading-relaxed">
-                                    Telemetry is validated against ultrasonic municipal sumps &amp; CCTV water-level markers, guaranteeing high confidence predictions.
-                                </p>
-                            </div>
-                            <button
-                                onClick={onEnter}
-                                className="mt-5 w-full py-2.5 px-4 rounded-xl bg-blue-600 hover:bg-blue-500 text-white font-bold text-xs shadow-md transition-all cursor-pointer text-center"
-                            >
-                                Open Live Map Operations
-                            </button>
-                        </div>
-                    </div>
-                </section>
-
-                {/* Interactive Technical Pipeline & Architecture Section */}
-                <section id="architecture" className="py-16 px-4 sm:px-8 bg-slate-900/50 border-y border-slate-800/80">
-                    <div className="max-w-7xl mx-auto">
-                        <div className="text-center max-w-2xl mx-auto mb-12">
-                            <span className="text-xs uppercase font-mono font-bold tracking-widest text-blue-400 bg-blue-500/10 px-3 py-1 rounded-full border border-blue-500/20">
-                                End-to-End System Architecture
-                            </span>
-                            <h2 className="text-3xl sm:text-4xl font-extrabold text-white tracking-tight mt-3">
-                                How RainDrop Nowcasting Works
-                            </h2>
-                            <p className="text-slate-400 text-sm mt-2">
-                                Click on any stage below to inspect how spatial DEM topography, radar telemetry, and AI surrogate hydraulics work in harmony.
-                            </p>
-                        </div>
-
-                        {/* Interactive Step Navigator */}
-                        <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
-                            {/* Left: Step Selection Cards */}
-                            <div className="lg:col-span-5 space-y-3">
-                                {PIPELINE_STEPS.map((step, idx) => {
-                                    const Icon = step.icon;
-                                    const isActive = activeStep === idx;
-                                    return (
-                                        <div
-                                            key={step.num}
-                                            onClick={() => setActiveStep(idx)}
-                                            className={`p-4 rounded-2xl border transition-all cursor-pointer flex items-start gap-3.5 ${
-                                                isActive
-                                                    ? "bg-slate-900 border-blue-500 shadow-lg shadow-blue-500/10 ring-1 ring-blue-500/50"
-                                                    : "bg-slate-950/60 border-slate-800 hover:border-slate-700 hover:bg-slate-900/40"
-                                            }`}
-                                        >
-                                            <div className={`p-2.5 rounded-xl border font-bold text-xs font-mono shrink-0 ${step.color}`}>
-                                                {step.num}
-                                            </div>
-                                            <div>
-                                                <h3 className={`text-sm font-bold ${isActive ? "text-white" : "text-slate-300"}`}>
-                                                    {step.title}
-                                                </h3>
-                                                <p className="text-xs text-slate-400 mt-1 line-clamp-2 leading-relaxed">
-                                                    {step.desc}
-                                                </p>
-                                            </div>
-                                        </div>
-                                    );
-                                })}
-                            </div>
-
-                            {/* Right: Step Deep Dive Detail Display */}
-                            <div className="lg:col-span-7 p-6 sm:p-8 rounded-3xl bg-slate-900 border border-slate-800 shadow-2xl relative overflow-hidden flex flex-col justify-between min-h-[420px]">
-                                <div className="absolute top-0 right-0 p-8 opacity-5 text-blue-500 pointer-events-none">
-                                    <Waves className="w-64 h-64" />
-                                </div>
-
-                                <div>
-                                    <div className="flex items-center justify-between pb-4 border-b border-slate-800">
-                                        <div className="flex items-center gap-3">
-                                            <div className="p-3 rounded-2xl bg-blue-600/20 border border-blue-500/30 text-blue-300">
-                                                {React.createElement(PIPELINE_STEPS[activeStep].icon, { className: "w-6 h-6" })}
-                                            </div>
-                                            <div>
-                                                <span className="text-[10px] uppercase font-bold tracking-widest text-blue-400 font-mono">
-                                                    Stage {PIPELINE_STEPS[activeStep].num} of 05
-                                                </span>
-                                                <h3 className="text-xl font-bold text-white">
-                                                    {PIPELINE_STEPS[activeStep].title}
-                                                </h3>
-                                            </div>
-                                        </div>
-                                    </div>
-
-                                    <div className="mt-5 space-y-4">
-                                        <p className="text-slate-300 text-sm leading-relaxed">
-                                            {PIPELINE_STEPS[activeStep].desc}
-                                        </p>
-
-                                        <div className="pt-3">
-                                            <span className="text-[11px] font-mono uppercase font-bold text-slate-400 tracking-wider block mb-2">
-                                                Core Technical Stack &amp; Algorithms:
-                                            </span>
-                                            <div className="flex flex-wrap gap-2">
-                                                {PIPELINE_STEPS[activeStep].tech.map((t, i) => (
-                                                    <span key={i} className="px-3 py-1 rounded-xl bg-slate-800 border border-slate-700 text-blue-300 text-xs font-mono font-semibold">
-                                                        ⚡ {t}
-                                                    </span>
-                                                ))}
-                                            </div>
-                                        </div>
-                                    </div>
-                                </div>
-
-                                {/* Flow Connection Footer */}
-                                <div className="mt-8 pt-4 border-t border-slate-800 flex items-center justify-between text-xs text-slate-400">
-                                    <span>Pipeline Status: <strong className="text-emerald-400 font-mono">200 OK Active</strong></span>
-                                    <div className="flex items-center gap-2">
-                                        <button
-                                            onClick={() => setActiveStep((prev) => (prev > 0 ? prev - 1 : PIPELINE_STEPS.length - 1))}
-                                            className="px-3 py-1.5 rounded-lg border border-slate-700 hover:bg-slate-800 text-slate-300 font-bold text-xs cursor-pointer"
-                                        >
-                                            &larr; Previous Step
-                                        </button>
-                                        <button
-                                            onClick={() => setActiveStep((prev) => (prev < PIPELINE_STEPS.length - 1 ? prev + 1 : 0))}
-                                            className="px-3 py-1.5 rounded-lg bg-blue-600 hover:bg-blue-500 text-white font-bold text-xs cursor-pointer"
-                                        >
-                                            Next Step &rarr;
-                                        </button>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </section>
-
-                {/* Core Capabilities & Features Section */}
-                <section id="features" className="py-16 px-4 sm:px-8 max-w-7xl mx-auto">
-                    <div className="text-center max-w-2xl mx-auto mb-12">
-                        <span className="text-xs uppercase font-mono font-bold tracking-widest text-emerald-400 bg-emerald-500/10 px-3 py-1 rounded-full border border-emerald-500/20">
-                            Public Safety Features
-                        </span>
-                        <h2 className="text-3xl sm:text-4xl font-extrabold text-white tracking-tight mt-3">
-                            Built for Municipal Emergency Teams
-                        </h2>
-                        <p className="text-slate-400 text-sm mt-2">
-                            Comprehensive tools for disaster management, commuter routing, and infrastructure protection.
-                        </p>
-                    </div>
-
-                    <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                        <div className="p-6 rounded-3xl bg-slate-900 border border-slate-800 shadow-xl flex flex-col justify-between hover:border-slate-700 transition-all">
-                            <div>
-                                <div className="p-3 rounded-2xl bg-blue-500/10 border border-blue-500/30 text-blue-400 w-fit mb-4">
-                                    <Activity className="w-6 h-6" />
-                                </div>
-                                <h3 className="text-lg font-bold text-white mb-2">Sub-kilometer Inundation Grid</h3>
-                                <p className="text-slate-400 text-xs leading-relaxed">
-                                    Tracks localized neighborhood water depth (0-60cm) across high-vulnerability sectors with clear color-coded hazard indicators:
-                                </p>
-                                <ul className="mt-3 space-y-1.5 text-xs text-slate-300 font-mono">
-                                    <li className="flex items-center gap-2"><span className="w-2.5 h-2.5 rounded-full bg-emerald-500" /> &lt;15cm: Dry &amp; Passable</li>
-                                    <li className="flex items-center gap-2"><span className="w-2.5 h-2.5 rounded-full bg-amber-500" /> 15-29cm: Waterlogging Caution</li>
-                                    <li className="flex items-center gap-2"><span className="w-2.5 h-2.5 rounded-full bg-rose-500" /> &ge;30cm: Impassable Hazard</li>
-                                </ul>
-                            </div>
-                        </div>
-
-                        <div className="p-6 rounded-3xl bg-slate-900 border border-slate-800 shadow-xl flex flex-col justify-between hover:border-slate-700 transition-all">
-                            <div>
-                                <div className="p-3 rounded-2xl bg-emerald-500/10 border border-emerald-500/30 text-emerald-400 w-fit mb-4">
-                                    <Navigation className="w-6 h-6" />
-                                </div>
-                                <h3 className="text-lg font-bold text-white mb-2">Dual-Corridor Route Check</h3>
-                                <p className="text-slate-400 text-xs leading-relaxed">
-                                    Renders side-by-side comparison between standard direct routes (which often submerge underpass subways) and 100% dry high-elevation flyover corridors.
-                                </p>
-                                <div className="mt-3 p-3 rounded-xl bg-slate-950 border border-slate-800 text-xs font-mono">
-                                    <span className="text-rose-400 block font-bold">🔴 Standard: Impassable Subway</span>
-                                    <span className="text-emerald-400 block font-bold mt-1">🟢 Bypass: Dry Flyover (+3 min)</span>
-                                </div>
-                            </div>
-                        </div>
-
-                        <div className="p-6 rounded-3xl bg-slate-900 border border-slate-800 shadow-xl flex flex-col justify-between hover:border-slate-700 transition-all">
-                            <div>
-                                <div className="p-3 rounded-2xl bg-indigo-500/10 border border-indigo-500/30 text-indigo-400 w-fit mb-4">
-                                    <FileText className="w-6 h-6" />
-                                </div>
-                                <h3 className="text-lg font-bold text-white mb-2">Incident SitRep Generator</h3>
-                                <p className="text-slate-400 text-xs leading-relaxed">
-                                    Generates official municipal situation reports for police dispatchers, disaster management teams, and emergency responders with one-click copy and print formatting.
-                                </p>
-                                <div className="mt-3 p-3 rounded-xl bg-slate-950 border border-slate-800 text-xs font-mono text-slate-300">
-                                    📄 SitRep Markdown &amp; Printable Incident Directives
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </section>
-
-                {/* Pilot Cities Coverage Section */}
-                <section id="cities" className="py-16 px-4 sm:px-8 bg-slate-900/50 border-t border-slate-800/80">
-                    <div className="max-w-7xl mx-auto">
-                        <div className="text-center max-w-2xl mx-auto mb-12">
-                            <span className="text-xs uppercase font-mono font-bold tracking-widest text-sky-400 bg-sky-500/10 px-3 py-1 rounded-full border border-sky-500/20">
-                                Multi-City GIS Coverage
-                            </span>
-                            <h2 className="text-3xl sm:text-4xl font-extrabold text-white tracking-tight mt-3">
-                                Supported Metropolitan Drainage Networks
-                            </h2>
-                        </div>
-
-                        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                            <div className="p-6 rounded-3xl bg-slate-900 border border-slate-800">
-                                <div className="flex items-center justify-between mb-3">
-                                    <h3 className="text-xl font-bold text-white">Chennai</h3>
-                                    <span className="text-xs font-bold text-emerald-400 font-mono bg-emerald-500/10 px-2 py-0.5 rounded border border-emerald-500/30">REAL DEM</span>
-                                </div>
-                                <p className="text-xs text-slate-400 mb-3">Slope: 3.65° · Elevation: 46.57m MSL</p>
-                                <div className="space-y-1 text-xs text-slate-300 font-mono">
-                                    <div className="p-2 rounded bg-slate-950 border border-slate-800">🌊 Buckingham Canal</div>
-                                    <div className="p-2 rounded bg-slate-950 border border-slate-800">🌊 Cooum River</div>
-                                    <div className="p-2 rounded bg-slate-950 border border-slate-800">🌊 Adyar River</div>
-                                    <div className="p-2 rounded bg-slate-950 border border-slate-800">🌊 Otteri Nullah</div>
-                                </div>
-                            </div>
-
-                            <div className="p-6 rounded-3xl bg-slate-900 border border-slate-800">
-                                <div className="flex items-center justify-between mb-3">
-                                    <h3 className="text-xl font-bold text-white">Mumbai</h3>
-                                    <span className="text-xs font-bold text-blue-400 font-mono bg-blue-500/10 px-2 py-0.5 rounded border border-blue-500/30">Wards 184-L &amp; 185-L</span>
-                                </div>
-                                <p className="text-xs text-slate-400 mb-3">Slope: 0.86° · Base Elev: 8.00m MSL</p>
-                                <div className="space-y-1 text-xs text-slate-300 font-mono">
-                                    <div className="p-2 rounded bg-slate-950 border border-slate-800">🌊 Mithi River Corridor</div>
-                                    <div className="p-2 rounded bg-slate-950 border border-slate-800">🌊 Vakola Nalla</div>
-                                    <div className="p-2 rounded bg-slate-950 border border-slate-800">🌊 Poisar River</div>
-                                    <div className="p-2 rounded bg-slate-950 border border-slate-800">🌊 Dahisar River</div>
-                                </div>
-                            </div>
-
-                            <div className="p-6 rounded-3xl bg-slate-900 border border-slate-800">
-                                <div className="flex items-center justify-between mb-3">
-                                    <h3 className="text-xl font-bold text-white">Delhi</h3>
-                                    <span className="text-xs font-bold text-purple-400 font-mono bg-purple-500/10 px-2 py-0.5 rounded border border-purple-500/30">NCR Basin</span>
-                                </div>
-                                <p className="text-xs text-slate-400 mb-3">Slope: 0.85° · Base Elev: 215.0m MSL</p>
-                                <div className="space-y-1 text-xs text-slate-300 font-mono">
-                                    <div className="p-2 rounded bg-slate-950 border border-slate-800">🌊 Yamuna River Trunk</div>
-                                    <div className="p-2 rounded bg-slate-950 border border-slate-800">🌊 Najafgarh Drain</div>
-                                    <div className="p-2 rounded bg-slate-950 border border-slate-800">🌊 Barapullah Nallah</div>
-                                    <div className="p-2 rounded bg-slate-950 border border-slate-800">🌊 Agra Canal</div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </section>
-
-                {/* Final Call to Action Footer */}
-                <section className="py-16 px-4 sm:px-8 text-center max-w-4xl mx-auto">
-                    <div className="p-8 sm:p-12 rounded-3xl bg-gradient-to-b from-blue-900/30 to-indigo-950/40 border border-blue-500/30 shadow-2xl relative overflow-hidden">
-                        <h2 className="text-2xl sm:text-4xl font-extrabold text-white tracking-tight">
-                            Ready to Access Live Flood Operations?
-                        </h2>
-                        <p className="mt-3 text-slate-300 text-sm max-w-xl mx-auto leading-relaxed">
-                            Jump straight into the interactive spatial map, real-time hotspot telemetry deck, and flood event simulation sandbox.
-                        </p>
-                        <div className="mt-8 flex justify-center">
-                            <button
-                                onClick={onEnter}
-                                className="flex items-center gap-2 px-8 py-4 rounded-2xl bg-blue-600 hover:bg-blue-500 text-white font-extrabold text-sm shadow-xl shadow-blue-600/30 transition-all cursor-pointer border border-blue-400/40"
-                            >
-                                <Activity className="w-5 h-5 text-white" />
-                                <span>Launch RainDrop Operations Center</span>
-                            </button>
-                        </div>
-                    </div>
-                </section>
-            </main>
-
-            {/* Simple Footer */}
-            <footer className="py-6 px-8 border-t border-slate-800/80 bg-slate-950 text-center text-xs text-slate-500 font-mono">
-                RainDrop · Municipal GIS Urban Flood Nowcasting Platform &copy; 2026
-            </footer>
-        </div>
-    );
-}
 
 if (typeof window !== "undefined") {
     window.RainDrop = RainDrop;
