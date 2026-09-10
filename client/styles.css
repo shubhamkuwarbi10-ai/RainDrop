@@ -419,3 +419,77 @@ code, .font-mono { font-family: 'JetBrains Mono', ui-monospace, monospace; }
         padding: 18px;
     }
 }
+
+/* Custom Leaflet Tooltip for Hotspot Callout Card */
+.leaflet-tooltip.custom-card-tooltip {
+    background: transparent !important;
+    border: none !important;
+    box-shadow: none !important;
+    padding: 0 !important;
+}
+.leaflet-tooltip.custom-card-tooltip::before {
+    display: none !important;
+}
+
+/* ============================================================
+   Editorial Hero Page Design System (Playfair Display + Inter)
+   ============================================================ */
+.hero-title {
+    font-family: "Playfair Display", Georgia, serif !important;
+    font-size: 68px !important;
+    line-height: 0.98 !important;
+    font-weight: 600 !important;
+    letter-spacing: -0.03em !important;
+}
+
+.hero-title em {
+    font-style: italic !important;
+    font-weight: 500 !important;
+    color: #1D68BD !important;
+}
+
+.section-title {
+    font-family: "Playfair Display", Georgia, serif !important;
+    font-size: 42px !important;
+    line-height: 1.15 !important;
+    font-weight: 600 !important;
+    letter-spacing: -0.02em !important;
+}
+
+.card-title-inter {
+    font-family: "Inter", sans-serif !important;
+    font-size: 17px !important;
+    font-weight: 600 !important;
+    line-height: 1.35 !important;
+}
+
+.body-inter {
+    font-family: "Inter", sans-serif !important;
+    font-size: 16px !important;
+    line-height: 1.6 !important;
+}
+
+.nav-inter {
+    font-family: "Inter", sans-serif !important;
+    font-size: 14px !important;
+    font-weight: 500 !important;
+}
+
+.metric-serif {
+    font-family: "Playfair Display", Georgia, serif !important;
+    font-size: 32px !important;
+    font-weight: 600 !important;
+    line-height: 1.1 !important;
+    letter-spacing: -0.01em !important;
+    white-space: nowrap !important;
+}
+
+.badge-label-inter {
+    font-family: "Inter", sans-serif !important;
+    font-size: 11px !important;
+    font-weight: 700 !important;
+    letter-spacing: 0.12em !important;
+    text-transform: uppercase !important;
+}
+
+
