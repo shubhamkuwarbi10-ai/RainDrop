@@ -1,15 +1,97 @@
 services:
+  # ─────────────────────────────────────────────
+  # PostGIS Database
+  # ─────────────────────────────────────────────
   db:
     image: postgis/postgis:16-3.4
     container_name: raindrop-postgis
+    restart: unless-stopped
     environment:
-      POSTGRES_DB: raindrop
-      POSTGRES_USER: postgres
-      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: ${POSTGRES_DB:-raindrop}
+      POSTGRES_USER: ${POSTGRES_USER:-postgres}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-postgres}
     ports:
       - "5432:5432"
     volumes:
       - raindrop_pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-postgres} -d ${POSTGRES_DB:-raindrop}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # ─────────────────────────────────────────────
+  # ML / GIS Server (XGBoost + GeoTIFF terrain)
+  # ─────────────────────────────────────────────
+  ml-server:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: raindrop-ml-server
+    restart: unless-stopped
+    ports:
+      - "8000:8000"
+    environment:
+      - PYTHONUNBUFFERED=1
+      - DATABASE_URL=postgresql+psycopg2://${POSTGRES_USER:-postgres}:${POSTGRES_PASSWORD:-postgres}@db:5432/${POSTGRES_DB:-raindrop}
+    volumes:
+      # Mount processed GeoTIFF rasters so the ML model can read terrain data
+      - ./data/processed:/app/data/processed:ro
+      - ./models:/app/models:ro
+    depends_on:
+      db:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 20s
+
+  # ─────────────────────────────────────────────
+  # Backend API (FastAPI + PostGIS)
+  # ─────────────────────────────────────────────
+  backend:
+    build:
+      context: .
+      dockerfile: Dockerfile.backend
+    container_name: raindrop-backend
+    restart: unless-stopped
+    ports:
+      - "8001:8001"
+    environment:
+      - PYTHONUNBUFFERED=1
+      - DATABASE_URL=postgresql+psycopg2://${POSTGRES_USER:-postgres}:${POSTGRES_PASSWORD:-postgres}@db:5432/${POSTGRES_DB:-raindrop}
+      - ML_API_URL=http://ml-server:8000
+    volumes:
+      - ./data/processed:/app/data/processed:ro
+    depends_on:
+      db:
+        condition: service_healthy
+      ml-server:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8001/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 15s
+
+  # ─────────────────────────────────────────────
+  # Frontend (Nginx serving static client/)
+  # ─────────────────────────────────────────────
+  frontend:
+    image: nginx:1.25-alpine
+    container_name: raindrop-frontend
+    restart: unless-stopped
+    ports:
+      - "80:80"
+    volumes:
+      - ./client:/usr/share/nginx/html:ro
+      - ./nginx.conf:/etc/nginx/conf.d/default.conf:ro
+    depends_on:
+      - backend
+      - ml-server
 
 volumes:
   raindrop_pgdata:

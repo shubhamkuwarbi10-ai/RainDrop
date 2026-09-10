@@ -1,0 +1,42 @@
+# Backend API Dockerfile — RainDrop PostGIS FastAPI Service
+FROM python:3.11-slim as builder
+
+WORKDIR /app
+
+# PostGIS client libs needed by psycopg2 and geoalchemy2
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    build-essential \
+    libpq-dev \
+    libgdal-dev \
+    && rm -rf /var/lib/apt/lists/*
+
+COPY backend/requirements.txt .
+RUN pip install --no-cache-dir --prefix=/install -r requirements.txt
+
+# ─────────────────────────────────────────────
+# Final Runtime Image
+# ─────────────────────────────────────────────
+FROM python:3.11-slim
+
+WORKDIR /app
+
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    libpq5 \
+    libgdal32 \
+    curl \
+    && rm -rf /var/lib/apt/lists/*
+
+COPY --from=builder /install /usr/local
+
+COPY backend/ ./backend/
+COPY server/ ./server/
+
+# Copy data directory structure (actual rasters are bind-mounted at runtime)
+RUN mkdir -p data/processed data/raw models
+
+ENV PYTHONUNBUFFERED=1
+ENV PYTHONPATH="/app/backend:/app"
+
+EXPOSE 8001
+
+CMD ["uvicorn", "backend.main:app", "--host", "0.0.0.0", "--port", "8001"]

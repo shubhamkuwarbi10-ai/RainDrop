@@ -4,3 +4,29 @@ __pycache__/
 .venv/
 venv/
 .env
+*.env.local
+
+# Large GeoTIFF / raster data files — mount at runtime, don't commit
+data/processed/*.tif
+data/processed/*.json
+data/raw/
+dataset/
+
+# ML models (large binaries)
+models/*.pkl
+models/*.joblib
+models/*.model
+
+# Scratch and generated outputs
+scratch/
+graphify-out/
+client/hero_found.json
+client/hero_view_extracted.jsx
+data/babel.min.js
+*.pyc
+**/__pycache__/
+
+# OS
+.DS_Store
+Thumbs.db
+

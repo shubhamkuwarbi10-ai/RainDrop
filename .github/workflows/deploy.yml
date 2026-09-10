@@ -1,0 +1,62 @@
+name: Deploy RainDrop to AWS EC2
+
+on:
+  push:
+    branches: [main]
+
+# ─────────────────────────────────────────────────────────────
+# Required GitHub Secrets (set in repo Settings → Secrets):
+#   EC2_HOST         — your EC2 public IP or domain
+#   EC2_USER         — typically "ubuntu"
+#   EC2_SSH_KEY      — your private key (contents of .pem file)
+#   POSTGRES_PASSWORD — strong DB password
+#   SECRET_KEY       — app secret key
+# ─────────────────────────────────────────────────────────────
+
+jobs:
+  deploy:
+    name: Deploy to EC2
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Deploy via SSH
+        uses: appleboy/ssh-action@v1.0.3
+        with:
+          host: ${{ secrets.EC2_HOST }}
+          username: ${{ secrets.EC2_USER }}
+          key: ${{ secrets.EC2_SSH_KEY }}
+          script: |
+            set -e
+
+            # ── Navigate to project directory ──
+            cd ~/raindrop || (git clone https://github.com/${{ github.repository }}.git ~/raindrop && cd ~/raindrop)
+
+            # ── Pull latest code ──
+            git fetch origin main
+            git reset --hard origin/main
+
+            # ── Write .env with production secrets ──
+            cat > .env << EOF
+            POSTGRES_DB=raindrop
+            POSTGRES_USER=postgres
+            POSTGRES_PASSWORD=${{ secrets.POSTGRES_PASSWORD }}
+            DATABASE_URL=postgresql+psycopg2://postgres:${{ secrets.POSTGRES_PASSWORD }}@db:5432/raindrop
+            ML_API_URL=http://ml-server:8000
+            APP_ENV=production
+            SECRET_KEY=${{ secrets.SECRET_KEY }}
+            EOF
+
+            # ── Rebuild and restart containers ──
+            docker compose pull db  # pull latest PostGIS image
+            docker compose up --build -d --remove-orphans
+
+            # ── Wait for health checks ──
+            sleep 10
+            docker compose ps
+
+            echo "✅ Deploy complete. Services:"
+            curl -sf http://localhost:8001/health && echo " Backend: OK" || echo " Backend: FAILED"
+            curl -sf http://localhost:8000/health && echo " ML Server: OK" || echo " ML Server: FAILED"
