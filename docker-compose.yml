@@ -38,6 +38,7 @@ services:
       # Mount processed GeoTIFF rasters so the ML model can read terrain data
       - ./data/processed:/app/data/processed:ro
       - ./models:/app/models:ro
+      - ./client:/app/client:ro
     depends_on:
       db:
         condition: service_healthy

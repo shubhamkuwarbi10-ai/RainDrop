@@ -1,3 +1,16 @@
+# Dependencies & build outputs
+node_modules/
+**/node_modules/
+.next/
+**/.next/
+frontend/screenshot-*.png
+*.log
+*.tmp
+
+# Local startup scripts (machine-specific, not for version control)
+start.bat
+stop.bat
+
 __pycache__/
 *.py[cod]
 .pytest_cache/

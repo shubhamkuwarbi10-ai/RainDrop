@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>404 - Coordinate Not Found · RainDrop GIS</title>
+    <meta name="description" content="Sector Uncharted - Inundation Coordinate Not Found.">
+    <link rel="icon" type="image/svg+xml" href="/static/favicon.svg">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+</head>
+<body class="bg-slate-950 text-slate-100 font-sans min-h-screen antialiased flex flex-col justify-between items-center text-center p-6">
+    <div class="w-full max-w-5xl mx-auto flex justify-between items-center py-4 border-b border-slate-800">
+        <a href="/" class="flex items-center gap-3">
+            <img src="/static/favicon.svg" alt="RainDrop GIS Logo" class="w-8 h-8" />
+            <span class="text-lg font-extrabold text-sky-400 tracking-tight">RainDrop <span class="text-xs font-mono text-slate-400">GIS</span></span>
+        </a>
+        <a href="/" class="text-xs font-semibold text-sky-400 hover:text-sky-300">&larr; Home</a>
+    </div>
+
+    <main class="max-w-md mx-auto my-auto py-12 flex flex-col items-center">
+        <div class="w-20 h-20 rounded-3xl bg-sky-950/80 border border-sky-500/30 flex items-center justify-center text-sky-400 font-mono text-3xl font-black shadow-lg shadow-sky-500/10 mb-6 animate-pulse">
+            404
+        </div>
+        <span class="text-xs font-mono font-bold text-red-400 uppercase tracking-widest bg-red-950/60 border border-red-800/60 px-3 py-1 rounded-full mb-3">
+            Sector Uncharted
+        </span>
+        <h1 class="text-2xl sm:text-3xl font-extrabold text-white mb-3">Inundation Coordinate Not Found</h1>
+        <p class="text-sm text-slate-400 mb-8 leading-relaxed">
+            The telemetry endpoint or geospatial route you requested does not exist on the current municipal radar grid.
+        </p>
+        <div class="flex flex-col sm:flex-row gap-3 w-full justify-center">
+            <a href="/" class="inline-flex items-center justify-center gap-2 px-6 py-3 rounded-xl bg-sky-600 hover:bg-sky-500 text-white font-bold text-sm shadow-lg shadow-sky-600/25 transition-all transform hover:-translate-y-0.5">
+                Return to Mission Control
+            </a>
+            <a href="/privacy.html" class="inline-flex items-center justify-center gap-2 px-5 py-3 rounded-xl bg-slate-900 hover:bg-slate-800 text-slate-300 font-semibold text-sm border border-slate-800 transition-colors">
+                View Privacy Policy
+            </a>
+        </div>
+    </main>
+
+    <footer class="w-full max-w-5xl mx-auto py-6 border-t border-slate-800 text-xs text-slate-500 flex flex-col sm:flex-row justify-between items-center gap-3">
+        <p>&copy; 2026 RainDrop Urban Flood Intelligence</p>
+        <p class="font-mono text-slate-600">ERROR_CODE: HTTP_404_TERRAIN_NOT_FOUND</p>
+    </footer>
+</body>
+</html>

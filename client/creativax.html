@@ -1,0 +1,503 @@
+<!DOCTYPE html>
+<html lang="en" class="scroll-smooth">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0">
+    <title>CreativaX · Ideas That Inspire | Creative Studio</title>
+    <meta name="description" content="CreativaX is an award-winning creative studio turning ideas into meaningful experiences through design, strategy, and creativity.">
+    <link rel="icon" type="image/svg+xml" href="/static/favicon.svg">
+
+    <!-- Google Fonts: Plus Jakarta Sans & Instrument Serif -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+
+    <!-- Lucide Icons CDN -->
+    <script src="https://unpkg.com/lucide@latest"></script>
+
+    <!-- Tailwind CSS CDN with Extended Palette -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        cream: {
+                            DEFAULT: '#F5EFE6', // Primary cream background
+                            soft: '#FAF7F2',    // Soft cream
+                            border: '#EADFCF',  // Border cream
+                            card: '#EFE7DA'     // Secondary card cream
+                        },
+                        studio: {
+                            orange: '#DE5D35',  // Warm studio accent orange
+                            orangeHover: '#C94E27',
+                            charcoal: '#161514',// Dark text / button charcoal
+                            muted: '#635E59'    // Muted paragraph text
+                        }
+                    },
+                    fontFamily: {
+                        sans: ['"Plus Jakarta Sans"', 'sans-serif'],
+                        serif: ['"Instrument Serif"', 'serif']
+                    },
+                    boxShadow: {
+                        'soft-warm': '0 20px 40px -15px rgba(222, 93, 53, 0.12)',
+                        'pill': '0 10px 25px -5px rgba(22, 21, 20, 0.15)',
+                    }
+                }
+            }
+        }
+    </script>
+
+    <style>
+        /* Custom Micro-Interactions & Styling */
+        .font-serif-italic {
+            font-family: 'Instrument Serif', serif;
+            font-style: italic;
+        }
+
+        /* Nav link animated underline */
+        .nav-link {
+            position: relative;
+        }
+        .nav-link::after {
+            content: '';
+            position: absolute;
+            bottom: -4px;
+            left: 0;
+            width: 0%;
+            height: 1.5px;
+            background-color: #DE5D35;
+            transition: width 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+        .nav-link:hover::after {
+            width: 100%;
+        }
+
+        /* Diagonal arrow hover slide */
+        .group:hover .arrow-diagonal {
+            transform: translate(3px, -3px);
+        }
+
+        /* Ambient video gradient layers */
+        .left-column-mask {
+            background: linear-gradient(90deg, #F5EFE6 0%, rgba(245, 239, 230, 0.95) 45%, rgba(245, 239, 230, 0.75) 70%, rgba(245, 239, 230, 0) 100%);
+        }
+
+        /* Modal backdrop transition */
+        .modal-enter {
+            opacity: 0;
+            transform: scale(0.96);
+        }
+        .modal-enter-active {
+            opacity: 1;
+            transform: scale(1);
+            transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+    </style>
+</head>
+<body class="bg-cream text-studio-charcoal font-sans antialiased selection:bg-studio-orange selection:text-white overflow-x-hidden min-h-screen">
+
+    <!-- ========================================================================= -->
+    <!-- HERO SECTION WRAPPER (Full-Width Edge-to-Edge)                           -->
+    <!-- ========================================================================= -->
+    <section class="relative w-full min-h-screen flex flex-col justify-between overflow-hidden bg-cream">
+        
+        <!-- ───────────────────────────────────────────────────────────── -->
+        <!-- Background Video & Fallback Artwork Area                     -->
+        <!-- ───────────────────────────────────────────────────────────── -->
+        <div class="absolute inset-0 w-full h-full pointer-events-none z-0 overflow-hidden">
+            <video
+                id="hero-video"
+                autoplay
+                loop
+                muted
+                playsinline
+                preload="auto"
+                poster="/static/images/hero-river-ghats-aerial-hd.jpg"
+                class="w-full h-full object-cover object-center scale-105 transition-transform duration-1000 ease-out"
+            >
+                <source src="/static/VEDIO/RAIN.mp4" type="video/mp4">
+                <source src="https://strvid.nyc3.cdn.digitaloceanspaces.com/motionsite/creative_studio_video.mp4" type="video/mp4">
+            </video>
+
+            <!-- 1. Left Column Gradient Mask: ensures high-contrast readability over video -->
+            <div class="absolute inset-y-0 left-0 w-full md:w-[60%] lg:w-[46%] left-column-mask pointer-events-none z-10"></div>
+            
+            <!-- 2. Top Navigation Framing Gradient -->
+            <div class="absolute top-0 inset-x-0 h-48 sm:h-56 lg:h-64 bg-gradient-to-b from-cream via-cream/90 via-cream/50 to-transparent pointer-events-none z-10"></div>
+            
+            <!-- 3. Bottom Framing Gradient -->
+            <div class="absolute bottom-0 inset-x-0 h-48 sm:h-56 lg:h-64 bg-gradient-to-t from-cream via-cream/90 via-cream/50 to-transparent pointer-events-none z-10"></div>
+        </div>
+
+        <!-- ───────────────────────────────────────────────────────────── -->
+        <!-- TOP NAVIGATION BAR                                            -->
+        <!-- ───────────────────────────────────────────────────────────── -->
+        <header class="relative z-30 w-full px-6 sm:px-12 lg:px-16 pt-7 pb-4">
+            <div class="max-w-7xl mx-auto flex items-center justify-between">
+                
+                <!-- Left Logo -->
+                <a href="#" class="group flex items-center gap-1.5 focus:outline-none focus-visible:ring-2 focus-visible:ring-studio-orange rounded-lg">
+                    <span class="text-2xl sm:text-3xl font-extrabold tracking-tight text-studio-charcoal">
+                        CreativaX<span class="text-studio-orange inline-block group-hover:scale-125 transition-transform duration-200">.</span>
+                    </span>
+                </a>
+
+                <!-- Desktop Navigation Links -->
+                <nav class="hidden md:flex items-center gap-9 text-sm font-medium text-studio-charcoal/85 tracking-normal">
+                    <a href="#work" class="nav-link transition-colors hover:text-studio-charcoal">Work</a>
+                    <a href="#services" class="nav-link transition-colors hover:text-studio-charcoal">Services</a>
+                    <a href="#about" class="nav-link transition-colors hover:text-studio-charcoal">About Us</a>
+                    <a href="#process" class="nav-link transition-colors hover:text-studio-charcoal">Process</a>
+                    <a href="#careers" class="nav-link transition-colors hover:text-studio-charcoal">Careers</a>
+                </nav>
+
+                <!-- Right Action Button & Mobile Hamburger -->
+                <div class="flex items-center gap-3.5">
+                    <a 
+                        href="#contact" 
+                        class="hidden sm:inline-flex items-center gap-2 px-6 py-2.5 rounded-full border border-studio-charcoal/20 bg-transparent hover:bg-studio-charcoal hover:text-cream text-studio-charcoal text-xs font-semibold tracking-wide transition-all duration-300 shadow-2xs hover:shadow-pill"
+                    >
+                        <span>Contact Us</span>
+                        <i data-lucide="arrow-right" class="w-3.5 h-3.5 transition-transform duration-200 group-hover:translate-x-1"></i>
+                    </a>
+
+                    <!-- Hamburger Button (Mobile) -->
+                    <button 
+                        id="mobile-menu-btn" 
+                        type="button" 
+                        aria-label="Toggle navigation menu"
+                        class="md:hidden p-2.5 rounded-full bg-cream-soft border border-cream-border text-studio-charcoal hover:bg-cream-card transition-colors cursor-pointer"
+                    >
+                        <i data-lucide="menu" id="menu-icon" class="w-5 h-5"></i>
+                    </button>
+                </div>
+            </div>
+        </header>
+
+        <!-- ───────────────────────────────────────────────────────────── -->
+        <!-- MOBILE SLIDE-OVER DRAWER                                      -->
+        <!-- ───────────────────────────────────────────────────────────── -->
+        <div 
+            id="mobile-drawer" 
+            class="fixed inset-0 z-50 bg-studio-charcoal/40 backdrop-blur-sm opacity-0 pointer-events-none transition-opacity duration-300 md:hidden"
+            aria-hidden="true"
+        >
+            <div class="absolute top-0 right-0 w-4/5 max-w-sm h-full bg-cream p-8 shadow-2xl flex flex-col justify-between translate-x-full transition-transform duration-300 ease-out" id="drawer-content">
+                <div>
+                    <div class="flex items-center justify-between pb-6 border-b border-cream-border">
+                        <span class="text-xl font-extrabold text-studio-charcoal">
+                            CreativaX<span class="text-studio-orange">.</span>
+                        </span>
+                        <button id="close-drawer-btn" type="button" class="p-2 rounded-full hover:bg-cream-border transition-colors">
+                            <i data-lucide="x" class="w-5 h-5 text-studio-charcoal"></i>
+                        </button>
+                    </div>
+                    <nav class="flex flex-col gap-6 pt-8 text-base font-semibold text-studio-charcoal">
+                        <a href="#work" class="mobile-nav-link hover:text-studio-orange transition-colors">Work</a>
+                        <a href="#services" class="mobile-nav-link hover:text-studio-orange transition-colors">Services</a>
+                        <a href="#about" class="mobile-nav-link hover:text-studio-orange transition-colors">About Us</a>
+                        <a href="#process" class="mobile-nav-link hover:text-studio-orange transition-colors">Process</a>
+                        <a href="#careers" class="mobile-nav-link hover:text-studio-orange transition-colors">Careers</a>
+                    </nav>
+                </div>
+
+                <div class="pt-6 border-t border-cream-border">
+                    <a href="#contact" class="flex items-center justify-center gap-2 w-full py-3.5 rounded-full bg-studio-charcoal text-cream text-xs font-bold shadow-md hover:bg-studio-orange transition-colors">
+                        <span>Get In Touch</span>
+                        <i data-lucide="arrow-right" class="w-4 h-4"></i>
+                    </a>
+                </div>
+            </div>
+        </div>
+
+        <!-- ───────────────────────────────────────────────────────────── -->
+        <!-- MAIN HERO CONTENT (Left Column Focus)                         -->
+        <!-- ───────────────────────────────────────────────────────────── -->
+        <main class="relative z-20 w-full px-6 sm:px-12 lg:px-16 py-12 md:py-16 my-auto">
+            <div class="max-w-7xl mx-auto grid grid-cols-1 lg:grid-cols-12 gap-12 items-center">
+                
+                <!-- Left Content Column -->
+                <div class="lg:col-span-7 xl:col-span-6 flex flex-col items-start text-left">
+                    
+                    <!-- Category Tag -->
+                    <div class="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-cream-soft border border-cream-border shadow-2xs mb-6 sm:mb-8">
+                        <span class="w-2 h-2 rounded-full bg-studio-orange animate-pulse"></span>
+                        <span class="text-[11px] sm:text-xs font-bold tracking-[0.2em] text-studio-orange uppercase font-mono">
+                            • WE DESIGN • WE BRAND • WE GROW
+                        </span>
+                    </div>
+
+                    <!-- Display Headline -->
+                    <h1 class="text-5xl sm:text-6xl md:text-7xl lg:text-[76px] font-extrabold tracking-tight text-studio-charcoal leading-[1.06] mb-6">
+                        Ideas That<br>
+                        <span class="font-serif-italic font-normal text-studio-orange text-6xl sm:text-7xl md:text-8xl lg:text-[88px] tracking-normal inline-block mt-1">
+                            Inspire.
+                        </span>
+                    </h1>
+
+                    <!-- Description Paragraph -->
+                    <p class="text-base sm:text-lg md:text-[19px] text-studio-muted leading-relaxed font-normal max-w-xl mb-9">
+                        We help brands turn ideas into meaningful experiences through design, strategy and creativity.
+                    </p>
+
+                    <!-- Primary Call to Action Button -->
+                    <div class="flex flex-col sm:flex-row items-stretch sm:items-center gap-4 w-full sm:w-auto mb-10">
+                        <button
+                            id="open-showreel-btn"
+                            type="button"
+                            class="group relative inline-flex items-center justify-center gap-3 px-8 py-4 rounded-full bg-studio-charcoal text-cream font-bold text-sm tracking-wide shadow-pill hover:bg-studio-orange hover:shadow-soft-warm active:scale-95 transition-all duration-300 cursor-pointer"
+                        >
+                            <span>See Our Work</span>
+                            <i data-lucide="arrow-up-right" class="arrow-diagonal w-4 h-4 text-cream transition-transform duration-300"></i>
+                        </button>
+
+                        <a 
+                            href="#services"
+                            class="inline-flex items-center justify-center gap-2 px-6 py-4 rounded-full bg-cream-soft hover:bg-cream-card border border-cream-border text-studio-charcoal text-sm font-semibold transition-colors duration-200"
+                        >
+                            <span>Explore Capabilities</span>
+                            <i data-lucide="sparkles" class="w-4 h-4 text-studio-orange"></i>
+                        </a>
+                    </div>
+
+                    <!-- Social Proof Stack with Project Imagery -->
+                    <div class="flex items-center gap-4 pt-2">
+                        <!-- 4 Overlapping Circular Team / Project Avatars -->
+                        <div class="flex -space-x-3.5 overflow-hidden p-0.5">
+                            <img 
+                                class="inline-block h-10 w-10 sm:h-11 sm:w-11 rounded-full ring-2 ring-cream object-cover hover:scale-110 hover:z-10 transition-transform duration-200" 
+                                src="/static/images/hero-mumbai-harbor-boats.jpg" 
+                                alt="Studio Showcase 1 - Coastal Brand Identity"
+                            />
+                            <img 
+                                class="inline-block h-10 w-10 sm:h-11 sm:w-11 rounded-full ring-2 ring-cream object-cover hover:scale-110 hover:z-10 transition-transform duration-200" 
+                                src="/static/images/hero-kolkata-taxi-reflection.jpg" 
+                                alt="Studio Showcase 2 - Urban Creative Campaign"
+                            />
+                            <img 
+                                class="inline-block h-10 w-10 sm:h-11 sm:w-11 rounded-full ring-2 ring-cream object-cover hover:scale-110 hover:z-10 transition-transform duration-200" 
+                                src="/static/images/hero-monsoon-bus-splash.jpg" 
+                                alt="Studio Showcase 3 - Dynamic Media Production"
+                            />
+                            <img 
+                                class="inline-block h-10 w-10 sm:h-11 sm:w-11 rounded-full ring-2 ring-cream object-cover hover:scale-110 hover:z-10 transition-transform duration-200" 
+                                src="/static/images/hero-river-ghats-aerial-hd.jpg" 
+                                alt="Studio Showcase 4 - Spatial Narrative Experience"
+                            />
+                        </div>
+
+                        <!-- Social Proof Text -->
+                        <div class="flex flex-col">
+                            <div class="flex items-center gap-1 text-studio-orange text-xs">
+                                <i data-lucide="star" class="w-3.5 h-3.5 fill-current"></i>
+                                <i data-lucide="star" class="w-3.5 h-3.5 fill-current"></i>
+                                <i data-lucide="star" class="w-3.5 h-3.5 fill-current"></i>
+                                <i data-lucide="star" class="w-3.5 h-3.5 fill-current"></i>
+                                <i data-lucide="star" class="w-3.5 h-3.5 fill-current"></i>
+                            </div>
+                            <span class="text-xs sm:text-sm font-semibold text-studio-charcoal/90">
+                                Trusted by <strong class="font-bold text-studio-charcoal">200+ brands</strong> worldwide
+                            </span>
+                        </div>
+                    </div>
+
+                </div>
+
+                <!-- Right Column (Kept clear for artwork & ambient video visibility) -->
+                <div class="hidden lg:flex lg:col-span-5 xl:col-span-6 justify-end items-end pointer-events-none">
+                    <div class="bg-cream-soft/80 backdrop-blur-md p-4 rounded-2xl border border-cream-border shadow-soft-warm pointer-events-auto flex items-center gap-3 translate-y-8">
+                        <div class="w-3 h-3 rounded-full bg-studio-orange animate-ping"></div>
+                        <span class="text-xs font-semibold text-studio-charcoal">Live Reel · 2026 Studio Direction</span>
+                    </div>
+                </div>
+
+            </div>
+        </main>
+
+        <!-- ───────────────────────────────────────────────────────────── -->
+        <!-- BOTTOM STATUS BAR / FOOTER ACCENT                             -->
+        <!-- ───────────────────────────────────────────────────────────── -->
+        <footer class="relative z-20 w-full px-6 sm:px-12 lg:px-16 py-6 border-t border-cream-border/60">
+            <div class="max-w-7xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-4 text-xs text-studio-muted">
+                <div class="flex items-center gap-4">
+                    <span class="font-semibold text-studio-charcoal">CreativaX Studio &copy; 2026</span>
+                    <span class="text-cream-border">•</span>
+                    <span>Tokyo · New York · London · Mumbai</span>
+                </div>
+                
+                <div class="flex items-center gap-6">
+                    <a href="/privacy.html" class="hover:text-studio-orange transition-colors">Privacy</a>
+                    <a href="/terms.html" class="hover:text-studio-orange transition-colors">Terms</a>
+                    <a href="#showreel" id="footer-reel-trigger" class="flex items-center gap-1.5 font-bold text-studio-orange hover:text-studio-orangeHover transition-colors cursor-pointer">
+                        <i data-lucide="play" class="w-3.5 h-3.5 fill-current"></i>
+                        <span>Watch 2026 Showreel</span>
+                    </a>
+                </div>
+            </div>
+        </footer>
+
+    </section>
+
+    <!-- ========================================================================= -->
+    <!-- FULLSCREEN VIDEO SHOWREEL MODAL                                           -->
+    <!-- ========================================================================= -->
+    <div 
+        id="showreel-modal" 
+        class="fixed inset-0 z-50 flex items-center justify-center p-4 sm:p-6 md:p-10 bg-studio-charcoal/90 backdrop-blur-lg opacity-0 pointer-events-none transition-all duration-300"
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="modal-title"
+    >
+        <!-- Click-outside backdrop layer -->
+        <div id="modal-backdrop" class="absolute inset-0"></div>
+
+        <div class="relative z-10 w-full max-w-5xl rounded-3xl overflow-hidden bg-studio-charcoal border border-white/10 shadow-2xl transform scale-95 transition-transform duration-300" id="modal-box">
+            <!-- Modal Top Bar -->
+            <div class="flex items-center justify-between px-6 py-4 bg-studio-charcoal/80 border-b border-white/10 text-cream">
+                <div class="flex items-center gap-2">
+                    <span class="w-2.5 h-2.5 rounded-full bg-studio-orange"></span>
+                    <h3 id="modal-title" class="text-sm font-bold tracking-tight">CreativaX · Annual Agency Showreel</h3>
+                </div>
+                <button 
+                    id="close-modal-btn" 
+                    type="button" 
+                    aria-label="Close Showreel"
+                    class="p-2 rounded-full bg-white/10 hover:bg-white/20 text-white transition-colors cursor-pointer"
+                >
+                    <i data-lucide="x" class="w-5 h-5"></i>
+                </button>
+            </div>
+
+            <!-- Video Player -->
+            <div class="relative aspect-video bg-black flex items-center justify-center">
+                <video 
+                    id="modal-video-player"
+                    controls 
+                    playsinline
+                    class="w-full h-full object-cover"
+                    poster="/static/images/hero-river-ghats-aerial-hd.jpg"
+                >
+                    <source src="/static/VEDIO/RAIN.mp4" type="video/mp4">
+                    <source src="https://strvid.nyc3.cdn.digitaloceanspaces.com/motionsite/creative_studio_video.mp4" type="video/mp4">
+                    Your browser does not support HTML5 video.
+                </video>
+            </div>
+
+            <!-- Modal Bottom Gallery Ribbon -->
+            <div class="p-4 sm:p-6 bg-[#1e1c1a] border-t border-white/10 grid grid-cols-2 sm:grid-cols-4 gap-3 text-xs text-white/80">
+                <div class="p-2.5 rounded-xl bg-white/5 border border-white/5">
+                    <span class="block text-[10px] text-studio-orange font-bold font-mono uppercase">01 / BRANDING</span>
+                    <p class="font-semibold text-white mt-0.5">Metropolitan Identities</p>
+                </div>
+                <div class="p-2.5 rounded-xl bg-white/5 border border-white/5">
+                    <span class="block text-[10px] text-studio-orange font-bold font-mono uppercase">02 / SPATIAL</span>
+                    <p class="font-semibold text-white mt-0.5">Atmospheric Experiences</p>
+                </div>
+                <div class="p-2.5 rounded-xl bg-white/5 border border-white/5">
+                    <span class="block text-[10px] text-studio-orange font-bold font-mono uppercase">03 / MOTION</span>
+                    <p class="font-semibold text-white mt-0.5">Dynamic Visual Narratives</p>
+                </div>
+                <div class="p-2.5 rounded-xl bg-white/5 border border-white/5">
+                    <span class="block text-[10px] text-studio-orange font-bold font-mono uppercase">04 / STRATEGY</span>
+                    <p class="font-semibold text-white mt-0.5">200+ Global Partners</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ========================================================================= -->
+    <!-- VANILLA JAVASCRIPT LOGIC & INTERACTIONS                                    -->
+    <!-- ========================================================================= -->
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            // 1. Initialize Lucide Icons
+            if (window.lucide) {
+                lucide.createIcons();
+            }
+
+            // 2. Smooth Ambient Video Playback Speed
+            const heroVideo = document.getElementById('hero-video');
+            if (heroVideo) {
+                heroVideo.playbackRate = 0.7; // Smooth ambient motion
+                // Ensure autoplay triggers reliably
+                heroVideo.play().catch(() => {
+                    console.log("Autoplay was prevented by browser policy; video will play on first touch.");
+                });
+            }
+
+            // 3. Mobile Slide-Over Drawer
+            const mobileMenuBtn = document.getElementById('mobile-menu-btn');
+            const closeDrawerBtn = document.getElementById('close-drawer-btn');
+            const mobileDrawer = document.getElementById('mobile-drawer');
+            const drawerContent = document.getElementById('drawer-content');
+            const mobileNavLinks = document.querySelectorAll('.mobile-nav-link');
+
+            function openDrawer() {
+                mobileDrawer.classList.remove('opacity-0', 'pointer-events-none');
+                drawerContent.classList.remove('translate-x-full');
+                document.body.style.overflow = 'hidden';
+            }
+
+            function closeDrawer() {
+                mobileDrawer.classList.add('opacity-0', 'pointer-events-none');
+                drawerContent.classList.add('translate-x-full');
+                document.body.style.overflow = '';
+            }
+
+            mobileMenuBtn?.addEventListener('click', openDrawer);
+            closeDrawerBtn?.addEventListener('click', closeDrawer);
+            mobileDrawer?.addEventListener('click', (e) => {
+                if (e.target === mobileDrawer) closeDrawer();
+            });
+            mobileNavLinks.forEach(link => link.addEventListener('click', closeDrawer));
+
+            // 4. Interactive Video Showreel Modal
+            const showreelModal = document.getElementById('showreel-modal');
+            const modalBox = document.getElementById('modal-box');
+            const openModalBtn = document.getElementById('open-showreel-btn');
+            const footerReelTrigger = document.getElementById('footer-reel-trigger');
+            const closeModalBtn = document.getElementById('close-modal-btn');
+            const modalBackdrop = document.getElementById('modal-backdrop');
+            const modalVideoPlayer = document.getElementById('modal-video-player');
+
+            function openModal() {
+                showreelModal.classList.remove('opacity-0', 'pointer-events-none');
+                modalBox.classList.remove('scale-95');
+                modalBox.classList.add('scale-100');
+                document.body.style.overflow = 'hidden';
+                if (modalVideoPlayer) {
+                    modalVideoPlayer.currentTime = 0;
+                    modalVideoPlayer.play().catch(() => {});
+                }
+            }
+
+            function closeModal() {
+                showreelModal.classList.add('opacity-0', 'pointer-events-none');
+                modalBox.classList.remove('scale-100');
+                modalBox.classList.add('scale-95');
+                document.body.style.overflow = '';
+                if (modalVideoPlayer) {
+                    modalVideoPlayer.pause();
+                }
+            }
+
+            openModalBtn?.addEventListener('click', openModal);
+            footerReelTrigger?.addEventListener('click', (e) => {
+                e.preventDefault();
+                openModal();
+            });
+            closeModalBtn?.addEventListener('click', closeModal);
+            modalBackdrop?.addEventListener('click', closeModal);
+
+            // Close on Escape key press
+            window.addEventListener('keydown', (e) => {
+                if (e.key === 'Escape') {
+                    closeModal();
+                    closeDrawer();
+                }
+            });
+        });
+    </script>
+</body>
+</html>

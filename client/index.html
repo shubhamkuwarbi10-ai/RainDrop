@@ -2,91 +2,198 @@
 <html lang="en" data-theme="corporate">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>RainDrop · Multi-City GIS Urban Flood Nowcasting</title>
-    <script>try{localStorage.clear();sessionStorage.clear();}catch(e){}</script>
-    
-    <!-- Google Fonts & Icons -->
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0">
+    <title>RainDrop · Multi-City GIS Urban Flood Nowcasting & Municipal AI</title>
+    <meta name="description" content="RainDrop is a real-time municipal GIS urban flood nowcasting platform using PostGIS spatial telemetry and XGBoost terrain hydrodynamic modeling.">
+    <meta name="keywords" content="urban flood forecasting, GIS nowcasting, PostGIS, flood simulation, emergency response, municipal stormwater">
+    <meta name="author" content="RainDrop GIS Technologies">
+    <meta name="theme-color" content="#0284c7">
+    <link rel="canonical" href="https://raindrop.gis.local/">
+
+    <!-- Favicon -->
+    <link rel="icon" type="image/svg+xml" href="/static/favicon.svg">
+    <link rel="apple-touch-icon" href="/static/favicon.svg">
+
+    <!-- Open Graph / Facebook / LinkedIn -->
+    <meta property="og:type" content="website">
+    <meta property="og:url" content="https://raindrop.gis.local/">
+    <meta property="og:title" content="RainDrop · Multi-City GIS Urban Flood Nowcasting">
+    <meta property="og:description" content="Real-time municipal flood nowcasting with XGBoost ML, PostGIS terrain rasters, and automated emergency routing.">
+    <meta property="og:image" content="/static/og-image.svg">
+
+    <!-- Twitter / X Card -->
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:url" content="https://raindrop.gis.local/">
+    <meta name="twitter:title" content="RainDrop GIS Urban Flood Intelligence">
+    <meta name="twitter:description" content="Hyperlocal ward-level flood forecasting and emergency dispatch decision support.">
+    <meta name="twitter:image" content="/static/og-image.svg">
+    <meta name="twitter:creator" content="@KrishanuBuilds">
+
+    <!-- Preconnect for performance -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Playfair+Display:ital,wght@0,500;0,600;0,700;1,500;1,600&family=Caveat:wght@600;700&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="preconnect" href="https://cdnjs.cloudflare.com">
+    <link rel="preconnect" href="https://unpkg.com">
+    <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,500;0,600;0,700;1,400&family=Plus+Jakarta+Sans:wght@300;400;500;600;700&family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
     
-    <!-- Tailwind CSS CDN -->
-    <script src="https://cdn.tailwindcss.com"></script>
-    <script>
-        tailwind.config = {
-            theme: {
-                extend: {
-                    fontFamily: {
-                        sans: ['Inter', 'sans-serif'],
-                        serif: ['Playfair Display', 'serif'],
-                        script: ['Caveat', 'cursive'],
-                        mono: ['JetBrains Mono', 'monospace'],
-                    }
-                }
-            }
-        }
-    </script>
+    <!-- Production Compiled Tailwind CSS (No CDN Warning) -->
+    <link rel="stylesheet" href="/static/tailwind.min.css?v=2.1.0" />
     
-    <!-- Leaflet CSS -->
-    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
-    
-    <!-- DaisyUI CDN -->
-    <link href="https://cdn.jsdelivr.net/npm/daisyui@latest/dist/full.min.css" rel="stylesheet" type="text/css" />
+    <!-- Local Leaflet CSS (Zero third-party storage tracking warnings) -->
+    <link rel="stylesheet" href="/static/vendor/leaflet.css" />
     
     <!-- Custom Application CSS -->
-    <link rel="stylesheet" href="/static/styles.css" />
+    <link rel="stylesheet" href="/static/styles.css?v=2.1.0" />
 
-    <!-- React 18 & ReactDOM 18 UMD (cdnjs) -->
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/react/18.2.0/umd/react.production.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/react-dom/18.2.0/umd/react-dom.production.min.js"></script>
+    <!-- React 18 & ReactDOM 18 UMD (Local Bundled Vendors) -->
+    <script src="/static/vendor/react.production.min.js"></script>
+    <script src="/static/vendor/react-dom.production.min.js"></script>
 
-    <!-- Leaflet JS -->
-    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    <!-- Leaflet JS (Local Bundled Vendor) -->
+    <script src="/static/vendor/leaflet.js"></script>
+
+    <!-- Main Application Script (Loaded with defer for immediate first-frame mount) -->
+    <script src="/static/frontend.js?v=2.1.0" defer></script>
 </head>
-<body class="bg-base-200 text-base-content min-h-screen font-sans">
+<body class="bg-white text-slate-900 min-h-screen font-sans antialiased m-0 p-0 overflow-x-hidden selection:bg-emerald-600 selection:text-white">
     <div id="root">
-        <!-- React Mounting Point -->
-        <div style="display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100vh; font-family: sans-serif; background-color: #f8fafc; color: #1e3a8a;">
-            <div style="font-size: 24px; font-weight: 800; color: #0284c7; margin-bottom: 8px;">RainDrop GIS</div>
-            <div>Loading Public Safety Urban Flood Intelligence Workspace...</div>
+        <!-- Initial First-Frame Hero Skeleton (Visually 100% identical to React initial render) -->
+        <div class="min-h-screen bg-white text-slate-900 flex flex-col items-center justify-start p-0 m-0 font-sans antialiased w-full overflow-x-hidden">
+            <section class="relative w-full h-screen min-h-screen overflow-hidden flex flex-col justify-between shadow-2xl">
+                <!-- Background Ambient Layer -->
+                <div class="absolute inset-0 w-full h-full z-0 overflow-hidden pointer-events-none">
+                    <video id="bg-video" autoplay loop muted playsinline preload="auto" poster="/static/images/rain-video-poster.jpg" class="w-full h-full object-cover scale-[1.01] transition-transform duration-1000">
+                        <source src="/static/VEDIO/RAIN.mp4" type="video/mp4">
+                        <source src="https://strvid.nyc3.cdn.digitaloceanspaces.com/motionsite/nature-sunset.mp4" type="video/mp4">
+                    </video>
+                    <div class="absolute inset-0 bg-gradient-to-b from-black/75 via-black/30 to-black/85 pointer-events-none"></div>
+                    <div class="absolute inset-0 bg-[radial-gradient(circle_at_center,transparent_0%,rgba(0,0,0,0.2)_50%,rgba(0,0,0,0.5)_100%)] pointer-events-none"></div>
+                </div>
+
+                <!-- Top Header & Navigation -->
+                <header class="relative z-30 w-full max-w-7xl mx-auto px-6 sm:px-10 lg:px-14 pt-6 sm:pt-8 pb-4 flex items-center justify-between">
+                    <div class="flex items-center gap-2.5 text-white tracking-[0.2em] font-light text-xl sm:text-2xl">
+                        <svg width="28" height="28" style="width:28px;height:28px;min-width:28px;" class="w-6 h-6 sm:w-7 sm:h-7 text-emerald-400 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+                            <path d="M12 22V12"></path>
+                            <path d="M12 12C12 7.58172 8.41828 4 4 4C4 8.41828 7.58172 12 12 12Z"></path>
+                            <path d="M12 15C12 11.134 15.134 8 19 8C19 11.866 15.866 15 12 15Z"></path>
+                        </svg>
+                        <span class="font-normal tracking-[0.25em]">RAINDROP</span>
+                    </div>
+
+                    <nav class="hidden lg:flex items-center space-x-8 text-[12px] font-semibold tracking-[0.2em] uppercase text-white/90">
+                        <span class="py-1 relative after:content-[''] after:absolute after:bottom-0 after:left-0 after:w-full after:h-[1px] after:bg-white text-white">LIVE RADAR</span>
+                        <span class="text-white/70">CITY BASINS</span>
+                        <span class="text-white/70">HOW IT WORKS</span>
+                        <span class="text-white/70">SAFE ROUTES</span>
+                        <span class="text-white/70">EMERGENCY</span>
+                    </nav>
+
+                    <div class="hidden lg:flex items-center">
+                        <span class="px-6 py-2.5 rounded-full border border-white/80 text-white text-[11px] font-semibold tracking-[0.2em] uppercase">
+                            VIEW LIVE MAP
+                        </span>
+                    </div>
+                </header>
+
+                <!-- Main Hero Core Content -->
+                <div class="relative z-10 w-full max-w-7xl mx-auto px-6 sm:px-10 lg:px-14 my-auto pb-16 sm:pb-20">
+                    <div class="max-w-3xl">
+                        <h1 class="font-editorial text-5xl sm:text-6xl md:text-7xl lg:text-[95px] leading-[0.95] tracking-[-0.01em] font-bold text-white text-glow">
+                            Predict Floods.<br>Protect Cities.
+                        </h1>
+                        <p class="mt-4 sm:mt-6 text-base sm:text-lg md:text-xl text-white/90 font-medium max-w-lg leading-relaxed text-glow">
+                            Real-time street water level alerts, storm drain tracking, and safe evacuation routes before floodwaters rise.
+                        </p>
+                        <div class="mt-7 sm:mt-9 flex items-center">
+                            <span class="inline-flex items-center justify-center px-8 py-4 bg-white text-black font-semibold text-xs sm:text-sm tracking-[0.18em] uppercase rounded-md shadow-xl">
+                                EXPLORE LIVE NOWCAST
+                            </span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Bottom-Right Information Bar -->
+                <div class="absolute bottom-0 right-0 z-30 bg-white text-black px-6 sm:px-10 py-4 sm:py-5 rounded-tl-[24px] flex items-center gap-3 shadow-2xl">
+                    <svg width="24" height="24" style="width:24px;height:24px;" class="absolute bottom-0 -left-[24px] w-6 h-6 text-white pointer-events-none" viewBox="0 0 24 24" fill="none">
+                        <path d="M0,24 A24,24 0 0,0 24,0 L24,24 Z" fill="currentColor"></path>
+                    </svg>
+                    <svg width="20" height="20" style="width:20px;height:20px;min-width:20px;" class="w-4 h-4 sm:w-5 sm:h-5 text-emerald-700 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M12 22V12"></path>
+                        <path d="M12 12C12 7.58172 8.41828 4 4 4C4 8.41828 7.58172 12 12 12Z"></path>
+                        <path d="M12 15C12 11.134 15.134 8 19 8C19 11.866 15.866 15 12 15Z"></path>
+                    </svg>
+                    <div class="flex items-center gap-2 sm:gap-3 text-[10px] sm:text-xs font-semibold tracking-[0.2em] uppercase text-black">
+                        <span>REAL-TIME RADAR</span>
+                        <span class="text-black/40">•</span>
+                        <span>ZERO FLOOD DELAYS</span>
+                        <span class="text-black/40">•</span>
+                        <span>6 INDIAN BASINS</span>
+                    </div>
+                </div>
+            </section>
         </div>
     </div>
 
-    <!-- Application Script Loader -->
+    <!-- Cookie Consent Banner -->
+    <div id="cookie-consent-banner" class="hidden fixed bottom-4 left-4 right-4 md:left-auto md:right-4 md:max-w-md z-[9999] bg-slate-900/95 backdrop-blur border border-slate-700/80 rounded-2xl p-4.5 shadow-2xl text-slate-200">
+        <div class="flex items-start gap-3">
+            <div class="p-2 rounded-xl bg-sky-950/80 border border-sky-800/60 text-sky-400 shrink-0">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+            </div>
+            <div class="flex-1 text-xs space-y-1.5">
+                <h4 class="font-bold text-white">Privacy &amp; Telemetry Cookies</h4>
+                <p class="text-slate-300 leading-relaxed">We use essential local storage to remember your GIS layer preferences. No invasive tracking cookies are used.</p>
+                <div class="flex items-center gap-2 pt-1 text-[11px]">
+                    <a href="/privacy.html" class="text-sky-400 hover:underline">Privacy Policy</a>
+                    <span class="text-slate-600">•</span>
+                    <a href="/terms.html" class="text-slate-400 hover:underline">Terms of Service</a>
+                </div>
+            </div>
+        </div>
+        <div class="mt-3.5 pt-3 border-t border-slate-800 flex items-center justify-end gap-2">
+            <button id="cookie-decline-btn" type="button" class="px-3 py-1.5 rounded-lg border border-slate-700 bg-slate-800 hover:bg-slate-700 text-slate-300 text-xs font-medium cursor-pointer transition-colors">
+                Essential Only
+            </button>
+            <button id="cookie-accept-btn" type="button" class="px-4 py-1.5 rounded-lg bg-sky-600 hover:bg-sky-500 text-white text-xs font-bold cursor-pointer transition-colors shadow-sm">
+                Accept All
+            </button>
+        </div>
+    </div>
+
+    <!-- Analytics & Cookie Script -->
     <script>
         (function() {
-            function loadApp() {
-                // First try loading pre-transpiled frontend.js for instant execution
-                var script = document.createElement('script');
-                script.src = '/static/frontend.js?v=' + Date.now();
-                script.onload = function() {
-                    console.log("RainDrop pre-compiled JS loaded successfully.");
-                };
-                script.onerror = function() {
-                    console.warn("frontend.js unavailable, falling back to runtime JSX transpilation...");
-                    var babelScript = document.createElement('script');
-                    babelScript.src = 'https://unpkg.com/@babel/standalone/babel.min.js';
-                    babelScript.onload = function() {
-                        fetch('/static/frontend.jsx?t=' + Date.now())
-                            .then(function(res) { return res.text(); })
-                            .then(function(source) {
-                                var transpiled = Babel.transform(source, { presets: [['react', { runtime: 'classic' }]] }).code;
-                                var fn = new Function('React', 'ReactDOM', transpiled);
-                                fn(window.React, window.ReactDOM);
-                            });
-                    };
-                    document.head.appendChild(babelScript);
-                };
-                document.body.appendChild(script);
+            var banner = document.getElementById('cookie-consent-banner');
+            var consent = localStorage.getItem('raindrop_cookie_consent');
+            if (!consent && banner) {
+                banner.classList.remove('hidden');
             }
+            document.getElementById('cookie-accept-btn')?.addEventListener('click', function() {
+                localStorage.setItem('raindrop_cookie_consent', 'accepted');
+                banner.classList.add('hidden');
+            });
+            document.getElementById('cookie-decline-btn')?.addEventListener('click', function() {
+                localStorage.setItem('raindrop_cookie_consent', 'essential');
+                banner.classList.add('hidden');
+            });
 
-            if (document.readyState === 'loading') {
-                document.addEventListener('DOMContentLoaded', loadApp);
-            } else {
-                loadApp();
-            }
+            window.RainDropAnalytics = {
+                track: function(eventName, meta) {
+                    var payload = {
+                        event: eventName,
+                        url: window.location.pathname,
+                        timestamp: new Date().toISOString(),
+                        meta: meta || {}
+                    };
+                    if (window.localStorage && localStorage.getItem('raindrop_debug') === 'true') {
+                        console.info("[RainDrop Telemetry]", payload.event, payload.url);
+                    }
+                }
+            };
+            window.RainDropAnalytics.track('pageview', { title: document.title });
         })();
     </script>
 </body>
 </html>
+
