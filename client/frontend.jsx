@@ -1,3 +1,4 @@
+// --- MODULE: client/src/icons/IconSvgRegistry.js ---
 /* @jsx React.createElement */
 /* @jsxFrag React.Fragment */
 // Global references — loaded via UMD scripts in index.html
@@ -141,6 +142,8 @@ const ChevronRight = getIcon("ChevronRight");
 // Static Configuration & Data
 // ============================================================================
 
+
+// --- MODULE: client/src/data/mockData.js ---
 const WARDS_DATA = {
     // --- MUMBAI WARDS ---
     "Kurla West": {
@@ -780,26 +783,7 @@ const WARDS_DATA = {
 const WARDS = Object.keys(WARDS_DATA);
 
 // Web Audio synthesizer for alert notifications
-function playAlertChime() {
-    try {
-        const ctx = new (window.AudioContext || window.webkitAudioContext)();
-        const osc = ctx.createOscillator();
-        const gain = ctx.createGain();
-        osc.type = "sine";
-        osc.frequency.setValueAtTime(587.33, ctx.currentTime);
-        osc.frequency.exponentialRampToValueAtTime(880, ctx.currentTime + 0.15);
-        gain.gain.setValueAtTime(0.2, ctx.currentTime);
-        gain.gain.exponentialRampToValueAtTime(0.01, ctx.currentTime + 0.4);
-        osc.connect(gain);
-        gain.connect(ctx.destination);
-        osc.start();
-        osc.stop(ctx.currentTime + 0.42);
-    } catch {
-        // audio context muted/blocked
-    }
-}
 
-// Hydrograph forecast timeline data
 const HYDROGRAPH_DATA = [
     { t: "T-1h", rain: 1.2, surge: 1.2, label: "-1h Past" },
     { t: "Now", rain: 2.8, surge: 1.5, label: "Live Telemetry" },
@@ -879,105 +863,6 @@ const ROUTE_OPTIONS = [
 // Small Reusable Components
 // ============================================================================
 
-function ToastStack({ toasts }) {
-    return (
-        <div className="fixed bottom-5 right-5 z-[80] flex flex-col gap-2 items-end pointer-events-none">
-            {toasts.map((t) => (
-                <div
-                    key={t.id}
-                    className="flex items-center gap-2.5 rounded-xl border border-indigo-500/30 bg-[#161a29]/95 backdrop-blur-md px-4 py-2.5 shadow-2xl shadow-indigo-950/60 text-slate-100 animate-in fade-in slide-in-from-bottom-3 duration-200"
-                >
-                    <div className="w-2 h-2 rounded-full bg-indigo-400 animate-ping shrink-0" />
-                    <span className="text-xs font-medium">{t.msg}</span>
-                </div>
-            ))}
-        </div>
-    );
-}
-
-function StatusPill({ busy, label = "Ready" }) {
-    if (busy) {
-        return (
-            <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-indigo-500/10 border border-indigo-500/30 text-[11px] font-medium text-indigo-300">
-                <span className="w-1.5 h-1.5 rounded-full bg-indigo-400 animate-ping" />
-                Processing…
-            </span>
-        );
-    }
-    return (
-        <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-emerald-500/10 border border-emerald-500/30 text-[11px] font-medium text-emerald-300">
-            <span className="w-1.5 h-1.5 rounded-full bg-emerald-400" />
-            {label}
-        </span>
-    );
-}
-
-function ToggleRow({ label, checked, onChange }) {
-    return (
-        <button
-            onClick={onChange}
-            className="w-full flex items-center justify-between py-2 group cursor-pointer"
-            type="button"
-        >
-            <span className="text-xs text-slate-300 group-hover:text-white transition-colors">
-                {label}
-            </span>
-            <span
-                className={`relative inline-flex h-5 w-9 items-center rounded-full transition-colors duration-200 ${checked ? "bg-indigo-600" : "bg-slate-700/80"
-                    }`}
-            >
-                <span
-                    className={`inline-block h-3.5 w-3.5 transform rounded-full bg-white transition-transform duration-200 ${checked ? "translate-x-4.5" : "translate-x-1"
-                        }`}
-                />
-            </span>
-        </button>
-    );
-}
-
-function WaterDepthWave({ depth, maxDepth = 60 }) {
-    const percentage = Math.min(100, Math.max(5, (depth / maxDepth) * 100));
-    const color = depth < 15 ? "#10b981" : depth < 30 ? "#f59e0b" : "#f43f5e";
-
-    return (
-        <div className="relative w-full h-24 rounded-xl overflow-hidden bg-slate-900/90 border border-slate-700/60 flex items-end">
-            <div className="absolute inset-0 flex flex-col justify-between p-2 pointer-events-none opacity-20">
-                <div className="border-b border-dashed border-slate-400 text-[9px] font-mono text-slate-400">60cm critical</div>
-                <div className="border-b border-dashed border-slate-400 text-[9px] font-mono text-slate-400">30cm warning</div>
-                <div className="text-[9px] font-mono text-slate-400">0cm clear</div>
-            </div>
-
-            <div
-                className="w-full transition-all duration-700 relative overflow-hidden"
-                style={{
-                    height: `${percentage}%`,
-                    backgroundColor: color,
-                    opacity: 0.75,
-                }}
-            >
-                <div
-                    className="absolute top-0 left-0 right-0 h-3 opacity-80"
-                    style={{
-                        background: `radial-gradient(ellipse at 50% 0%, rgba(255,255,255,0.6) 0%, transparent 80%)`,
-                    }}
-                />
-            </div>
-
-            <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
-                <div className="px-3 py-1 rounded-lg bg-slate-950/80 backdrop-blur-sm border border-slate-700/80 text-center">
-                    <span className="text-xl font-bold font-mono tracking-tight text-white">{depth} cm</span>
-                    <span className="block text-[9px] uppercase tracking-wider text-slate-400">
-                        {depth < 15 ? "Low / Passable" : depth < 30 ? "Moderate Inundation" : "Submerged / Impassable"}
-                    </span>
-                </div>
-            </div>
-        </div>
-    );
-}
-
-// ============================================================================
-// Metropolitan City Profiles (6 Pilot Metros)
-// ============================================================================
 
 const CITY_PROFILES = {
     "Chennai": {
@@ -1087,6 +972,130 @@ const CITY_HERO_BACKDROPS = {
 };
 
 // Line-art Monument Sketches for the 6 Metros
+
+// --- MODULE: client/src/components/common/CommonUI.jsx ---
+function playAlertChime() {
+    try {
+        const ctx = new (window.AudioContext || window.webkitAudioContext)();
+        const osc = ctx.createOscillator();
+        const gain = ctx.createGain();
+        osc.type = "sine";
+        osc.frequency.setValueAtTime(587.33, ctx.currentTime);
+        osc.frequency.exponentialRampToValueAtTime(880, ctx.currentTime + 0.15);
+        gain.gain.setValueAtTime(0.2, ctx.currentTime);
+        gain.gain.exponentialRampToValueAtTime(0.01, ctx.currentTime + 0.4);
+        osc.connect(gain);
+        gain.connect(ctx.destination);
+        osc.start();
+        osc.stop(ctx.currentTime + 0.42);
+    } catch {
+        // audio context muted/blocked
+    }
+}
+
+// Hydrograph forecast timeline data
+
+function ToastStack({ toasts }) {
+    return (
+        <div className="fixed bottom-5 right-5 z-[80] flex flex-col gap-2 items-end pointer-events-none">
+            {toasts.map((t) => (
+                <div
+                    key={t.id}
+                    className="flex items-center gap-2.5 rounded-xl border border-indigo-500/30 bg-[#161a29]/95 backdrop-blur-md px-4 py-2.5 shadow-2xl shadow-indigo-950/60 text-slate-100 animate-in fade-in slide-in-from-bottom-3 duration-200"
+                >
+                    <div className="w-2 h-2 rounded-full bg-indigo-400 animate-ping shrink-0" />
+                    <span className="text-xs font-medium">{t.msg}</span>
+                </div>
+            ))}
+        </div>
+    );
+}
+
+function StatusPill({ busy, label = "Ready" }) {
+    if (busy) {
+        return (
+            <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-indigo-500/10 border border-indigo-500/30 text-[11px] font-medium text-indigo-300">
+                <span className="w-1.5 h-1.5 rounded-full bg-indigo-400 animate-ping" />
+                Processing…
+            </span>
+        );
+    }
+    return (
+        <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-emerald-500/10 border border-emerald-500/30 text-[11px] font-medium text-emerald-300">
+            <span className="w-1.5 h-1.5 rounded-full bg-emerald-400" />
+            {label}
+        </span>
+    );
+}
+
+function ToggleRow({ label, checked, onChange }) {
+    return (
+        <button
+            onClick={onChange}
+            className="w-full flex items-center justify-between py-2 group cursor-pointer"
+            type="button"
+        >
+            <span className="text-xs text-slate-300 group-hover:text-white transition-colors">
+                {label}
+            </span>
+            <span
+                className={`relative inline-flex h-5 w-9 items-center rounded-full transition-colors duration-200 ${checked ? "bg-indigo-600" : "bg-slate-700/80"
+                    }`}
+            >
+                <span
+                    className={`inline-block h-3.5 w-3.5 transform rounded-full bg-white transition-transform duration-200 ${checked ? "translate-x-4.5" : "translate-x-1"
+                        }`}
+                />
+            </span>
+        </button>
+    );
+}
+
+function WaterDepthWave({ depth, maxDepth = 60 }) {
+    const percentage = Math.min(100, Math.max(5, (depth / maxDepth) * 100));
+    const color = depth < 15 ? "#10b981" : depth < 30 ? "#f59e0b" : "#f43f5e";
+
+    return (
+        <div className="relative w-full h-24 rounded-xl overflow-hidden bg-slate-900/90 border border-slate-700/60 flex items-end">
+            <div className="absolute inset-0 flex flex-col justify-between p-2 pointer-events-none opacity-20">
+                <div className="border-b border-dashed border-slate-400 text-[9px] font-mono text-slate-400">60cm critical</div>
+                <div className="border-b border-dashed border-slate-400 text-[9px] font-mono text-slate-400">30cm warning</div>
+                <div className="text-[9px] font-mono text-slate-400">0cm clear</div>
+            </div>
+
+            <div
+                className="w-full transition-all duration-700 relative overflow-hidden"
+                style={{
+                    height: `${percentage}%`,
+                    backgroundColor: color,
+                    opacity: 0.75,
+                }}
+            >
+                <div
+                    className="absolute top-0 left-0 right-0 h-3 opacity-80"
+                    style={{
+                        background: `radial-gradient(ellipse at 50% 0%, rgba(255,255,255,0.6) 0%, transparent 80%)`,
+                    }}
+                />
+            </div>
+
+            <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
+                <div className="px-3 py-1 rounded-lg bg-slate-950/80 backdrop-blur-sm border border-slate-700/80 text-center">
+                    <span className="text-xl font-bold font-mono tracking-tight text-white">{depth} cm</span>
+                    <span className="block text-[9px] uppercase tracking-wider text-slate-400">
+                        {depth < 15 ? "Low / Passable" : depth < 30 ? "Moderate Inundation" : "Submerged / Impassable"}
+                    </span>
+                </div>
+            </div>
+        </div>
+    );
+}
+
+// ============================================================================
+// Metropolitan City Profiles (6 Pilot Metros)
+// ============================================================================
+
+
 function CityMonumentIcon({ city, className = "w-6 h-6" }) {
     if (city === "Chennai") {
         // Temple Gopuram / Central Station Silhouette
@@ -1166,6 +1175,140 @@ function CityMonumentIcon({ city, className = "w-6 h-6" }) {
     );
 }
 
+
+function RainDropLogo({ className = "w-7 h-7", textClassName = "text-lg font-bold text-white tracking-tight" }) {
+    return (
+        <div className="flex items-center gap-2.5 group cursor-pointer select-none">
+            <div className="relative flex items-center justify-center">
+                <svg className={className} viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <defs>
+                        <linearGradient id="dropGrad" x1="16" y1="2" x2="16" y2="30" gradientUnits="userSpaceOnUse">
+                            <stop offset="0%" stopColor="#38BDF8" />
+                            <stop offset="50%" stopColor="#2563EB" />
+                            <stop offset="100%" stopColor="#1D4ED8" />
+                        </linearGradient>
+                        <filter id="dropGlow" x="-20%" y="-20%" width="140%" height="140%">
+                            <feDropShadow dx="0" dy="2" stdDeviation="3" floodColor="#0284C7" floodOpacity="0.5" />
+                        </filter>
+                    </defs>
+                    <path
+                        d="M16 3C16 3 6 15.5 6 21.5C6 26.5 10.5 30 16 30C21.5 30 26 26.5 26 21.5C26 15.5 16 3 16 3Z"
+                        fill="url(#dropGrad)"
+                        filter="url(#dropGlow)"
+                    />
+                    <path
+                        d="M16 6.5C16 6.5 10 16 10 21C10 23.5 11.5 25.5 13.5 26.5C12 25 11.2 23 11.2 20.8C11.2 16.5 16 9 16 6.5Z"
+                        fill="white"
+                        fillOpacity="0.4"
+                    />
+                </svg>
+            </div>
+            <span className={textClassName}>
+                RainDrop <span className="font-light tracking-normal opacity-90">GIS</span>
+            </span>
+        </div>
+    );
+}
+
+
+function MapStandbyDeck({ wardData, floodStats, onEnableMap }) {
+    return (
+        <div className="relative rounded-lg border border-white/20 bg-zinc-950 p-8 sm:p-10 flex flex-col items-center justify-center text-center shadow-xl overflow-hidden min-h-[480px]">
+            <div className="relative z-10 grid place-items-center w-16 h-16 rounded-lg bg-zinc-900 border border-white/30 text-white mb-5 shadow-lg">
+                <MapPin className="w-8 h-8 text-white" />
+            </div>
+
+            <div className="relative z-10 max-w-md space-y-2">
+                <span className="text-[11px] uppercase font-bold tracking-widest text-zinc-300 bg-zinc-900 px-3 py-1 rounded-md border border-white/20">
+                    Spatial Map Standby Mode
+                </span>
+                <h2 className="text-2xl font-bold text-white tracking-tight pt-1">
+                    {wardData.name} Flood Map
+                </h2>
+                <p className="text-xs text-zinc-400 leading-relaxed">
+                    Interactive spatial map visualization is currently hidden. Click the button below to load the live spatial flood grid, depth gauges, and safe corridor routing.
+                </p>
+            </div>
+
+            {/* Primary Enable Button */}
+            <div className="relative z-10 mt-7 flex flex-col sm:flex-row items-center gap-3">
+                <button
+                    onClick={onEnableMap}
+                    className="group flex items-center gap-3 px-8 py-3.5 rounded-md bg-white hover:bg-zinc-200 text-zinc-950 text-xs font-bold border border-white shadow-lg transition-all cursor-pointer"
+                    type="button"
+                >
+                    <Power className="w-4 h-4 fill-current text-zinc-950" />
+                    <span>🗺️ View Interactive Map</span>
+                    <ArrowRight className="w-4 h-4 transition-transform group-hover:translate-x-1" />
+                </button>
+            </div>
+
+            <div className="relative z-10 mt-8 grid grid-cols-3 gap-3 w-full max-w-md border-t border-zinc-800 pt-5 text-xs">
+                <div className="p-3 rounded-md bg-zinc-900 border border-zinc-800 text-center">
+                    <span className="block text-[10px] text-zinc-400 font-mono uppercase">Monitored Sectors</span>
+                    <span className="font-bold text-white font-mono text-sm">{wardData.sectors.length} Nodes</span>
+                </div>
+                <div className="p-3 rounded-md bg-zinc-900 border border-red-500/40 text-center">
+                    <span className="block text-[10px] text-red-300 font-mono uppercase">Flooded / Impassable</span>
+                    <span className="font-bold text-red-400 font-mono text-sm">{floodStats.critical} High Risk</span>
+                </div>
+                <div className="p-3 rounded-md bg-zinc-900 border border-emerald-500/40 text-center">
+                    <span className="block text-[10px] text-emerald-300 font-mono uppercase">Clear / Passable</span>
+                    <span className="font-bold text-emerald-400 font-mono text-sm">{floodStats.clear} Clear</span>
+                </div>
+            </div>
+        </div>
+    );
+}
+
+// ============================================================================
+// Top Navbar & Controls
+// ============================================================================
+
+// ============================================================================
+// Top Navbar & Controls
+// ============================================================================
+
+
+function EmergencyBanner({ wardData, floodStats, timeStep, onInspectHotspot }) {
+    const isHighRisk = floodStats.critical > 2;
+
+    return (
+        <div
+            className={`rounded-2xl border px-4 py-3 flex flex-wrap items-center justify-between gap-3 shadow-sm ${
+                isHighRisk
+                    ? "border-red-200 bg-red-50 text-red-950"
+                    : "border-amber-200 bg-amber-50 text-amber-950"
+            }`}
+        >
+            <div className="flex items-center gap-2.5">
+                <AlertOctagon className={`w-4 h-4 shrink-0 ${isHighRisk ? "text-red-600" : "text-amber-600"}`} />
+                <span className="text-xs font-bold tracking-wide">
+                    {isHighRisk
+                        ? `🚨 PUBLIC EMERGENCY WATCH: ${wardData.riverName} approaching alert stage (${wardData.riverLevel}m). ${floodStats.critical} hotspots IMPASSABLE.`
+                        : `⚠️ MONSOON ADVISORY: Drainage pumps operating at ${wardData.activePumps} capacity. Waterlogging monitored in lowlands.`}
+                </span>
+            </div>
+
+            <div className="flex items-center gap-2">
+                <button
+                    onClick={onInspectHotspot}
+                    className="flex items-center gap-1 text-[11px] font-bold px-3 py-1.5 rounded-xl bg-blue-600 hover:bg-blue-700 text-white transition-colors cursor-pointer border border-blue-700 shadow-sm"
+                >
+                    <Eye className="w-3.5 h-3.5 text-white" />
+                    <span>🗺️ Open Interactive Map</span>
+                </button>
+            </div>
+        </div>
+    );
+}
+
+// ============================================================================
+// Interactive Vector & Geospatial Map
+// ============================================================================
+
+
+// --- MODULE: client/src/components/dashboard/CityWardOverview.jsx ---
 function CityWardOverview(props) {
     const {
         selectedCity,
@@ -1732,6 +1875,3283 @@ function CityWardOverview(props) {
 // Main Application Component
 // ============================================================================
 
+
+// --- MODULE: client/src/components/dashboard/TopNavbar.jsx ---
+function TopNavbar(props) {
+    const {
+        selectedCity,
+        setSelectedCity,
+        ward,
+        wardOpen,
+        setWardOpen,
+        setWard,
+        setSelectedSector,
+        soundEnabled,
+        setSoundEnabled,
+        isMapEnabled,
+        onToggleMap,
+        onSwitchToHero,
+        pushToast,
+        setIsMapEnabled,
+    } = props;
+
+    const CITIES = ["All Cities", "Chennai", "Mumbai", "Delhi", "Bengaluru", "Kolkata", "Hyderabad"];
+
+    // Filter available wards based on selected city
+    const filteredWards = useMemo(() => {
+        if (!selectedCity || selectedCity === "All Cities") return Object.keys(WARDS_DATA);
+        return Object.keys(WARDS_DATA).filter((w) => WARDS_DATA[w].city === selectedCity);
+    }, [selectedCity]);
+
+    return (
+        <header className="flex flex-wrap items-center justify-between gap-3 p-3.5 rounded-2xl border border-slate-200 bg-white shadow-sm">
+            <div className="flex items-center gap-3">
+                <button
+                    onClick={onSwitchToHero}
+                    className="flex items-center gap-3 text-left group cursor-pointer"
+                    title="Return to Welcome Screen"
+                >
+                    <div className="grid place-items-center w-10 h-10 rounded-xl bg-blue-600 border border-blue-700 text-white shadow-sm">
+                        <Waves className="w-5 h-5 text-white" />
+                    </div>
+                    <div>
+                        <div className="flex items-center gap-2">
+                            <h1 className="text-base font-extrabold text-blue-950 tracking-tight">RainDrop GIS</h1>
+                            <span className="px-2 py-0.5 rounded-md text-[10px] font-bold bg-blue-50 text-blue-700 border border-blue-200">
+                                PUBLIC SAFETY
+                            </span>
+                        </div>
+                        <p className="text-[10px] text-slate-500 font-mono tracking-wide">
+                            Urban Flood Intelligence &amp; Nowcasting Platform
+                        </p>
+                    </div>
+                </button>
+
+                {/* City Filter Pills */}
+                <div className="hidden lg:flex items-center gap-1 bg-slate-100 p-1 rounded-xl border border-slate-200 ml-2">
+                    {CITIES.map((c) => (
+                        <button
+                            key={c}
+                            onClick={() => {
+                                setSelectedCity(c);
+                                if (c !== "All Cities") {
+                                    const first = Object.keys(WARDS_DATA).find((w) => WARDS_DATA[w].city === c);
+                                    if (first) setWard(first);
+                                }
+                            }}
+                            className={`px-2.5 py-1 rounded-lg text-xs font-bold transition-all cursor-pointer ${
+                                selectedCity === c
+                                    ? "bg-blue-600 text-white shadow-sm"
+                                    : "text-slate-600 hover:text-blue-600 hover:bg-white/60"
+                            }`}
+                        >
+                            {c === "All Cities" ? "🌐 All Cities" : c}
+                        </button>
+                    ))}
+                </div>
+            </div>
+
+            <div className="flex items-center gap-2">
+                {/* Dedicated Home Button leading to Landing Page */}
+                <button
+                    onClick={onSwitchToHero}
+                    className="flex items-center gap-1.5 px-3.5 py-2 rounded-xl border border-slate-300 bg-white hover:bg-slate-50 text-slate-800 text-xs font-bold transition-all cursor-pointer shadow-xs"
+                    title="Return to Landing Page"
+                >
+                    <Home className="w-4 h-4 text-emerald-700" />
+                    <span>Home</span>
+                </button>
+
+                {/* Enable / Standby Map Toggle Button */}
+                <button
+                    onClick={onToggleMap}
+                    className={`flex items-center gap-1.5 px-3.5 py-2 rounded-xl border text-xs font-bold transition-all cursor-pointer shadow-sm ${
+                        isMapEnabled
+                            ? "border-emerald-300 bg-emerald-600 text-white hover:bg-emerald-700"
+                            : "border-blue-200 bg-blue-50 text-blue-800 hover:bg-blue-100"
+                    }`}
+                >
+                    <Power className="w-3.5 h-3.5" />
+                    <span className="hidden sm:inline">{isMapEnabled ? "🗺️ Map Active" : "🗺️ View Map"}</span>
+                </button>
+
+                {/* Ward Selector Dropdown */}
+                <div className="relative">
+                    <button
+                        onClick={() => setWardOpen(!wardOpen)}
+                        className="flex items-center gap-2 px-3 py-1.5 rounded-xl border border-slate-200 bg-slate-50 hover:bg-slate-100 text-xs font-bold text-slate-800 transition-all cursor-pointer shadow-sm"
+                    >
+                        <MapPin className="w-3.5 h-3.5 text-blue-600" />
+                        <span>{ward}</span>
+                        <ChevronDown className={`w-3.5 h-3.5 text-slate-400 transition-transform ${wardOpen ? "rotate-180" : ""}`} />
+                    </button>
+
+                    {wardOpen && (
+                        <div className="absolute right-0 mt-2 w-64 rounded-2xl border border-slate-200 bg-white shadow-2xl py-2 z-50 text-slate-900 max-h-80 overflow-y-auto">
+                            <div className="px-3.5 py-1.5 border-b border-slate-100 text-[10px] font-bold uppercase tracking-wider text-slate-400 font-mono">
+                                {selectedCity === "All Cities" ? "All Wards Across Cities" : `Wards in ${selectedCity}`}
+                            </div>
+                            {filteredWards.map((w) => (
+                                <button
+                                    key={w}
+                                    onClick={() => {
+                                        setWard(w);
+                                        setSelectedCity(WARDS_DATA[w].city);
+                                        setWardOpen(false);
+                                    }}
+                                    className={`w-full text-left px-4 py-2 text-xs flex items-center justify-between hover:bg-blue-50 cursor-pointer ${
+                                        w === ward ? "text-blue-900 font-extrabold bg-blue-50/70" : "text-slate-700"
+                                    }`}
+                                >
+                                    <div>
+                                        <span className="block font-semibold">{w}</span>
+                                        <span className="text-[10px] text-slate-400">{WARDS_DATA[w].city} · {WARDS_DATA[w].code}</span>
+                                    </div>
+                                    {w === ward && <Check className="w-3.5 h-3.5 text-blue-600" />}
+                                </button>
+                            ))}
+                        </div>
+                    )}
+                </div>
+
+                {/* Sound Alarm Toggle */}
+                <button
+                    onClick={() => {
+                        setSoundEnabled(!soundEnabled);
+                        pushToast(`Audio alert cues ${!soundEnabled ? "enabled" : "muted"}`);
+                    }}
+                    className={`p-2 rounded-xl border transition-colors cursor-pointer shadow-sm ${
+                        soundEnabled
+                            ? "border-blue-200 bg-blue-50 text-blue-700"
+                            : "border-slate-200 bg-slate-50 text-slate-400 hover:text-slate-600"
+                    }`}
+                    title={soundEnabled ? "Audio Alarms Active" : "Audio Alarms Muted"}
+                >
+                    {soundEnabled ? <Volume2 className="w-4 h-4" /> : <VolumeX className="w-4 h-4" />}
+                </button>
+            </div>
+        </header>
+    );
+}
+
+// ============================================================================
+// Emergency Warning Banner
+// ============================================================================
+
+
+// --- MODULE: client/src/components/hero/HeroView.jsx ---
+function HeroView({ ward, wardData, onEnter, onSelectCity, onOpenMap, pushToast }) {
+    const [activeRailStep, setActiveRailStep] = useState(0); // 0: DATA, 1: COVERAGE, 2: IMPACT, 3: FUTURE
+    const [activePillarTab, setActivePillarTab] = useState(0);
+    const [scenarioRain, setScenarioRain] = useState(45); // mm/hr
+    const [scenarioTide, setScenarioTide] = useState(0.4); // meters
+    const [scenarioPumps, setScenarioPumps] = useState(90); // %
+    const [routeSimProgress, setRouteSimProgress] = useState(0);
+    const [isSimulatingRoute, setIsSimulatingRoute] = useState(false);
+
+    // CreativaX Studio State & Filmstrip Slideshow Track State
+    const [slideIndex, setSlideIndex] = useState(4); // Starts at index 4 (Real 01 in middle set)
+    const [activeArtworkIdx, setActiveArtworkIdx] = useState(0);
+    const [isTransitioning, setIsTransitioning] = useState(true);
+    const [isCarouselHovered, setIsCarouselHovered] = useState(false);
+    const [showreelModalOpen, setShowreelModalOpen] = useState(false);
+    const [mobileDrawerOpen, setMobileDrawerOpen] = useState(false);
+    const [modalArtworkIdx, setModalArtworkIdx] = useState(0);
+
+    // Responsive viewport tracking for mathematically exact slide centering
+    const [viewportWidth, setViewportWidth] = useState(
+        typeof window !== 'undefined' ? window.innerWidth : 1440
+    );
+
+    useEffect(() => {
+        const handleResize = () => setViewportWidth(window.innerWidth);
+        window.addEventListener('resize', handleResize);
+        return () => window.removeEventListener('resize', handleResize);
+    }, []);
+
+    const ARTWORKS = [
+        {
+            num: "01",
+            title: "Historic River City Ghats",
+            subtitle: "Varanasi Riverfront Topography",
+            desc: "High-resolution spatial elevation models mapping riverbank gradient steps and sacred hydrological corridors.",
+            img: "/static/images/hero-river-ghats-aerial-hd.jpg",
+            tag: "RIVER TOPOGRAPHY",
+            stats: "25.3176° N, 82.8739° E"
+        },
+        {
+            num: "02",
+            title: "Harbor Tides & Coastal Fleets",
+            subtitle: "Mumbai Harbor Tidal Basin",
+            desc: "Coastal surge modeling and astronomical high-tide boundary conditions for peninsular megacities.",
+            img: "/static/images/hero-mumbai-harbor-boats.jpg",
+            tag: "COASTAL DYNAMICS",
+            stats: "18.9220° N, 72.8347° E"
+        },
+        {
+            num: "03",
+            title: "Urban Monsoons & Street Reflections",
+            subtitle: "Kolkata Metropolitan Grid",
+            desc: "Street-level micro-inundation nowcasting tracking waterlogged taxi avenues and low-elevation sumps.",
+            img: "/static/images/hero-kolkata-taxi-reflection.jpg",
+            tag: "URBAN INUNDATION",
+            stats: "22.5726° N, 88.3639° E"
+        },
+        {
+            num: "04",
+            title: "Highway Drainage & Storm Surges",
+            subtitle: "Corridor Transit Bypass",
+            desc: "Dual-corridor safe elevation routing bypassing flooded underpasses and high-velocity stormwater splash zones.",
+            img: "/static/images/hero-monsoon-bus-splash.jpg",
+            tag: "TRANSIT RESILIENCE",
+            stats: "22.6200° N, 88.4200° E"
+        }
+    ];
+
+    // 3 complete sets of ARTWORKS (indices 0..3, 4..7, 8..11) for true infinite forward/backward track sliding
+    const EXTENDED_SLIDES = [
+        ...ARTWORKS, // Set 0: buffer on the left
+        ...ARTWORKS, // Set 1: active home set (starts at index 4)
+        ...ARTWORKS  // Set 2: buffer on the right
+    ];
+
+    // Responsive card dimensions & exact horizontal center alignment:
+    // Active card is prominent (48vw, max 760px); inactive cards are compact (23vw, max 360px)
+    const cardWidthActive = Math.min(760, Math.max(340, Math.round(viewportWidth * 0.48)));
+    const cardWidthInactive = Math.min(360, Math.max(200, Math.round(viewportWidth * 0.23)));
+    const carouselGap = 20;
+
+    // Center equation: (viewport / 2) - (activeCardWidth / 2) places the active card's center at exactly 50vw
+    const centerOffset = Math.round(viewportWidth / 2 - (cardWidthActive / 2));
+    const slideStep = cardWidthInactive + carouselGap;
+    const translateX = centerOffset - (slideIndex * slideStep);
+
+    // Automatic slide progression every 1.75 seconds with smooth 750ms glide
+    useEffect(() => {
+        if (isCarouselHovered) return;
+        const timer = setInterval(() => {
+            setIsTransitioning(true);
+            setSlideIndex((prev) => {
+                if (prev >= 8) return 5;
+                return prev + 1;
+            });
+        }, 1750);
+        return () => clearInterval(timer);
+    }, [isCarouselHovered]);
+
+    // Rock-solid infinite loop normalization:
+    // When transitioning past index 7 to index 8 (Slide 01 in Set 2), wait for the 750ms transition
+    // to complete, then silently reset to index 4 (Slide 01 in Set 1) with transition disabled.
+    // Because Slide 8 and Slide 4 are visually identical on screen, this reset is 100% invisible!
+    useEffect(() => {
+        if (slideIndex >= 8) {
+            const t = setTimeout(() => {
+                setIsTransitioning(false);
+                setSlideIndex(4);
+            }, 750);
+            return () => clearTimeout(t);
+        } else if (slideIndex < 4) {
+            const t = setTimeout(() => {
+                setIsTransitioning(false);
+                setSlideIndex((prev) => prev + 4);
+            }, 750);
+            return () => clearTimeout(t);
+        }
+    }, [slideIndex]);
+
+    // Calculate active project index (0, 1, 2, 3) and sync activeArtworkIdx
+    const activeProjectIdx = ((slideIndex % 4) + 4) % 4;
+
+    useEffect(() => {
+        setActiveArtworkIdx(activeProjectIdx);
+    }, [activeProjectIdx]);
+
+    const handleDotClick = (targetIdx) => {
+        setIsTransitioning(true);
+        setSlideIndex(4 + targetIdx);
+    };
+
+
+
+    // Dynamic calculation for the What-If sandbox
+    const computedDepthCm = Math.max(0, Math.round((scenarioRain * 0.45) + (scenarioTide * 12) - ((scenarioPumps / 100) * 16)));
+    const computedClearanceHours = Math.max(0.5, Number(((computedDepthCm * 0.12) / (scenarioPumps / 100)).toFixed(1)));
+
+    const scrollTo = (id) => {
+        const el = document.getElementById(id);
+        if (el) {
+            el.scrollIntoView({ behavior: "smooth" });
+        }
+    };
+
+    const handleRunRouteSim = () => {
+        setIsSimulatingRoute(true);
+        setRouteSimProgress(0);
+        const timer = setInterval(() => {
+            setRouteSimProgress((prev) => {
+                if (prev >= 100) {
+                    clearInterval(timer);
+                    setIsSimulatingRoute(false);
+                    if (pushToast) pushToast("Dual-Corridor: Emergency vehicle successfully routed via elevated bypass!");
+                    return 100;
+                }
+                return prev + 10;
+            });
+        }, 120);
+    };
+
+    const cityCards = [
+        {
+            city: "Chennai",
+            state: "Tamil Nadu",
+            river: "Adyar & Cooum Basin",
+            focus: "Coastal Storm Canals",
+            risk: "High Watch",
+            riskType: "high",
+            pumps: "49 / 54 Active",
+            elevation: "Sea Level Basin",
+            img: "/static/images/pexels-wanderinglenses-13670217.jpg"
+        },
+        {
+            city: "Mumbai",
+            state: "Maharashtra",
+            river: "Mithi River & Mahim Bay",
+            focus: "Tidal Creek Outfalls",
+            risk: "High Watch",
+            riskType: "high",
+            pumps: "51 / 58 Active",
+            elevation: "Coastal Lowland",
+            img: "/static/images/zoshua-colah-1fradOPdjBM-unsplash.jpg"
+        },
+        {
+            city: "Delhi",
+            state: "NCR",
+            river: "Yamuna River Basin",
+            focus: "Ring Road Underpasses",
+            risk: "High Watch",
+            riskType: "high",
+            pumps: "62 / 69 Active",
+            elevation: "River Floodplain",
+            img: "/static/images/dibakar-roy-KbG3OsDKkCM-unsplash.jpg"
+        },
+        {
+            city: "Kolkata",
+            state: "West Bengal",
+            river: "Hooghly River & Canals",
+            focus: "Historic Sump Stations",
+            risk: "High Watch",
+            riskType: "high",
+            pumps: "44 / 50 Active",
+            elevation: "Delta Lowland",
+            img: "/static/images/hero-kolkata-taxi-reflection.jpg"
+        },
+        {
+            city: "Bengaluru",
+            state: "Karnataka",
+            river: "Bellandur & Vrishabhavathi",
+            focus: "Valley Storm Drains",
+            risk: "Moderate",
+            riskType: "mod",
+            pumps: "38 / 42 Active",
+            elevation: "Elevated Plateau",
+            img: "/static/images/hero-aerial-drone.jpg"
+        },
+        {
+            city: "Hyderabad",
+            state: "Telangana",
+            river: "Musi River & Hussain Sagar",
+            focus: "Storm Culvert Runoff",
+            risk: "Moderate",
+            riskType: "mod",
+            pumps: "34 / 38 Active",
+            elevation: "Deccan Basin",
+            img: "/static/images/dibakar-roy-aby-GGLtD-A-unsplash.jpg"
+        }
+    ];
+
+    const GIS_PILLARS = [
+        {
+            num: "01",
+            title: "3D Street Elevation Mapping",
+            badge: "Terrain Heights",
+            tagline: "Pinpoints low road dips and hollows where stormwater gathers first.",
+            desc: "By reading high-accuracy satellite terrain heights across every street, RainDrop reveals exactly which intersections, underpasses, and neighborhood lanes sit in natural low points.",
+            img: "/static/images/dibakar-roy-FbOchRlXaPs-unsplash.jpg",
+            benefits: ["Sub-meter street height precision", "Highlights deep road hollows", "Calculates downhill water flow", "Flags trapped water pockets"],
+            tag: "Elevation Topography"
+        },
+        {
+            num: "02",
+            title: "Live Rainstorm Radar Tracking",
+            badge: "Weather Radar",
+            tagline: "Follows heavy cloudbursts minute-by-minute hours before rainfall peaks.",
+            desc: "Streams live weather radar across every metropolitan area. It tracks storm clouds in motion so residents and municipal crews know exactly when and where heavy downpours will hit.",
+            img: "/static/images/dibakar-roy-DccG84ivd3k-unsplash.jpg",
+            benefits: ["Live radar precipitation feed", "Storm direction and speed tracking", "5-minute cloud updates", "Up to 6 hours advance warning"],
+            tag: "Radar Telemetry"
+        },
+        {
+            num: "03",
+            title: "Canals & Drainage Water Flow",
+            badge: "Waterway Movement",
+            tagline: "Monitors city canals, sea tides, and stormwater drainage lines.",
+            desc: "Watches how water travels through underground pipes, open city canals, and river outfall gates, accounting for ocean high tides that push seawater back into neighborhood drains.",
+            img: "/static/images/dibakar-roy-P7Z3HwNWPeQ-unsplash.jpg",
+            benefits: ["Underground pipe capacity checks", "Tide and river backflow tracking", "Canal blockage detection", "Gate opening advisories"],
+            tag: "Hydrodynamics"
+        },
+        {
+            num: "04",
+            title: "Instant Street Flood Depth Alerts",
+            badge: "Real-Time Depth",
+            tagline: "Calculates standing water depth across every neighborhood in milliseconds.",
+            desc: "Instead of waiting hours for slow simulations, our smart predictive model calculates whether a street will have 5 cm or 45 cm of water in milliseconds as rain falls.",
+            img: "/static/images/hero-aerial-drone.jpg",
+            benefits: ["Instant depth forecasts in cm", "Door-to-door street accuracy", "Clear vehicle safety limits", "Fast response advisories"],
+            tag: "Surrogate Intelligence"
+        }
+    ];
+
+    const currentArt = ARTWORKS[activeArtworkIdx] || ARTWORKS[0];
+
+    return (
+        <div className="min-h-screen bg-white text-slate-900 flex flex-col items-center justify-start p-0 m-0 font-sans antialiased w-full overflow-x-hidden selection:bg-emerald-600 selection:text-white">
+            
+            {/* ========================================================================= */}
+            {/* VERDE FULL-SCREEN NATURE VIDEO HERO SECTION (100vw x 100vh Full Viewport) */}
+            {/* ========================================================================= */}
+            <section className="relative w-full h-screen min-h-screen overflow-hidden flex flex-col justify-between">
+
+                {/* 1. Background Video & Multi-Layer Ambient Overlays (Full Bleed Edge-to-Edge) */}
+                <div className="absolute inset-0 w-full h-full z-0 overflow-hidden pointer-events-none">
+                    <video
+                        id="bg-video"
+                        autoPlay
+                        loop
+                        muted
+                        playsInline
+                        preload="auto"
+                        poster="/static/images/rain-video-poster.jpg"
+                        className="w-full h-full object-cover scale-[1.01] transition-transform duration-1000"
+                    >
+                        <source src="/static/VEDIO/RAIN.mp4" type="video/mp4" />
+                        <source src="https://strvid.nyc3.cdn.digitaloceanspaces.com/motionsite/nature-sunset.mp4" type="video/mp4" />
+                    </video>
+                    {/* Linear Top-to-Bottom Gradient */}
+                    <div className="absolute inset-0 bg-gradient-to-b from-black/75 via-black/30 to-black/85 pointer-events-none" />
+                    {/* Radial Vignette */}
+                    <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,transparent_0%,rgba(0,0,0,0.2)_50%,rgba(0,0,0,0.5)_100%)] pointer-events-none" />
+                </div>
+
+                {/* 2. Top Header & Navigation Inside Hero */}
+                <header className="relative z-30 w-full max-w-7xl mx-auto px-6 sm:px-10 lg:px-14 pt-6 sm:pt-8 pb-4 flex items-center justify-between">
+                    {/* Brand Logo with Water Droplet / Sprout SVG */}
+                    <div 
+                        onClick={() => {
+                            window.scrollTo({ top: 0, behavior: "smooth" });
+                            setActiveRailStep(0);
+                        }}
+                        className="group flex items-center gap-2.5 text-white tracking-[0.2em] font-light text-xl sm:text-2xl cursor-pointer transition-opacity hover:opacity-90 select-none"
+                    >
+                        <svg width="28" height="28" style={{ width: '28px', height: '28px', minWidth: '28px' }} className="w-6 h-6 sm:w-7 sm:h-7 text-emerald-400 transition-transform duration-500 group-hover:scale-110 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+                            <path d="M12 22V12"></path>
+                            <path d="M12 12C12 7.58172 8.41828 4 4 4C4 8.41828 7.58172 12 12 12Z"></path>
+                            <path d="M12 15C12 11.134 15.134 8 19 8C19 11.866 15.866 15 12 15Z"></path>
+                        </svg>
+                        <span className="font-normal tracking-[0.25em]">RAINDROP</span>
+                    </div>
+
+                    {/* Desktop Navigation Links with animated underline */}
+                    <nav className="hidden lg:flex items-center space-x-8 text-[12px] font-semibold tracking-[0.2em] uppercase text-white/90">
+                        <button 
+                            onClick={() => { scrollTo("home"); setActiveRailStep(0); }} 
+                            className="hover:text-white transition-colors relative py-1 after:content-[''] after:absolute after:bottom-0 after:left-0 after:w-full after:h-[1px] after:bg-white cursor-pointer"
+                        >
+                            LIVE RADAR
+                        </button>
+                        <button 
+                            onClick={() => { scrollTo("coverage"); setActiveRailStep(1); }} 
+                            className="hover:text-white/70 transition-colors py-1 relative group cursor-pointer"
+                        >
+                            CITY BASINS
+                            <span className="absolute bottom-0 left-0 w-full h-[1px] bg-white scale-x-0 group-hover:scale-x-100 transition-transform duration-300"></span>
+                        </button>
+                        <button 
+                            onClick={() => { scrollTo("data"); setActiveRailStep(0); }} 
+                            className="hover:text-white/70 transition-colors py-1 relative group cursor-pointer"
+                        >
+                            HOW IT WORKS
+                            <span className="absolute bottom-0 left-0 w-full h-[1px] bg-white scale-x-0 group-hover:scale-x-100 transition-transform duration-300"></span>
+                        </button>
+                        <button 
+                            onClick={() => { scrollTo("solutions"); setActiveRailStep(2); }} 
+                            className="hover:text-white/70 transition-colors py-1 relative group cursor-pointer"
+                        >
+                            SAFE ROUTES
+                            <span className="absolute bottom-0 left-0 w-full h-[1px] bg-white scale-x-0 group-hover:scale-x-100 transition-transform duration-300"></span>
+                        </button>
+                        <button 
+                            onClick={() => scrollTo("command-contact")} 
+                            className="hover:text-white/70 transition-colors py-1 relative group cursor-pointer"
+                        >
+                            EMERGENCY
+                            <span className="absolute bottom-0 left-0 w-full h-[1px] bg-white scale-x-0 group-hover:scale-x-100 transition-transform duration-300"></span>
+                        </button>
+                    </nav>
+
+                    {/* Right Header Action Button */}
+                    <div className="hidden lg:flex items-center">
+                        <button
+                            type="button"
+                            onClick={() => {
+                                if (onOpenMap) onOpenMap(ward, "Chennai");
+                                else onEnter();
+                            }}
+                            className="px-6 py-2.5 rounded-full border border-white/80 text-white text-[11px] font-semibold tracking-[0.2em] uppercase transition-all duration-300 hover:bg-white hover:text-black active:scale-95 cursor-pointer"
+                        >
+                            VIEW LIVE MAP
+                        </button>
+                    </div>
+
+                    {/* Mobile Menu Toggle Button */}
+                    <button
+                        type="button"
+                        onClick={() => setMobileDrawerOpen(!mobileDrawerOpen)}
+                        aria-label="Toggle navigation menu"
+                        className="lg:hidden p-2 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-white/40 cursor-pointer"
+                    >
+                        {mobileDrawerOpen ? (
+                            <X className="w-7 h-7" />
+                        ) : (
+                            <Menu className="w-7 h-7" />
+                        )}
+                    </button>
+                </header>
+
+                {/* Mobile Navigation Drawer */}
+                {mobileDrawerOpen && (
+                    <div className="absolute inset-0 bg-black/95 backdrop-blur-2xl z-40 lg:hidden flex flex-col justify-between p-8 pt-24 animate-fadeIn">
+                        <div className="flex flex-col space-y-5 text-center">
+                            <button onClick={() => { scrollTo("home"); setMobileDrawerOpen(false); }} className="text-2xl font-editorial text-white tracking-widest hover:text-emerald-300 transition-colors">LIVE RADAR</button>
+                            <button onClick={() => { scrollTo("coverage"); setMobileDrawerOpen(false); }} className="text-2xl font-editorial text-white/80 tracking-widest hover:text-emerald-300 transition-colors">CITY BASINS</button>
+                            <button onClick={() => { scrollTo("data"); setMobileDrawerOpen(false); }} className="text-2xl font-editorial text-white/80 tracking-widest hover:text-emerald-300 transition-colors">HOW IT WORKS</button>
+                            <button onClick={() => { scrollTo("solutions"); setMobileDrawerOpen(false); }} className="text-2xl font-editorial text-white/80 tracking-widest hover:text-emerald-300 transition-colors">SAFE ROUTES</button>
+                            <button onClick={() => { scrollTo("command-contact"); setMobileDrawerOpen(false); }} className="text-2xl font-editorial text-white/80 tracking-widest hover:text-emerald-300 transition-colors">EMERGENCY</button>
+                        </div>
+                        <div className="flex flex-col items-center space-y-5 pt-4 border-t border-white/10">
+                            <button
+                                onClick={() => {
+                                    setMobileDrawerOpen(false);
+                                    if (onOpenMap) onOpenMap(ward, "Chennai");
+                                    else onEnter();
+                                }}
+                                className="w-full text-center py-3 rounded-full border border-white/80 text-white text-xs font-semibold tracking-[0.2em] uppercase hover:bg-white hover:text-black transition-all"
+                            >
+                                VIEW LIVE MAP
+                            </button>
+                        </div>
+                    </div>
+                )}
+
+                {/* 3. Main Hero Core Content */}
+                <div className="relative z-10 w-full max-w-7xl mx-auto px-6 sm:px-10 lg:px-14 my-auto pb-16 sm:pb-20">
+                    <div className="max-w-3xl">
+                        {/* Serif Headline with Cormorant Garamond */}
+                        <h1 className="font-editorial text-5xl sm:text-6xl md:text-7xl lg:text-[95px] leading-[0.95] tracking-[-0.01em] font-bold text-white text-glow">
+                            Predict Floods.<br />Protect Cities.
+                        </h1>
+
+                        {/* Subtitle */}
+                        <p className="mt-4 sm:mt-6 text-base sm:text-lg md:text-xl text-white/90 font-medium max-w-lg leading-relaxed text-glow">
+                            Real-time street water level alerts, storm drain tracking, and safe evacuation routes before floodwaters rise.
+                        </p>
+
+                        {/* CTA Action (Clean Single Pill Button Without Video Play Button) */}
+                        <div className="mt-7 sm:mt-9 flex items-center">
+                            <button
+                                type="button"
+                                onClick={() => {
+                                    if (onOpenMap) onOpenMap(ward, "Chennai");
+                                    else onEnter();
+                                }}
+                                className="inline-flex items-center justify-center px-8 py-4 bg-white text-black font-semibold text-xs sm:text-sm tracking-[0.18em] uppercase rounded-md shadow-xl transition-all duration-300 hover:bg-white/90 hover:scale-105 hover:shadow-2xl hover:shadow-white/20 active:scale-95 cursor-pointer"
+                            >
+                                EXPLORE LIVE NOWCAST
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                {/* 4. Bottom-Right White Cutout Tab with Concave Fillet */}
+                <div className="absolute bottom-0 right-0 z-30 bg-white text-black px-6 sm:px-10 py-4 sm:py-5 rounded-tl-[24px] flex items-center gap-3 shadow-2xl">
+                    {/* Left Inverted Fillet (Concave Corner) */}
+                    <svg width="24" height="24" style={{ width: '24px', height: '24px' }} className="absolute bottom-0 -left-[24px] w-6 h-6 text-white pointer-events-none" viewBox="0 0 24 24" fill="none">
+                        <path d="M0,24 A24,24 0 0,0 24,0 L24,24 Z" fill="currentColor"></path>
+                    </svg>
+
+                    {/* Water Sprout Logo Icon */}
+                    <svg width="20" height="20" style={{ width: '20px', height: '20px', minWidth: '20px' }} className="w-4 h-4 sm:w-5 sm:h-5 text-emerald-700 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                        <path d="M12 22V12"></path>
+                        <path d="M12 12C12 7.58172 8.41828 4 4 4C4 8.41828 7.58172 12 12 12Z"></path>
+                        <path d="M12 15C12 11.134 15.134 8 19 8C19 11.866 15.866 15 12 15Z"></path>
+                    </svg>
+                    <div className="flex items-center gap-2 sm:gap-3 text-[10px] sm:text-xs font-semibold tracking-[0.2em] uppercase text-black">
+                        <span className="hover:text-emerald-700 transition-colors">REAL-TIME RADAR</span>
+                        <span className="text-black/40">•</span>
+                        <span className="hover:text-emerald-700 transition-colors">ZERO FLOOD DELAYS</span>
+                        <span className="text-black/40">•</span>
+                        <span className="hover:text-emerald-700 transition-colors">6 INDIAN BASINS</span>
+                    </div>
+                </div>
+
+            </section>
+
+            {/* ========================================================================= */}
+            {/* EDITORIAL GIS CAROUSEL SECTION — Dark Card Filmstrip                      */}
+            {/* ========================================================================= */}
+            <section
+                className="w-full bg-white border-t border-neutral-200 text-neutral-900 font-sans"
+                style={{ paddingTop: '96px', paddingBottom: '0' }}
+            >
+                {/* ── Header (constrained) ── */}
+                <div className="relative w-full max-w-7xl mx-auto px-6 sm:px-10 lg:px-14 mb-12">
+                    {/* "OUR FOCUS AREAS" label with flanking lines */}
+                    <div className="flex items-center justify-center gap-4 mb-4">
+                        <span style={{ flex: '0 0 60px', height: '1px', background: '#93c5fd' }} />
+                        <span
+                            className="font-bebas uppercase tracking-[0.35em] text-sky-500"
+                            style={{ fontSize: '13px', letterSpacing: '0.3em' }}
+                        >
+                            OUR FOCUS AREAS
+                        </span>
+                        <span style={{ flex: '0 0 60px', height: '1px', background: '#93c5fd' }} />
+                    </div>
+
+                    {/* Main title — centred */}
+                    <h2
+                        className="font-bebas text-center text-neutral-950 uppercase leading-[0.9] tracking-wide"
+                        style={{ fontSize: 'clamp(28px, 5.5vw, 80px)', marginBottom: '12px', letterSpacing: '0.02em' }}
+                    >
+                        DATA-DRIVEN SOLUTIONS FOR SAFER CITIES
+                    </h2>
+
+                    {/* Subtitle — centred */}
+                    <p
+                        className="font-bebas text-center text-neutral-500 uppercase tracking-[0.18em]"
+                        style={{ fontSize: '12px', marginBottom: '0' }}
+                    >
+                        EXPLORE KEY USE CASES WHERE REAL-TIME GEOSPATIAL DATA AND FORECASTING CREATE MEASURABLE IMPACT.
+                    </p>
+
+                    {/* VIEW ALL PROJECTS — absolute top-right */}
+                    <button
+                        type="button"
+                        onClick={() => {
+                            const el = document.getElementById('cities');
+                            if (el) el.scrollIntoView({ behavior: 'smooth' });
+                        }}
+                        className="font-bebas uppercase tracking-widest text-neutral-900 hover:bg-neutral-100 transition-colors cursor-pointer"
+                        style={{
+                            position: 'absolute',
+                            top: '0',
+                            right: '56px',
+                            fontSize: '12px',
+                            letterSpacing: '0.12em',
+                            border: '1.5px solid #737373',
+                            borderRadius: '999px',
+                            padding: '8px 20px',
+                        }}
+                    >
+                        VIEW ALL PROJECTS
+                    </button>
+                </div>
+
+                {/* ── Full-bleed Filmstrip Stage ── */}
+                <div
+                    className="w-full select-none"
+                    style={{ overflow: 'hidden', paddingTop: '28px', paddingBottom: '16px', minHeight: '490px' }}
+                    onMouseEnter={() => setIsCarouselHovered(true)}
+                    onMouseLeave={() => setIsCarouselHovered(false)}
+                >
+                    <div
+                        style={{
+                            display: 'flex',
+                            alignItems: 'flex-end',
+                            gap: `${carouselGap}px`,
+                            transform: `translate3d(${translateX}px, 0, 0)`,
+                            transition: isTransitioning
+                                ? 'transform 750ms cubic-bezier(0.25, 1, 0.5, 1)'
+                                : 'none',
+                            willChange: 'transform',
+                        }}
+                    >
+                        {EXTENDED_SLIDES.map((art, idx) => {
+                            const isCurrent = idx === slideIndex;
+                            return (
+                                <div
+                                    key={`${art.num}-${idx}`}
+                                    onClick={() => {
+                                        setIsTransitioning(true);
+                                        setSlideIndex(idx);
+                                    }}
+                                    style={{
+                                        position: 'relative',
+                                        flexShrink: '0',
+                                        cursor: 'pointer',
+                                        borderRadius: '16px',
+                                        overflow: 'hidden',
+                                        boxShadow: isCurrent
+                                            ? '0 24px 64px rgba(0,0,0,0.38)'
+                                            : '0 8px 24px rgba(0,0,0,0.16)',
+                                        width: `${isCurrent ? cardWidthActive : cardWidthInactive}px`,
+                                        height: isCurrent ? '430px' : '350px',
+                                        transform: isCurrent ? 'translateY(-16px)' : 'translateY(0)',
+                                        opacity: isCurrent ? 1 : 0.72,
+                                        transition: isTransitioning
+                                            ? 'width 750ms cubic-bezier(0.25, 1, 0.5, 1), height 750ms cubic-bezier(0.25, 1, 0.5, 1), transform 750ms cubic-bezier(0.25, 1, 0.5, 1), opacity 750ms ease, box-shadow 750ms ease'
+                                            : 'none',
+                                        willChange: 'transform, width',
+                                    }}
+                                >
+                                    {/* Full-card background image */}
+                                    <img
+                                        src={art.img}
+                                        alt={art.title}
+                                        style={{
+                                            position: 'absolute',
+                                            inset: '0',
+                                            width: '100%',
+                                            height: '100%',
+                                            objectFit: 'cover',
+                                            objectPosition: 'center',
+                                            display: 'block',
+                                        }}
+                                    />
+
+                                    {/* Dark gradient overlay — stronger at bottom */}
+                                    <div
+                                        style={{
+                                            position: 'absolute',
+                                            inset: '0',
+                                            background: isCurrent
+                                                ? 'linear-gradient(to top, rgba(0,0,0,0.85) 0%, rgba(0,0,0,0.25) 55%, rgba(0,0,0,0.15) 100%)'
+                                                : 'linear-gradient(to top, rgba(0,0,0,0.75) 0%, rgba(0,0,0,0.35) 50%, rgba(0,0,0,0.2) 100%)',
+                                        }}
+                                    />
+
+                                    {/* Top label row: "02 — COASTAL DYNAMICS" */}
+                                    <div
+                                        style={{
+                                            position: 'absolute',
+                                            top: '18px',
+                                            left: '18px',
+                                            right: '18px',
+                                            display: 'flex',
+                                            alignItems: 'center',
+                                            gap: '10px',
+                                        }}
+                                    >
+                                        <span
+                                            className="font-bebas text-white"
+                                            style={{ fontSize: '14px', letterSpacing: '0.12em', opacity: 0.9 }}
+                                        >
+                                            {art.num}
+                                        </span>
+                                        <span
+                                            style={{
+                                                width: '24px',
+                                                height: '1px',
+                                                background: 'rgba(255,255,255,0.5)',
+                                                flexShrink: '0',
+                                            }}
+                                        />
+                                        <span
+                                            className="font-bebas text-white uppercase"
+                                            style={{ fontSize: '11px', letterSpacing: '0.22em', opacity: 0.75 }}
+                                        >
+                                            {art.tag}
+                                        </span>
+                                    </div>
+
+                                    {/* Bottom content area */}
+                                    <div
+                                        style={{
+                                            position: 'absolute',
+                                            bottom: '0',
+                                            left: '0',
+                                            right: '0',
+                                            padding: isCurrent ? '28px' : '16px 18px',
+                                        }}
+                                    >
+                                        {/* Category label (inactive only — shown in small) */}
+                                        {!isCurrent && (
+                                            <span
+                                                className="font-bebas text-white uppercase block"
+                                                style={{
+                                                    fontSize: '9px',
+                                                    letterSpacing: '0.2em',
+                                                    opacity: 0.6,
+                                                    marginBottom: '4px',
+                                                }}
+                                            >
+                                                {art.tag}
+                                            </span>
+                                        )}
+
+                                        {/* Title */}
+                                        <h3
+                                            className="font-bebas text-white uppercase leading-[0.95]"
+                                            style={{
+                                                fontSize: isCurrent
+                                                    ? 'clamp(24px, 3vw, 44px)'
+                                                    : 'clamp(13px, 1.5vw, 20px)',
+                                                marginBottom: isCurrent ? '6px' : '0',
+                                            }}
+                                        >
+                                            {art.title}
+                                        </h3>
+
+                                        {/* Active-only: subtitle + progress + button */}
+                                        {isCurrent && (
+                                            <>
+                                                <p
+                                                    className="font-bebas text-white uppercase"
+                                                    style={{
+                                                        fontSize: '11px',
+                                                        letterSpacing: '0.15em',
+                                                        opacity: 0.65,
+                                                        marginBottom: '20px',
+                                                    }}
+                                                >
+                                                    {art.subtitle}
+                                                </p>
+                                                <div
+                                                    style={{
+                                                        display: 'flex',
+                                                        alignItems: 'center',
+                                                        justifyContent: 'space-between',
+                                                    }}
+                                                >
+                                                    <button
+                                                        type="button"
+                                                        onClick={(e) => {
+                                                            e.stopPropagation();
+                                                            setModalArtworkIdx(
+                                                                art.num === '01' ? 0 :
+                                                                art.num === '02' ? 1 :
+                                                                art.num === '03' ? 2 : 3
+                                                            );
+                                                            setShowreelModalOpen(true);
+                                                        }}
+                                                        className="font-bebas text-white uppercase hover:bg-white hover:text-black transition-all cursor-pointer"
+                                                        style={{
+                                                            fontSize: '12px',
+                                                            letterSpacing: '0.15em',
+                                                            border: '1.5px solid rgba(255,255,255,0.7)',
+                                                            borderRadius: '999px',
+                                                            padding: '7px 20px',
+                                                        }}
+                                                    >
+                                                        EXPLORE PROJECT
+                                                    </button>
+                                                    <span
+                                                        className="font-bebas text-white"
+                                                        style={{
+                                                            fontSize: '13px',
+                                                            letterSpacing: '0.1em',
+                                                            opacity: 0.45,
+                                                        }}
+                                                    >
+                                                        {art.num} / 04
+                                                    </span>
+                                                </div>
+                                            </>
+                                        )}
+
+                                        {/* Inactive slide: slide number / 04 */}
+                                        {!isCurrent && (
+                                            <span
+                                                className="font-bebas text-white block"
+                                                style={{
+                                                    fontSize: '10px',
+                                                    letterSpacing: '0.12em',
+                                                    opacity: 0.4,
+                                                    marginTop: '4px',
+                                                }}
+                                            >
+                                                {art.num} / 04
+                                            </span>
+                                        )}
+                                    </div>
+                                </div>
+                            );
+                        })}
+                    </div>
+                </div>
+
+                {/* ── Dot Pagination ── */}
+                <div
+                    style={{
+                        display: 'flex',
+                        justifyContent: 'center',
+                        alignItems: 'center',
+                        gap: '8px',
+                        marginTop: '20px',
+                        marginBottom: '20px',
+                    }}
+                >
+                    {ARTWORKS.map((art, idx) => {
+                        const isActive = idx === activeProjectIdx;
+                        return (
+                            <button
+                                key={art.num}
+                                type="button"
+                                onClick={() => handleDotClick(idx)}
+                                aria-label={`Go to slide ${art.num}`}
+                                style={{
+                                    width: isActive ? '28px' : '8px',
+                                    height: '8px',
+                                    borderRadius: '999px',
+                                    background: isActive ? '#2563eb' : '#d1d5db',
+                                    border: 'none',
+                                    padding: '0',
+                                    cursor: 'pointer',
+                                    transition: 'width 300ms ease, background 300ms ease',
+                                }}
+                            />
+                        );
+                    })}
+                </div>
+
+                {/* ── Bottom Tagline Strip ── */}
+                <div
+                    className="w-full max-w-7xl mx-auto"
+                    style={{
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'space-between',
+                        border: '1px solid #e5e7eb',
+                        borderRadius: '999px',
+                        padding: '14px 32px',
+                        marginLeft: 'auto',
+                        marginRight: 'auto',
+                        marginBottom: '0',
+                        background: '#fafafa',
+                        maxWidth: '1280px',
+                        width: 'calc(100% - 48px)',
+                    }}
+                >
+                    <p
+                        className="font-bebas text-neutral-500 uppercase"
+                        style={{ fontSize: '11px', letterSpacing: '0.18em' }}
+                    >
+                        FROM RIVERS TO COASTLINES TO URBAN STREETS — TURNING REAL-TIME DATA INTO SAFER, MORE RESILIENT CITIES.
+                    </p>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '20px', flexShrink: '0' }}>
+                        <span style={{ width: '1px', height: '18px', background: '#d1d5db' }} />
+                        <button
+                            type="button"
+                            onClick={() => {
+                                const el = document.getElementById('cities');
+                                if (el) el.scrollIntoView({ behavior: 'smooth' });
+                            }}
+                            className="font-bebas text-sky-600 uppercase hover:text-sky-800 transition-colors cursor-pointer"
+                            style={{ fontSize: '11px', letterSpacing: '0.18em', background: 'none', border: 'none', padding: '0' }}
+                        >
+                            LEARN MORE
+                        </button>
+                    </div>
+                </div>
+                <div style={{ height: '32px' }} />
+            </section>
+
+
+            {/* ========================================================================= */}
+            {/* FULLSCREEN NATURE VIDEO MODAL POPUP                                       */}
+            {/* ========================================================================= */}
+            {showreelModalOpen && (
+                <div 
+                    className="fixed inset-0 bg-black/90 z-50 flex items-center justify-center p-4 sm:p-10 transition-opacity duration-500"
+                    onClick={() => setShowreelModalOpen(false)}
+                >
+                    <div 
+                        className="relative w-full max-w-4xl aspect-video bg-black rounded-xl overflow-hidden shadow-2xl border border-white/20"
+                        onClick={(e) => e.stopPropagation()}
+                    >
+                        <button 
+                            onClick={() => setShowreelModalOpen(false)}
+                            aria-label="Close modal" 
+                            className="absolute top-4 right-4 z-10 px-4 py-2 rounded bg-black/80 text-white font-bebas text-sm tracking-widest hover:bg-white hover:text-black transition-all cursor-pointer"
+                        >
+                            CLOSE
+                        </button>
+                        <video 
+                            id="modal-video" 
+                            controls 
+                            autoPlay 
+                            playsInline 
+                            className="w-full h-full object-cover"
+                            poster={ARTWORKS[modalArtworkIdx ?? activeProjectIdx]?.img}
+                        >
+                            <source src="/static/VEDIO/RAIN.mp4" type="video/mp4" />
+                            <source src="https://strvid.nyc3.cdn.digitaloceanspaces.com/motionsite/nature-sunset.mp4" type="video/mp4" />
+                        </video>
+                    </div>
+                </div>
+            )}
+
+            {/* ========================================================================= */}
+            {/* ========================================================================= */}
+            {/* BELOW-SLIDESHOW CONTAINER: Light Architectural Environmental Dashboard    */}
+            {/* ========================================================================= */}
+            <div className="w-full bg-gradient-to-b from-[#D4E8F2] via-[#C5E1EE] to-[#B3D7E9] text-slate-900 relative">
+                {/* Main Full-Width Container with Pleasing Human-Eye Margins */}
+                <div className="w-full px-5 sm:px-10 lg:px-14 xl:px-18 mx-auto flex flex-col">
+
+                    {/* ========================================================================= */}
+                    {/* SECTION 01: PILLARS — Visual Environmental Intelligence (4 Pillars)       */}
+                    {/* ========================================================================= */}
+                    <section id="data" className="relative py-20 sm:py-28 w-full flex flex-col gap-10 sm:gap-12 border-b border-[#9DC6DA]">
+                        {/* Section Header */}
+                        <div className="flex flex-col lg:flex-row lg:items-end justify-between gap-8 border-b border-[#9DC6DA] pb-8 sm:pb-10">
+                            <div className="max-w-4xl">
+                                <div className="inline-flex items-center gap-2.5 px-3.5 py-1.5 rounded-md bg-sky-100/90 border border-sky-300 text-sky-900 font-mono text-xs font-bold tracking-wider uppercase shadow-xs">
+                                    <Layers className="w-3.5 h-3.5 text-sky-700" />
+                                    <span>SYSTEM PILLARS // 01</span>
+                                </div>
+                                <h2 className="font-editorial text-4xl sm:text-5xl lg:text-6xl font-normal text-slate-900 mt-4 tracking-tight leading-[1.12]">
+                                    How RainDrop Sees &amp; Understands Urban Rainfall
+                                </h2>
+                                <p className="text-slate-700 text-lg sm:text-xl lg:text-2xl mt-4 leading-relaxed font-sans font-light">
+                                    From high-accuracy street terrain heights to real-time weather radar, four integrated intelligence layers predict street runoff before storm centers peak.
+                                </p>
+                            </div>
+
+                            <button
+                                onClick={() => {
+                                    if (window._openGisSpecsModal) window._openGisSpecsModal();
+                                    else if (pushToast) pushToast("Opening Data Specifications");
+                                }}
+                                className="flex items-center gap-2.5 px-7 py-3.5 rounded-xl bg-sky-700 hover:bg-sky-800 text-white text-sm font-bold tracking-wide uppercase transition-all duration-200 shadow-md hover:shadow-lg cursor-pointer shrink-0"
+                            >
+                                <Sliders className="w-4 h-4 text-sky-200" />
+                                <span>Inspect Data Layers</span>
+                            </button>
+                        </div>
+
+                        {/* 4 Separate Channel Cards with Pleasant Gaps */}
+                        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5 sm:gap-6">
+                            {GIS_PILLARS.map((pillar, idx) => (
+                                <button
+                                    key={pillar.num}
+                                    type="button"
+                                    onClick={() => setActivePillarTab(idx)}
+                                    className={`text-left p-6 sm:p-7 rounded-2xl border transition-all duration-300 ease-out cursor-pointer flex flex-col justify-between relative shadow-sm hover:shadow-md ${
+                                        activePillarTab === idx
+                                            ? "bg-white border-sky-600 ring-2 ring-sky-500/30 -translate-y-1"
+                                            : "bg-white/85 border-[#9DC6DA] hover:bg-white hover:border-sky-400"
+                                    }`}
+                                >
+                                    {/* Active Highlight Top Indicator */}
+                                    {activePillarTab === idx && (
+                                        <div className="absolute top-0 left-6 right-6 h-1 bg-sky-600 rounded-full" />
+                                    )}
+
+                                    <div className="flex items-center justify-between w-full mb-3.5">
+                                        <span className={`font-mono text-sm font-bold tracking-wider ${
+                                            activePillarTab === idx ? "text-sky-700" : "text-slate-400"
+                                        }`}>
+                                            [{pillar.num}]
+                                        </span>
+                                        <span className={`text-[11px] font-bold uppercase tracking-wider px-2.5 py-0.5 rounded-sm border ${
+                                            activePillarTab === idx
+                                                ? "bg-sky-100 text-sky-900 border-sky-300"
+                                                : "bg-slate-100 text-slate-600 border-slate-200"
+                                        }`}>
+                                            {pillar.badge}
+                                        </span>
+                                    </div>
+
+                                    <div>
+                                        <h3 className={`font-sans font-bold text-lg sm:text-xl transition-colors ${
+                                            activePillarTab === idx ? "text-slate-900" : "text-slate-800"
+                                        }`}>
+                                            {pillar.title}
+                                        </h3>
+                                        <p className="text-sm text-slate-600 mt-2 font-sans font-normal leading-relaxed">
+                                            {pillar.tagline}
+                                        </p>
+                                    </div>
+                                </button>
+                            ))}
+                        </div>
+
+                        {/* Separate Panoramic Telemetry Showcase with Generous Spacing */}
+                        <div className="p-6 sm:p-8 lg:p-10 rounded-3xl bg-white/95 border border-[#9DC6DA] shadow-md grid grid-cols-1 lg:grid-cols-12 gap-8 sm:gap-10 items-center">
+                            {/* Left: Large Photography Viewport (7 Cols) */}
+                            <div className="lg:col-span-7 relative min-h-[340px] sm:min-h-[420px] lg:min-h-[460px] rounded-2xl overflow-hidden bg-slate-950 border border-[#B3D6E6] group shadow-inner">
+                                <img
+                                    src={GIS_PILLARS[activePillarTab].img}
+                                    alt={GIS_PILLARS[activePillarTab].title}
+                                    className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700 ease-out"
+                                />
+                                <div className="absolute inset-0 bg-gradient-to-t from-slate-950/85 via-slate-950/20 to-transparent" />
+
+                                {/* High-Tech Top Overlay Badge */}
+                                <div className="absolute top-4 left-4 right-4 flex items-center justify-between pointer-events-none">
+                                    <div className="flex items-center gap-2 bg-white/90 backdrop-blur-md border border-slate-200 px-3.5 py-1.5 rounded-md font-mono text-xs text-sky-950 font-bold uppercase tracking-wider shadow-xs">
+                                        <Activity className="w-3.5 h-3.5 text-sky-700 animate-pulse" />
+                                        <span>SENSOR STREAM: {GIS_PILLARS[activePillarTab].tag}</span>
+                                    </div>
+                                    <div className="hidden sm:block font-mono text-xs text-slate-700 bg-white/90 backdrop-blur-md px-3 py-1.5 rounded-md border border-slate-200 font-semibold shadow-xs">
+                                        FPS: 60 · LATENCY: 11.2ms
+                                    </div>
+                                </div>
+
+                                {/* Bottom Image Info */}
+                                <div className="absolute bottom-5 left-5 right-5 sm:bottom-6 sm:left-6 sm:right-6">
+                                    <span className="font-mono text-xs uppercase tracking-widest text-sky-400 font-bold block mb-1">
+                                        LIVE ENVIRONMENTAL OBSERVATION
+                                    </span>
+                                    <h4 className="text-2xl sm:text-3xl font-editorial text-white">
+                                        {GIS_PILLARS[activePillarTab].title}
+                                    </h4>
+                                </div>
+                            </div>
+
+                            {/* Right: Technical Telemetry Readout (5 Cols) */}
+                            <div className="lg:col-span-5 flex flex-col justify-between gap-6 sm:gap-8">
+                                <div>
+                                    <div className="flex items-center justify-between border-b border-[#B3D6E6] pb-3 mb-5">
+                                        <span className="font-mono text-xs uppercase tracking-widest text-slate-500 font-bold">
+                                            LAYER ANALYSIS // SPEC 0{activePillarTab + 1}
+                                        </span>
+                                        <span className="font-mono text-xs text-sky-700 font-bold">
+                                            REAL-TIME DATA READY
+                                        </span>
+                                    </div>
+
+                                    <p className="text-base sm:text-lg text-slate-800 leading-relaxed font-sans">
+                                        {GIS_PILLARS[activePillarTab].desc}
+                                    </p>
+
+                                    <div className="mt-6 sm:mt-7 space-y-3.5">
+                                        <span className="font-mono text-xs uppercase tracking-widest text-slate-500 font-bold block">
+                                            OPERATIONAL CAPABILITIES
+                                        </span>
+                                        {GIS_PILLARS[activePillarTab].benefits.map((benefit) => (
+                                            <div key={benefit} className="flex items-start gap-3 text-base text-slate-800 font-medium">
+                                                <div className="w-2.5 h-2.5 rounded-full bg-sky-600 mt-1.5 shrink-0" />
+                                                <span>{benefit}</span>
+                                            </div>
+                                        ))}
+                                    </div>
+                                </div>
+
+                                <div className="pt-5 border-t border-[#B3D6E6] flex items-center justify-between">
+                                    <div className="font-mono text-xs text-slate-600">
+                                        UPDATE CADENCE: <strong className="text-slate-900">EVERY 60 SEC</strong>
+                                    </div>
+                                    <button
+                                        onClick={() => onOpenMap(ward, "Chennai")}
+                                        className="flex items-center gap-1.5 font-sans text-sm font-bold text-sky-700 hover:text-sky-800 transition-colors cursor-pointer"
+                                    >
+                                        <span>Open City Map</span>
+                                        <ArrowRight className="w-4 h-4" />
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </section>
+
+                    {/* ========================================================================= */}
+                    {/* SECTION 02: COVERAGE — 6 Monitored Metropolitan Basins                    */}
+                    {/* ========================================================================= */}
+                    <section id="coverage" className="relative py-20 sm:py-28 w-full flex flex-col gap-10 sm:gap-12 border-b border-[#9DC6DA]">
+                        <div className="flex flex-col lg:flex-row lg:items-end justify-between gap-8 border-b border-[#9DC6DA] pb-8 sm:pb-10">
+                            <div className="max-w-4xl">
+                                <div className="inline-flex items-center gap-2.5 px-3.5 py-1.5 rounded-md bg-sky-100/90 border border-sky-300 text-sky-900 font-mono text-xs font-bold tracking-wider uppercase shadow-xs">
+                                    <Waves className="w-3.5 h-3.5 text-sky-700" />
+                                    <span>URBAN BASIN MATRIX // 02</span>
+                                </div>
+                                <h2 className="font-editorial text-4xl sm:text-5xl lg:text-6xl font-normal text-slate-900 mt-4 tracking-tight leading-[1.12]">
+                                    Live City Waterways Across 6 Indian Metros
+                                </h2>
+                                <p className="text-slate-700 text-lg sm:text-xl lg:text-2xl mt-4 leading-relaxed font-sans font-light">
+                                    Continuous 24/7 water monitoring across India's premier coastal and river basins. Select any metro to load real-time municipal diagnostics.
+                                </p>
+                            </div>
+
+                            <button
+                                onClick={onEnter}
+                                className="flex items-center gap-2 px-7 py-3.5 rounded-xl bg-slate-900 hover:bg-slate-800 text-white text-sm font-bold uppercase tracking-wider transition-all duration-200 shadow-md hover:shadow-lg cursor-pointer shrink-0"
+                            >
+                                <span>Explore All Metros</span>
+                                <ArrowRight className="w-4 h-4 text-sky-400" />
+                            </button>
+                        </div>
+
+                        {/* 6 City Cards Grid with Pleasant Spacing */}
+                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 sm:gap-8">
+                            {cityCards.map((item) => (
+                                <div
+                                    key={item.city}
+                                    onClick={() => {
+                                        if (onSelectCity) onSelectCity(item.city);
+                                        else onEnter();
+                                    }}
+                                    className="group relative rounded-2xl bg-white/95 border border-[#9DC6DA] hover:border-sky-600 shadow-sm hover:shadow-xl transition-all duration-300 ease-out cursor-pointer flex flex-col justify-between hover:-translate-y-1.5 overflow-hidden"
+                                >
+                                    {/* City Photo Header */}
+                                    <div className="relative h-64 sm:h-72 w-full overflow-hidden bg-slate-900">
+                                        <img
+                                            src={item.img}
+                                            alt={`${item.city} Skyline and Waterway`}
+                                            className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700 ease-out"
+                                        />
+                                        <div className="absolute inset-0 bg-gradient-to-t from-slate-950/85 via-slate-950/20 to-transparent" />
+                                        
+                                        {/* Risk Badge */}
+                                        <div className="absolute top-4 right-4">
+                                            <span className={`px-3 py-1 rounded-sm text-xs font-bold uppercase tracking-wider ${
+                                                item.riskType === "high"
+                                                    ? "bg-rose-100 text-rose-900 border border-rose-300"
+                                                    : "bg-amber-100 text-amber-900 border border-amber-300"
+                                            }`}>
+                                                {item.risk}
+                                            </span>
+                                        </div>
+
+                                        <div className="absolute bottom-4 left-6 right-6">
+                                            <span className="font-mono text-xs text-sky-300 font-bold uppercase tracking-widest">{item.state}</span>
+                                            <h3 className="font-editorial text-3xl sm:text-4xl text-white group-hover:text-sky-300 transition-colors mt-0.5">
+                                                {item.city}
+                                            </h3>
+                                        </div>
+                                    </div>
+
+                                    {/* Body Specs in Layman Terms */}
+                                    <div className="p-6 sm:p-8 flex flex-col justify-between flex-1">
+                                        <div className="space-y-3.5 text-base text-slate-700 font-sans">
+                                            <div className="flex items-center justify-between border-b border-[#B3D6E6]/70 pb-3">
+                                                <span className="text-slate-500 font-mono text-xs uppercase tracking-wider">Primary Waterway</span>
+                                                <span className="font-bold text-slate-900">{item.river}</span>
+                                            </div>
+                                            <div className="flex items-center justify-between border-b border-[#B3D6E6]/70 pb-3">
+                                                <span className="text-slate-500 font-mono text-xs uppercase tracking-wider">Key Focus</span>
+                                                <span className="text-slate-800 font-medium">{item.focus}</span>
+                                            </div>
+                                            <div className="flex items-center justify-between">
+                                                <span className="text-slate-500 font-mono text-xs uppercase tracking-wider">Elevation Profile</span>
+                                                <span className="text-sky-800 font-mono text-sm font-semibold">{item.elevation}</span>
+                                            </div>
+                                        </div>
+
+                                        {/* Card Footer */}
+                                        <div className="mt-7 pt-5 border-t border-[#B3D6E6] flex items-center justify-between">
+                                            <div>
+                                                <span className="text-base font-bold text-slate-900 block">
+                                                    {item.pumps}
+                                                </span>
+                                                <span className="text-xs text-slate-500 block">
+                                                    Drainage Pumps Ready
+                                                </span>
+                                            </div>
+
+                                            <div className="flex items-center gap-1.5 text-base font-bold text-sky-700 group-hover:text-sky-800 transition-colors">
+                                                <span>Open City Map</span>
+                                                <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            ))}
+                        </div>
+                    </section>
+
+                    {/* ========================================================================= */}
+                    {/* SECTION 03: CITIZEN IMPACT & TRANSIT SAFETY (4 Pictorial Cards)            */}
+                    {/* ========================================================================= */}
+                    <section id="solutions" className="relative py-20 sm:py-28 w-full flex flex-col gap-10 sm:gap-12">
+                        <div className="flex flex-col lg:flex-row lg:items-end justify-between gap-8 border-b border-[#9DC6DA] pb-8 sm:pb-10">
+                            <div className="max-w-4xl">
+                                <div className="inline-flex items-center gap-2.5 px-3.5 py-1.5 rounded-md bg-sky-100/90 border border-sky-300 text-sky-900 font-mono text-xs font-bold tracking-wider uppercase shadow-xs">
+                                    <ShieldCheck className="w-3.5 h-3.5 text-sky-700" />
+                                    <span>CIVIL PROTECTION &amp; CITIZEN SAFETY // 03</span>
+                                </div>
+                                <h2 className="font-editorial text-4xl sm:text-5xl lg:text-6xl font-normal text-slate-900 mt-4 tracking-tight leading-[1.12]">
+                                    Real Problems Citizens Face — And How We Solve Them
+                                </h2>
+                                <p className="text-slate-700 text-lg sm:text-xl lg:text-2xl mt-4 leading-relaxed font-sans font-light">
+                                    Monsoon deluges shouldn't cause flooded vehicles, stranded commuters, or waterlogged neighborhoods. Here is how real-time insights protect daily life.
+                                </p>
+                            </div>
+
+                            <button
+                                onClick={onEnter}
+                                className="flex items-center gap-1.5 text-base font-bold text-sky-800 hover:text-sky-900 transition-colors cursor-pointer shrink-0"
+                            >
+                                <span>Explore All Hotspots</span>
+                                <ArrowRight className="w-4 h-4" />
+                            </button>
+                        </div>
+
+                        {/* 4 Large Pictorial Impact Cards with Pleasant Gaps */}
+                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 sm:gap-8">
+                            {/* Card 1: Monsoon Bus Splash */}
+                            <div 
+                                onClick={() => { if (onSelectCity) onSelectCity("Kolkata"); else onEnter(); }}
+                                className="group rounded-2xl bg-white/95 border border-[#9DC6DA] hover:border-sky-600 transition-all duration-300 ease-out overflow-hidden flex flex-col cursor-pointer hover:-translate-y-1.5 shadow-sm hover:shadow-xl"
+                            >
+                                <div className="relative h-64 sm:h-72 overflow-hidden bg-slate-900">
+                                    <img
+                                        src="/static/images/hero-monsoon-bus-splash.jpg"
+                                        alt="City Bus moving through heavy rainwater"
+                                        className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700 ease-out"
+                                    />
+                                    <div className="absolute top-4 left-4 bg-white/95 text-slate-900 text-xs font-bold px-3 py-1 rounded-sm border border-slate-200 shadow-xs">
+                                        Public Transit
+                                    </div>
+                                </div>
+                                <div className="p-6 sm:p-8 flex flex-col justify-between flex-1">
+                                    <div>
+                                        <h3 className="font-sans font-bold text-slate-900 text-xl group-hover:text-sky-700 transition-colors">
+                                            Keeping Public Buses Moving
+                                        </h3>
+                                        <p className="text-base text-slate-700 mt-3.5 leading-relaxed font-sans">
+                                            Routes city buses away from submerged lowlands onto dry flyover bypasses before main arterial roads flood.
+                                        </p>
+                                    </div>
+                                    <div className="mt-7 flex items-center justify-between text-sm border-t border-[#B3D6E6] pt-4">
+                                        <span className="font-bold text-sky-800">✓ Zero Stranded Commuters</span>
+                                        <span className="text-sky-700 font-bold group-hover:translate-x-1 transition-transform">See Live →</span>
+                                    </div>
+                                </div>
+                            </div>
+
+                            {/* Card 2: Vehicle Engine Protection */}
+                            <div 
+                                onClick={() => { if (onSelectCity) onSelectCity("Kolkata"); else onEnter(); }}
+                                className="group rounded-2xl bg-white/95 border border-[#9DC6DA] hover:border-amber-600 transition-all duration-300 ease-out overflow-hidden flex flex-col cursor-pointer hover:-translate-y-1.5 shadow-sm hover:shadow-xl"
+                            >
+                                <div className="relative h-64 sm:h-72 overflow-hidden bg-slate-900">
+                                    <img
+                                        src="/static/images/pexels-dibakar-roy-2432543-18192646.jpg"
+                                        alt="Car driving through rain street reflection"
+                                        className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700 ease-out"
+                                    />
+                                    <div className="absolute top-4 left-4 bg-white/95 text-amber-900 text-xs font-bold px-3 py-1 rounded-sm border border-amber-200 shadow-xs">
+                                        Vehicle Safety
+                                    </div>
+                                </div>
+                                <div className="p-6 sm:p-8 flex flex-col justify-between flex-1">
+                                    <div>
+                                        <h3 className="font-sans font-bold text-slate-900 text-xl group-hover:text-amber-800 transition-colors">
+                                            Preventing Engine Damage
+                                        </h3>
+                                        <p className="text-base text-slate-700 mt-3.5 leading-relaxed font-sans">
+                                            Flags exact street puddle depths before you drive in, preventing engine water intake and expensive vehicle repairs.
+                                        </p>
+                                    </div>
+                                    <div className="mt-7 flex items-center justify-between text-sm border-t border-[#B3D6E6] pt-4">
+                                        <span className="font-bold text-amber-800">✓ 100% Engine Safety</span>
+                                        <span className="text-sky-700 font-bold group-hover:translate-x-1 transition-transform">See Live →</span>
+                                    </div>
+                                </div>
+                            </div>
+
+                            {/* Card 3: Riverside Community Safety */}
+                            <div 
+                                onClick={() => { if (onSelectCity) onSelectCity("Delhi"); else onEnter(); }}
+                                className="group rounded-2xl bg-white/95 border border-[#9DC6DA] hover:border-teal-600 transition-all duration-300 ease-out overflow-hidden flex flex-col cursor-pointer hover:-translate-y-1.5 shadow-sm hover:shadow-xl"
+                            >
+                                <div className="relative h-64 sm:h-72 overflow-hidden bg-slate-900">
+                                    <img
+                                        src="/static/images/hero-river-ghats-aerial-hd.jpg"
+                                        alt="Riverside community and riverfront view"
+                                        className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700 ease-out"
+                                    />
+                                    <div className="absolute top-4 left-4 bg-white/95 text-teal-900 text-xs font-bold px-3 py-1 rounded-sm border border-teal-200 shadow-xs">
+                                        River Safety
+                                    </div>
+                                </div>
+                                <div className="p-6 sm:p-8 flex flex-col justify-between flex-1">
+                                    <div>
+                                        <h3 className="font-sans font-bold text-slate-900 text-xl group-hover:text-teal-800 transition-colors">
+                                            Protecting Riverside Areas
+                                        </h3>
+                                        <p className="text-base text-slate-700 mt-3.5 leading-relaxed font-sans">
+                                            Continuous river gauges upstream give residents and authorities up to 6 hours of advance notice before river levels peak.
+                                        </p>
+                                    </div>
+                                    <div className="mt-7 flex items-center justify-between text-sm border-t border-[#B3D6E6] pt-4">
+                                        <span className="font-bold text-teal-800">✓ 6h Advance Surge Notice</span>
+                                        <span className="text-sky-700 font-bold group-hover:translate-x-1 transition-transform">See Live →</span>
+                                    </div>
+                                </div>
+                            </div>
+
+                            {/* Card 4: Proactive Pump Station Dewatering */}
+                            <div 
+                                onClick={() => { if (onSelectCity) onSelectCity("Chennai"); else onEnter(); }}
+                                className="group rounded-2xl bg-white/95 border border-[#9DC6DA] hover:border-sky-600 transition-all duration-300 ease-out overflow-hidden flex flex-col cursor-pointer hover:-translate-y-1.5 shadow-sm hover:shadow-xl"
+                            >
+                                <div className="relative h-64 sm:h-72 overflow-hidden bg-slate-900">
+                                    <img
+                                        src="/static/images/pexels-dibakar-roy-2432543-19391751.jpg"
+                                        alt="Drainage canal pumps in action"
+                                        className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700 ease-out"
+                                    />
+                                    <div className="absolute top-4 left-4 bg-white/95 text-sky-900 text-xs font-bold px-3 py-1 rounded-sm border border-sky-200 shadow-xs">
+                                        Pump Activation
+                                    </div>
+                                </div>
+                                <div className="p-6 sm:p-8 flex flex-col justify-between flex-1">
+                                    <div>
+                                        <h3 className="font-sans font-bold text-slate-900 text-xl group-hover:text-sky-700 transition-colors">
+                                            Proactive Pump Activation
+                                        </h3>
+                                        <p className="text-base text-slate-700 mt-3.5 leading-relaxed font-sans">
+                                            Alerts municipal drainage teams where stormwater will pool so heavy pumps start draining sumps well before water overflows.
+                                        </p>
+                                    </div>
+                                    <div className="mt-7 flex items-center justify-between text-sm border-t border-[#B3D6E6] pt-4">
+                                        <span className="font-bold text-sky-800">✓ Automated Sump Clearing</span>
+                                        <span className="text-sky-700 font-bold group-hover:translate-x-1 transition-transform">See Live →</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </section>
+                </div>
+            </div>
+        </div>
+    );
+}
+
+/**
+ * Ready-to-invoke Developer Social Handles & Confirmed Project Intelligence Component
+ * Configured so it does not clutter the primary UI directly, and is ready for invocation whenever needed.
+ * Can be triggered via window._openDeveloperProfile() or state.
+ */
+
+// --- MODULE: client/src/components/map/InteractiveVectorMap.jsx ---
+function InteractiveVectorMap(props) {
+    const {
+        wardData,
+        sectorDepths,
+        selectedSector,
+        onSelectSector,
+        layers,
+        activeRoute,
+        isSimulatingRoute,
+        routeProgress,
+        routeCheckResult,
+        mapStyle = "Map",
+        mapToggles = { hotspots: true, pumps: true, shelters: false, metro: true, boundaries: false },
+        timelineStep = 1,
+    } = props;
+
+    const mapRef = useRef(null);
+    const mapInstanceRef = useRef(null);
+    const markersRef = useRef([]);
+    const sectorMarkersRef = useRef({});
+    const tileLayerRef = useRef(null);
+    const prevWardRef = useRef(null);
+
+    useEffect(() => {
+        if (!mapRef.current || !window.L) return;
+
+        let tileUrl = 'https://server.arcgisonline.com/ArcGIS/rest/services/World_Street_Map/MapServer/tile/{z}/{y}/{x}';
+        if (mapStyle === 'Satellite') {
+            tileUrl = 'https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}';
+        } else if (mapStyle === 'Terrain') {
+            tileUrl = 'https://server.arcgisonline.com/ArcGIS/rest/services/World_Topo_Map/MapServer/tile/{z}/{y}/{x}';
+        }
+
+        // Initialize Leaflet map if not already created
+        if (!mapInstanceRef.current) {
+            const map = window.L.map(mapRef.current, {
+                center: [13.0827, 80.2707],
+                zoom: 13,
+                zoomControl: false,
+                attributionControl: false,
+            });
+
+            window._rainDropMap = map;
+
+            const tileLayer = window.L.tileLayer(tileUrl, {
+                attribution: '&copy; Esri, HERE, Garmin, USGS',
+                maxZoom: 19,
+            }).addTo(map);
+
+            tileLayerRef.current = tileLayer;
+            mapInstanceRef.current = map;
+        } else {
+            if (tileLayerRef.current) {
+                tileLayerRef.current.setUrl(tileUrl);
+            }
+        }
+
+        const map = mapInstanceRef.current;
+
+        // Ensure Leaflet resizes correctly within container
+        setTimeout(() => {
+            if (map) map.invalidateSize();
+        }, 150);
+
+        // Clear existing markers & overlays
+        markersRef.current.forEach(layer => map.removeLayer(layer));
+        markersRef.current = [];
+        sectorMarkersRef.current = {};
+
+        const bounds = [];
+
+        // Collect sector coordinates
+        wardData.sectors.forEach((sec) => {
+            const coords = sec.coords.split(',').map(n => parseFloat(n.trim()));
+            if (coords.length >= 2 && !isNaN(coords[0]) && !isNaN(coords[1])) {
+                bounds.push([coords[0], coords[1]]);
+            }
+        });
+
+        // 1. Render Flood Basin Water Polygon Overlay
+        if (bounds.length >= 3 && mapToggles.hotspots !== false) {
+            const basinPolygon = window.L.polygon(bounds, {
+                color: '#0284c7',
+                weight: 1.2,
+                fillColor: '#38bdf8',
+                fillOpacity: 0.22,
+                smoothFactor: 1.5,
+            }).addTo(map);
+            markersRef.current.push(basinPolygon);
+        }
+
+        // Find sector with highest water depth for primary callout
+        let maxDepthIdx = 0;
+        sectorDepths.forEach((d, i) => {
+            if (d > (sectorDepths[maxDepthIdx] || 0)) maxDepthIdx = i;
+        });
+
+        // 2. Render Sector Nodes & Hotspot Callout
+        if (mapToggles.hotspots !== false) {
+            wardData.sectors.forEach((sec, idx) => {
+                const depth = sectorDepths[idx] || 0;
+                const coords = sec.coords.split(',').map(n => parseFloat(n.trim()));
+                if (coords.length < 2 || isNaN(coords[0]) || isNaN(coords[1])) return;
+                const [lat, lon] = coords;
+
+                let nodeHtml = "";
+                let nodeSize = [28, 28];
+                let anchor = [14, 14];
+
+                if (depth >= 30) {
+                    // Critical hotspot: Red circle with white exclamation point & glowing pulse
+                    nodeHtml = `<div style="background:#ef4444; color:#ffffff; width:28px; height:28px; border-radius:50%; display:flex; align-items:center; justify-content:center; font-weight:900; font-size:14px; border:3px solid #ffffff; box-shadow:0 4px 12px rgba(239,68,68,0.6); cursor:pointer; font-family:Inter,sans-serif; transition:transform 0.2s;">!</div>`;
+                } else if (depth >= 15) {
+                    // Caution hotspot: Amber circle with warning triangle
+                    nodeHtml = `<div style="background:#f59e0b; color:#ffffff; width:26px; height:26px; border-radius:50%; display:flex; align-items:center; justify-content:center; font-weight:900; font-size:12px; border:2.5px solid #ffffff; box-shadow:0 3px 8px rgba(245,158,11,0.5); cursor:pointer; font-family:Inter,sans-serif; transition:transform 0.2s;">▲</div>`;
+                    nodeSize = [26, 26];
+                    anchor = [13, 13];
+                } else {
+                    // Clear safe corridor: Emerald circle with checkmark
+                    nodeHtml = `<div style="background:#10b981; color:#ffffff; width:24px; height:24px; border-radius:50%; display:flex; align-items:center; justify-content:center; font-weight:900; font-size:12px; border:2px solid #ffffff; box-shadow:0 3px 8px rgba(16,185,129,0.45); cursor:pointer; font-family:Inter,sans-serif; transition:transform 0.2s;">✓</div>`;
+                    nodeSize = [24, 24];
+                    anchor = [12, 12];
+                }
+
+                // Inundation radial pool
+                const circleRadius = Math.max(80, depth * 4.5 + 40);
+                const circle = window.L.circle([lat, lon], {
+                    radius: circleRadius,
+                    color: depth >= 30 ? '#f43f5e' : depth >= 15 ? '#fbbf24' : '#34d399',
+                    fillColor: depth >= 30 ? '#ef4444' : depth >= 15 ? '#3b82f6' : '#10b981',
+                    fillOpacity: 0.25,
+                    weight: 1,
+                }).addTo(map);
+
+                const icon = window.L.divIcon({
+                    className: 'custom-status-marker',
+                    html: nodeHtml,
+                    iconSize: nodeSize,
+                    iconAnchor: anchor
+                });
+
+                const marker = window.L.marker([lat, lon], { icon }).addTo(map);
+
+                // Rich Interactive Leaflet Popup with Full Telemetry
+                const riskBadge = depth >= 30 ? "CRITICAL RISK" : depth >= 15 ? "MODERATE HAZARD" : "SAFE ELEVATION";
+                const riskBg = depth >= 30 ? "#fef2f2" : depth >= 15 ? "#fffbeb" : "#ecfdf5";
+                const riskColor = depth >= 30 ? "#dc2626" : depth >= 15 ? "#d97706" : "#059669";
+                const riskBorder = depth >= 30 ? "#fca5a5" : depth >= 15 ? "#fcd34d" : "#6ee7b7";
+
+                const popupHtml = `
+                <div style="font-family:Inter,sans-serif; min-width:250px; padding:4px 2px;">
+                    <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:8px;">
+                        <span style="font-size:10px; font-weight:800; text-transform:uppercase; letter-spacing:0.04em; background:${riskBg}; color:${riskColor}; border:1px solid ${riskBorder}; padding:2.5px 8px; border-radius:9999px;">
+                            ${riskBadge}
+                        </span>
+                        <span style="font-size:10px; color:#64748b; font-family:monospace;">${sec.elevation}m MSL</span>
+                    </div>
+                    <div style="font-size:14px; font-weight:800; color:#0f172a; line-height:1.25; margin-bottom:3px;">
+                        ${sec.name}
+                    </div>
+                    <div style="font-size:11px; color:#64748b; margin-bottom:10px;">
+                        ${wardData.name} · ${wardData.city} (${wardData.riverName})
+                    </div>
+
+                    <div style="display:grid; grid-template-columns:1fr 1fr; gap:6px; margin-bottom:10px;">
+                        <div style="background:#f8fafc; border:1px solid #e2e8f0; border-radius:12px; padding:8px 10px;">
+                            <div style="font-size:9.5px; color:#64748b; font-weight:600;">Water Depth</div>
+                            <div style="font-size:15px; font-weight:800; color:${depth >= 30 ? '#dc2626' : depth >= 15 ? '#d97706' : '#2563eb'}; font-family:monospace;">
+                                ${depth.toFixed(1)} cm
+                            </div>
+                        </div>
+                        <div style="background:#f8fafc; border:1px solid #e2e8f0; border-radius:12px; padding:8px 10px;">
+                            <div style="font-size:9.5px; color:#64748b; font-weight:600;">Flow Velocity</div>
+                            <div style="font-size:15px; font-weight:800; color:#0f172a; font-family:monospace;">
+                                ${(1.1 + depth * 0.02).toFixed(1)} m/s
+                            </div>
+                        </div>
+                    </div>
+
+                    <div style="background:#f8fafc; border:1px solid #e2e8f0; border-radius:12px; padding:8px 10px; margin-bottom:10px; font-size:11px;">
+                        <div style="display:flex; justify-content:space-between; margin-bottom:4px;">
+                            <span style="color:#64748b;">Drainage Culvert:</span>
+                            <span style="font-weight:700; color:${depth >= 30 ? '#dc2626' : '#059669'};">
+                                ${depth >= 30 ? '92% Surcharged' : depth >= 15 ? '64% Flowing' : '28% Free Flow'}
+                            </span>
+                        </div>
+                        <div style="display:flex; justify-content:space-between; margin-bottom:4px;">
+                            <span style="color:#64748b;">Pedestrians:</span>
+                            <span style="font-weight:700; color:${depth >= 15 ? '#dc2626' : '#059669'};">
+                                ${depth >= 15 ? '⛔ Impassable' : '✅ Passable'}
+                            </span>
+                        </div>
+                        <div style="display:flex; justify-content:space-between;">
+                            <span style="color:#64748b;">Vehicles:</span>
+                            <span style="font-weight:700; color:${depth >= 25 ? '#dc2626' : depth >= 15 ? '#d97706' : '#059669'};">
+                                ${depth >= 25 ? '⛔ High Stall Risk' : depth >= 15 ? '⚠️ Caution' : '✅ Clear'}
+                            </span>
+                        </div>
+                    </div>
+
+                    <button type="button" onclick="window._openSectorDrawer && window._openSectorDrawer(${idx})" style="width:100%; background:#0f2942; color:#ffffff; border:none; padding:8px 12px; border-radius:12px; font-size:11.5px; font-weight:700; cursor:pointer; display:flex; align-items:center; justify-content:center; gap:6px; box-shadow:0 2px 6px rgba(15,41,66,0.2);">
+                        <span>Check Location Safety &rarr;</span>
+                    </button>
+                </div>
+                `;
+
+                marker.bindPopup(popupHtml, { maxWidth: 300, offset: [0, -10] });
+                circle.bindPopup(popupHtml, { maxWidth: 300, offset: [0, -10] });
+
+                const handleNodeClick = () => {
+                    onSelectSector(idx);
+                    try { marker.openPopup(); } catch (_) {}
+                };
+
+                marker.on('click', handleNodeClick);
+                circle.on('click', handleNodeClick);
+
+                sectorMarkersRef.current[idx] = marker;
+                markersRef.current.push(circle);
+                markersRef.current.push(marker);
+            });
+        }
+
+        // 3. Render Drainage Pumps
+        if (mapToggles.pumps && bounds.length >= 2) {
+            bounds.slice(1, 4).forEach((pt, i) => {
+                const pumpIcon = window.L.divIcon({
+                    className: 'pump-marker',
+                    html: `<div style="background:#2563eb; color:#ffffff; width:22px; height:22px; border-radius:50%; display:flex; align-items:center; justify-content:center; font-size:10px; font-weight:bold; border:2px solid #ffffff; box-shadow:0 2px 6px rgba(37,99,235,0.4);" title="Stormwater Dewatering Pump #0${i+1}">⚡</div>`,
+                    iconSize: [22, 22],
+                    iconAnchor: [11, 11]
+                });
+                const pMarker = window.L.marker([pt[0] + 0.003, pt[1] - 0.003], { icon: pumpIcon }).addTo(map);
+                pMarker.bindPopup(`<strong>⚡ Stormwater Dewatering Pump #0${i+1}</strong><br><span style="font-size:11px; color:#2563eb;">Status: 100% Active Suction</span>`);
+                markersRef.current.push(pMarker);
+            });
+        }
+
+        // 4. Render Transit & Metro
+        if (mapToggles.metro && bounds.length >= 2) {
+            bounds.slice(0, 3).forEach((pt, i) => {
+                const metroIcon = window.L.divIcon({
+                    className: 'metro-marker',
+                    html: `<div style="background:#059669; color:#ffffff; width:22px; height:22px; border-radius:50%; display:flex; align-items:center; justify-content:center; font-size:10px; font-weight:bold; border:2px solid #ffffff; box-shadow:0 2px 6px rgba(5,150,105,0.4);" title="Metro & Transit Station">🚇</div>`,
+                    iconSize: [22, 22],
+                    iconAnchor: [11, 11]
+                });
+                const mMarker = window.L.marker([pt[0] - 0.0035, pt[1] + 0.0035], { icon: metroIcon }).addTo(map);
+                mMarker.bindPopup(`<strong>🚇 Metro Station #M-${i+1}</strong><br><span style="font-size:11px; color:#059669;">Corridor: Elevated Dry Deck</span>`);
+                markersRef.current.push(mMarker);
+            });
+        }
+
+        // 5. Render Relief Shelters
+        if (mapToggles.shelters && bounds.length >= 2) {
+            bounds.slice(0, 3).forEach((pt, i) => {
+                const shelterIcon = window.L.divIcon({
+                    className: 'shelter-marker',
+                    html: `<div style="background:#7c3aed; color:#ffffff; width:22px; height:22px; border-radius:50%; display:flex; align-items:center; justify-content:center; font-size:11px; font-weight:bold; border:2px solid #ffffff; box-shadow:0 2px 6px rgba(124,58,237,0.4);" title="Emergency Relief Shelter">🏠</div>`,
+                    iconSize: [22, 22],
+                    iconAnchor: [11, 11]
+                });
+                const sMarker = window.L.marker([pt[0] + 0.004, pt[1] + 0.004], { icon: shelterIcon }).addTo(map);
+                sMarker.bindPopup(`<strong>🏠 Emergency Relief Shelter #${i+1}</strong><br><span style="font-size:11px; color:#7c3aed;">Capacity: Available</span>`);
+                markersRef.current.push(sMarker);
+            });
+        }
+
+        // 6. Render Ward Boundaries
+        if (mapToggles.boundaries && bounds.length >= 3) {
+            const boundaryLine = window.L.polygon(bounds, {
+                color: '#64748b',
+                weight: 2,
+                dashArray: '5, 6',
+                fill: false
+            }).addTo(map);
+            markersRef.current.push(boundaryLine);
+        }
+
+        // Auto Fit Map Bounds ONLY when active ward changes
+        if (bounds.length > 0 && prevWardRef.current !== wardData.name) {
+            prevWardRef.current = wardData.name;
+            try {
+                map.fitBounds(bounds, { padding: [60, 60], maxZoom: 14 });
+            } catch (_) {}
+        }
+
+        // Render Safe Corridor & Bypass Route Lines if available
+        if (routeCheckResult && routeCheckResult.standard_route && routeCheckResult.safe_corridor) {
+            const stdCoords = routeCheckResult.standard_route.coordinates || [];
+            const safeCoords = routeCheckResult.safe_corridor.coordinates || [];
+
+            if (stdCoords.length >= 2) {
+                const stdPoly = window.L.polyline(stdCoords, {
+                    color: '#dc2626',
+                    weight: 4,
+                    dashArray: '6, 8',
+                    opacity: 0.9
+                }).addTo(map);
+                markersRef.current.push(stdPoly);
+            }
+
+            if (safeCoords.length >= 2) {
+                const safePoly = window.L.polyline(safeCoords, {
+                    color: '#10b981',
+                    weight: 6,
+                    opacity: 0.95
+                }).addTo(map);
+                markersRef.current.push(safePoly);
+
+                const allRoutePoints = [...stdCoords, ...safeCoords];
+                try {
+                    map.fitBounds(allRoutePoints, { padding: [50, 50] });
+                } catch (_) {}
+            }
+        }
+
+    }, [wardData, sectorDepths, layers, mapStyle, mapToggles, timelineStep, activeRoute, isSimulatingRoute, routeProgress, routeCheckResult]);
+
+    // Dedicated pan & popup effect for selected sector (does not tear down map layers)
+    useEffect(() => {
+        if (selectedSector === null || !mapInstanceRef.current || !wardData?.sectors?.[selectedSector]) return;
+        const map = mapInstanceRef.current;
+        const sec = wardData.sectors[selectedSector];
+        const coords = sec.coords.split(',').map(n => parseFloat(n.trim()));
+        if (coords.length >= 2 && !isNaN(coords[0]) && !isNaN(coords[1])) {
+            try {
+                map.panTo([coords[0], coords[1]], { animate: true, duration: 0.4 });
+            } catch (_) {}
+        }
+        const marker = sectorMarkersRef.current?.[selectedSector];
+        if (marker) {
+            setTimeout(() => {
+                try { marker.openPopup(); } catch (_) {}
+            }, 80);
+        }
+    }, [selectedSector, wardData]);
+
+    return (
+        <div className="relative w-full h-full min-h-[500px]">
+            <div ref={mapRef} className="w-full h-full" />
+        </div>
+    );
+}
+
+// ============================================================================
+// Sector Telemetry Drawer (Click to Inspect) — Human-Friendly Spot Safety Check
+// ============================================================================
+
+function SectorDrawer({ sector, depth, wardName, onClose, pushToast }) {
+    const isHigh = depth >= 30;
+    const isMed = depth >= 15 && depth < 30;
+
+    // Interactive button states — ensures nothing goes unattended
+    const [pumpStatus, setPumpStatus] = useState(null); // null | 'dispatched'
+    const [divertStatus, setDivertStatus] = useState(null); // null | 'active'
+    const [showRouteTip, setShowRouteTip] = useState(false);
+
+    // Close on Escape key
+    useEffect(() => {
+        const handleKeyDown = (e) => {
+            if (e.key === "Escape") onClose();
+        };
+        window.addEventListener("keydown", handleKeyDown);
+        return () => window.removeEventListener("keydown", handleKeyDown);
+    }, [onClose]);
+
+    // Everyday human-friendly water level descriptions
+    const depthHuman = depth < 5
+        ? "Dry / Safe"
+        : depth < 15
+            ? "Puddle Level (Passable)"
+            : depth < 25
+                ? "Ankle to Shin Deep"
+                : depth < 40
+                    ? "Knee Deep (Hazardous)"
+                    : "Waist Deep (Severe Danger)";
+
+    const statusTitle = isHigh ? "Flooded · Hazard" : isMed ? "Waterlogged · Caution" : "Clear & Safe";
+    const statusBg = isHigh
+        ? "bg-rose-50 border-rose-200 text-rose-700"
+        : isMed
+            ? "bg-amber-50 border-amber-200 text-amber-800"
+            : "bg-emerald-50 border-emerald-200 text-emerald-800";
+    const statusDot = isHigh ? "bg-rose-500" : isMed ? "bg-amber-500" : "bg-emerald-500";
+
+    const handleDispatchPump = () => {
+        setPumpStatus("dispatched");
+        if (pushToast) pushToast(`⚡ Dewatering Pump Unit #14 dispatched to ${sector.name}`);
+    };
+
+    const handleDivertTraffic = () => {
+        setDivertStatus("active");
+        if (pushToast) pushToast(`📢 Traffic Diversion Notice issued for ${sector.name}`);
+    };
+
+    return (
+        <>
+            {/* Soft backdrop overlay */}
+            <div
+                className="fixed inset-0 bg-slate-900/30 backdrop-blur-[2px] z-[940] animate-in fade-in duration-200"
+                onClick={onClose}
+            />
+
+            {/* Clean Light-Theme Spot Safety Inspector Drawer */}
+            <div className="fixed inset-y-0 right-0 w-full sm:w-[440px] bg-white border-l border-slate-200 shadow-2xl z-[950] p-6 flex flex-col justify-between overflow-y-auto animate-in slide-in-from-right duration-250 text-slate-900 font-sans">
+                <div>
+                    {/* Header */}
+                    <div className="flex items-start justify-between pb-4 border-b border-slate-100">
+                        <div>
+                            <div className="flex items-center gap-2">
+                                <span className="text-[10px] uppercase font-bold tracking-wider px-2 py-0.5 rounded-full bg-blue-50 text-blue-700">
+                                    {wardName} · Spot Safety Check
+                                </span>
+                            </div>
+                            <h3 className="text-lg font-extrabold text-slate-900 mt-1">{sector.name}</h3>
+                            <p className="text-xs text-slate-500 mt-0.5">
+                                Critical Drainage &amp; Road Point · Low-lying Sector
+                            </p>
+                        </div>
+                        <button
+                            onClick={onClose}
+                            className="p-2 rounded-full text-slate-400 hover:text-slate-700 hover:bg-slate-100 transition-colors cursor-pointer"
+                            title="Close (Esc)"
+                        >
+                            <X className="w-5 h-5" />
+                        </button>
+                    </div>
+
+                    {/* Water Depth Hero Card */}
+                    <div className="my-5 rounded-2xl border border-slate-200/90 bg-slate-50/60 p-4">
+                        <div className="flex items-center justify-between mb-3">
+                            <span className="text-xs font-semibold text-slate-500">Live Water Depth</span>
+                            <span className={`text-[11px] font-bold px-2.5 py-0.5 rounded-full border flex items-center gap-1.5 ${statusBg}`}>
+                                <span className={`w-1.5 h-1.5 rounded-full ${statusDot}`} />
+                                {statusTitle}
+                            </span>
+                        </div>
+
+                        <div className="flex items-baseline justify-between mb-2">
+                            <div className="flex items-baseline gap-1.5">
+                                <span className="text-3xl font-extrabold text-slate-900 font-mono tracking-tight">{depth}</span>
+                                <span className="text-sm font-bold text-slate-500">cm</span>
+                            </div>
+                            <span className="text-xs font-bold text-slate-700">{depthHuman}</span>
+                        </div>
+
+                        {/* Clean Horizontal Depth Gauge with Human Milestones */}
+                        <div className="w-full h-2.5 bg-slate-200 rounded-full overflow-hidden relative">
+                            <div
+                                className={`h-full transition-all duration-500 ${
+                                    isHigh ? "bg-rose-500" : isMed ? "bg-amber-500" : "bg-emerald-500"
+                                }`}
+                                style={{ width: `${Math.min(100, Math.max(8, (depth / 50) * 100))}%` }}
+                            />
+                        </div>
+                        <div className="flex justify-between items-center text-[10px] text-slate-400 mt-1.5 font-medium">
+                            <span>0 cm (Dry)</span>
+                            <span>15 cm (Ankles)</span>
+                            <span>30 cm (Knees)</span>
+                            <span>50+ cm (Danger)</span>
+                        </div>
+                    </div>
+
+                    {/* Quick Plain-English Condition Summary */}
+                    <div className="grid grid-cols-2 gap-2.5 mb-4">
+                        <div className="p-3 rounded-2xl bg-white border border-slate-200/80 shadow-2xs">
+                            <span className="text-[10px] uppercase tracking-wider font-semibold text-slate-400">Water Movement</span>
+                            <p className="text-xs font-bold text-slate-800 mt-1 flex items-center gap-1.5">
+                                {depth >= 25 ? (
+                                    <><span>⚠️</span> Fast moving current</>
+                                ) : depth >= 15 ? (
+                                    <><span>🌊</span> Slow moving runoff</>
+                                ) : (
+                                    <><span>✅</span> Standing puddles only</>
+                                )}
+                            </p>
+                        </div>
+
+                        <div className="p-3 rounded-2xl bg-white border border-slate-200/80 shadow-2xs">
+                            <span className="text-[10px] uppercase tracking-wider font-semibold text-slate-400">Local Drains</span>
+                            <p className="text-xs font-bold text-slate-800 mt-1 flex items-center gap-1.5">
+                                {depth >= 30 ? (
+                                    <><span>⚠️</span> Drains near full capacity</>
+                                ) : (
+                                    <><span>⚡</span> Pumps actively draining</>
+                                )}
+                            </p>
+                        </div>
+                    </div>
+
+                    {/* Can I travel through here? Clear Everyday User Guide */}
+                    <div className="rounded-2xl border border-slate-200/90 bg-white p-4 mb-4 shadow-xs">
+                        <h4 className="text-xs font-bold text-slate-900 mb-3 flex items-center justify-between">
+                            <span className="flex items-center gap-2">
+                                <Car className="w-4 h-4 text-blue-600" />
+                                Can I pass through this road?
+                            </span>
+                            <span className="text-[10px] font-semibold text-slate-400">Live Commuter Guide</span>
+                        </h4>
+
+                        <div className="space-y-2 text-xs">
+                            <div className="flex items-center justify-between py-1.5 border-b border-slate-100">
+                                <span className="text-slate-600 flex items-center gap-2 font-medium">
+                                    <span>🚶</span> Walking on foot
+                                </span>
+                                <span className={`font-bold px-2 py-0.5 rounded-md ${
+                                    depth >= 15 ? "bg-rose-50 text-rose-700" : "bg-emerald-50 text-emerald-700"
+                                }`}>
+                                    {depth >= 15 ? "⛔ Avoid — Water above ankles" : "✅ Safe to walk"}
+                                </span>
+                            </div>
+
+                            <div className="flex items-center justify-between py-1.5 border-b border-slate-100">
+                                <span className="text-slate-600 flex items-center gap-2 font-medium">
+                                    <span>🛵</span> Bikes &amp; Scooters
+                                </span>
+                                <span className={`font-bold px-2 py-0.5 rounded-md ${
+                                    depth >= 18 ? "bg-rose-50 text-rose-700" : "bg-emerald-50 text-emerald-700"
+                                }`}>
+                                    {depth >= 18 ? "⛔ High stall risk" : "✅ Safe to ride"}
+                                </span>
+                            </div>
+
+                            <div className="flex items-center justify-between py-1.5 border-b border-slate-100">
+                                <span className="text-slate-600 flex items-center gap-2 font-medium">
+                                    <span>🚗</span> Cars &amp; Autos
+                                </span>
+                                <span className={`font-bold px-2 py-0.5 rounded-md ${
+                                    depth >= 25 
+                                        ? "bg-rose-50 text-rose-700" 
+                                        : depth >= 15 
+                                            ? "bg-amber-50 text-amber-800" 
+                                            : "bg-emerald-50 text-emerald-700"
+                                }`}>
+                                    {depth >= 25 ? "⛔ Impassable — Do not enter" : depth >= 15 ? "⚠️ Caution — Slow down" : "✅ Passable"}
+                                </span>
+                            </div>
+
+                            <div className="flex items-center justify-between py-1.5">
+                                <span className="text-slate-600 flex items-center gap-2 font-medium">
+                                    <span>🚑</span> Buses &amp; Emergency Trucks
+                                </span>
+                                <span className={`font-bold px-2 py-0.5 rounded-md ${
+                                    depth >= 45 ? "bg-amber-50 text-amber-800" : "bg-emerald-50 text-emerald-700"
+                                }`}>
+                                    {depth >= 45 ? "⚠️ High clearance only" : "✅ Priority Corridor Clear"}
+                                </span>
+                            </div>
+                        </div>
+                    </div>
+
+                    {/* In-place Action Confirmation Banners — ensures no click goes unattended */}
+                    {(pumpStatus || divertStatus || showRouteTip) && (
+                        <div className="space-y-2 mb-4 animate-in fade-in slide-in-from-top-2 duration-200">
+                            {pumpStatus === "dispatched" && (
+                                <div className="p-3 rounded-xl bg-blue-50 border border-blue-200 text-blue-900 text-xs flex items-start justify-between gap-2">
+                                    <div className="flex items-start gap-2">
+                                        <span className="text-blue-600 mt-0.5 font-bold">⚡</span>
+                                        <div>
+                                            <strong className="font-bold block">Dewatering Pump Unit #14 Dispatched</strong>
+                                            <span className="text-blue-700 text-[11px]">En route to {sector.name} · Estimated suction start: ~10 mins</span>
+                                        </div>
+                                    </div>
+                                    <button
+                                        onClick={() => setPumpStatus(null)}
+                                        className="text-blue-500 hover:text-blue-700 text-[11px] font-bold underline cursor-pointer"
+                                    >
+                                        Dismiss
+                                    </button>
+                                </div>
+                            )}
+
+                            {divertStatus === "active" && (
+                                <div className="p-3 rounded-xl bg-amber-50 border border-amber-200 text-amber-900 text-xs flex items-start justify-between gap-2">
+                                    <div className="flex items-start gap-2">
+                                        <span className="text-amber-600 mt-0.5 font-bold">📢</span>
+                                        <div>
+                                            <strong className="font-bold block">Traffic Diversion Active</strong>
+                                            <span className="text-amber-800 text-[11px]">Advisory broadcast to municipal feeds &amp; local ward signs.</span>
+                                        </div>
+                                    </div>
+                                    <button
+                                        onClick={() => setDivertStatus(null)}
+                                        className="text-amber-600 hover:text-amber-800 text-[11px] font-bold underline cursor-pointer"
+                                    >
+                                        Dismiss
+                                    </button>
+                                </div>
+                            )}
+
+                            {showRouteTip && (
+                                <div className="p-3 rounded-xl bg-emerald-50 border border-emerald-200 text-emerald-900 text-xs flex items-start justify-between gap-2">
+                                    <div className="flex items-start gap-2">
+                                        <span className="text-emerald-600 mt-0.5 font-bold">🛣️</span>
+                                        <div>
+                                            <strong className="font-bold block">Recommended Dry Alternate Route</strong>
+                                            <span className="text-emerald-800 text-[11px]">Take the Kalina-CST Elevated Bypass. 100% dry (0 cm water), +3 min detour.</span>
+                                        </div>
+                                    </div>
+                                    <button
+                                        onClick={() => setShowRouteTip(false)}
+                                        className="text-emerald-600 hover:text-emerald-800 text-[11px] font-bold underline cursor-pointer"
+                                    >
+                                        Close
+                                    </button>
+                                </div>
+                            )}
+                        </div>
+                    )}
+
+                    {/* Verified Sensor Telemetry & Provenance */}
+                    <div className="rounded-2xl border border-slate-200/90 bg-slate-50/70 p-3.5 mb-4 text-xs">
+                        <div className="flex items-center justify-between mb-2">
+                            <span className="font-bold text-slate-800 flex items-center gap-1.5">
+                                <ShieldCheck className="w-4 h-4 text-blue-600" />
+                                Verified Sensor Telemetry
+                            </span>
+                            <span className="font-mono text-[10px] font-bold text-emerald-700 bg-emerald-100/80 px-2 py-0.5 rounded-full">
+                                96.4% Calibrated
+                            </span>
+                        </div>
+                        <div className="space-y-1.5 text-[11px] text-slate-600">
+                            <div className="flex justify-between items-center">
+                                <span className="text-slate-400">Sensor Station:</span>
+                                <span className="font-mono font-semibold text-slate-700">{sector.stationId || `CWC-${sector.id + 101}`}</span>
+                            </div>
+                            <div className="flex justify-between items-center">
+                                <span className="text-slate-400">Primary Authority:</span>
+                                <span className="font-medium text-slate-700">Municipal Stormwater Dept + IMD</span>
+                            </div>
+                            <div className="flex justify-between items-center">
+                                <span className="text-slate-400">Gauge Sensor:</span>
+                                <span className="font-medium text-slate-700">Hydrostatic Pressure Transducer</span>
+                            </div>
+                            <div className="flex justify-between items-center">
+                                <span className="text-slate-400">Telemetry Feed:</span>
+                                <span className="font-mono text-emerald-700 font-semibold flex items-center gap-1">
+                                    <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
+                                    Live (Updated 2 mins ago)
+                                </span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                {/* Bottom Action Controls */}
+                <div className="flex flex-col gap-2 pt-4 border-t border-slate-100">
+                    <button
+                        onClick={() => setShowRouteTip(!showRouteTip)}
+                        className="w-full flex items-center justify-center gap-2 py-2.5 px-4 rounded-xl bg-blue-600 hover:bg-blue-500 text-white text-xs font-bold shadow-md shadow-blue-600/20 transition-all cursor-pointer"
+                    >
+                        <Route className="w-4 h-4" />
+                        <span>{showRouteTip ? "Hide Dry Alternate Route" : "Show Dry Alternate Route"}</span>
+                    </button>
+
+                    <div className="grid grid-cols-2 gap-2">
+                        <button
+                            onClick={handleDispatchPump}
+                            className={`flex items-center justify-center gap-1.5 py-2 px-3 rounded-xl text-xs font-semibold transition-all cursor-pointer border ${
+                                pumpStatus === "dispatched"
+                                    ? "bg-emerald-50 border-emerald-200 text-emerald-700 font-bold"
+                                    : "border-slate-200 bg-slate-50 hover:bg-slate-100 text-slate-700"
+                            }`}
+                        >
+                            <Zap className="w-3.5 h-3.5 text-blue-600" />
+                            <span>{pumpStatus === "dispatched" ? "Pump Sent ✓" : "Send Pump"}</span>
+                        </button>
+
+                        <button
+                            onClick={handleDivertTraffic}
+                            className={`flex items-center justify-center gap-1.5 py-2 px-3 rounded-xl text-xs font-semibold transition-all cursor-pointer border ${
+                                divertStatus === "active"
+                                    ? "bg-amber-50 border-amber-200 text-amber-800 font-bold"
+                                    : "border-slate-200 bg-slate-50 hover:bg-slate-100 text-slate-700"
+                            }`}
+                        >
+                            <Send className="w-3.5 h-3.5 text-amber-600" />
+                            <span>{divertStatus === "active" ? "Diverted ✓" : "Divert Traffic"}</span>
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </>
+    );
+}
+
+// ============================================================================
+// Time Machine & Hydrograph Controller
+// ============================================================================
+
+function TimeMachineBar(props) {
+    const { timeStep, setTimeStep, isPlaying, setIsPlaying, playSpeed, setPlaySpeed, hydrograph } = props;
+
+    const current = hydrograph[timeStep] || hydrograph[0];
+
+    return (
+        <div className="mt-2 pt-3 border-t border-slate-800/80 flex flex-col gap-2.5">
+            <div className="flex flex-wrap items-center justify-between gap-3">
+                <div className="flex items-center gap-2">
+                    <button
+                        onClick={() => setIsPlaying(!isPlaying)}
+                        className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold transition-all cursor-pointer shadow-sm ${isPlaying
+                                ? "bg-amber-500 text-slate-950 hover:bg-amber-400"
+                                : "bg-indigo-600 text-white hover:bg-indigo-500 shadow-indigo-600/25"
+                            }`}
+                    >
+                        {isPlaying ? <Pause className="w-3.5 h-3.5 fill-current" /> : <Play className="w-3.5 h-3.5 fill-current" />}
+                        <span>{isPlaying ? "Pause Forecast" : "Simulate Run"}</span>
+                    </button>
+
+                    <button
+                        onClick={() => setPlaySpeed(playSpeed === 1 ? 2 : 1)}
+                        className="px-2 py-1.5 rounded-lg border border-slate-700 bg-slate-800/80 hover:bg-slate-700 text-slate-300 text-[10px] font-mono font-bold cursor-pointer"
+                    >
+                        {playSpeed}x
+                    </button>
+
+                    <span className="text-xs text-slate-300 font-semibold ml-2 flex items-center gap-1.5">
+                        <Clock className="w-3.5 h-3.5 text-indigo-400" />
+                        <span>Horizon: <strong className="text-white font-mono">{current.t}</strong> ({current.label})</span>
+                    </span>
+                </div>
+
+                <div className="flex items-center gap-1">
+                    {hydrograph.map((step, idx) => (
+                        <button
+                            key={step.t}
+                            onClick={() => {
+                                setTimeStep(idx);
+                                setIsPlaying(false);
+                            }}
+                            className={`px-2 py-1 rounded-md text-[10px] font-mono transition-all cursor-pointer ${timeStep === idx
+                                    ? "bg-indigo-600 text-white font-bold shadow-sm"
+                                    : "bg-slate-800/60 text-slate-400 hover:text-white hover:bg-slate-700/60"
+                                }`}
+                        >
+                            {step.t}
+                        </button>
+                    ))}
+                </div>
+            </div>
+
+            <div className="relative w-full h-14 bg-[#090d16] rounded-xl border border-slate-800/80 p-1.5 flex items-end justify-between overflow-hidden">
+                <div className="absolute top-1 left-2 text-[9px] font-mono text-slate-500">
+                    Rainfall Intensity (mm/h) &amp; River Surge Projection (m)
+                </div>
+
+                {hydrograph.map((item, idx) => {
+                    const isCurrent = timeStep === idx;
+                    const barHeight = Math.min(100, Math.max(15, (item.rain / 60) * 100));
+
+                    return (
+                        <div
+                            key={item.t}
+                            onClick={() => {
+                                setTimeStep(idx);
+                                setIsPlaying(false);
+                            }}
+                            className="flex-1 flex flex-col items-center justify-end h-full group cursor-pointer relative"
+                        >
+                            <div
+                                className={`w-4/5 rounded-t transition-all duration-300 ${isCurrent
+                                        ? "bg-gradient-to-t from-indigo-600 to-sky-400 opacity-90 shadow-md shadow-indigo-500/50"
+                                        : "bg-slate-700/40 group-hover:bg-slate-600/60"
+                                    }`}
+                                style={{ height: `${barHeight}%` }}
+                            />
+
+                            {isCurrent && (
+                                <div className="absolute top-0 bottom-0 w-0.5 bg-sky-400 shadow-lg shadow-sky-400">
+                                    <div className="w-2 h-2 -ml-[3px] rounded-full bg-white border border-sky-400" />
+                                </div>
+                            )}
+                        </div>
+                    );
+                })}
+            </div>
+        </div>
+    );
+}
+
+// ============================================================================
+// ============================================================================
+// Hotspot Telemetry & Sump Status Deck
+// ============================================================================
+
+function HotspotTelemetryDeck({ wardData, sectorDepths, onSelectSector, onEnableMap }) {
+    const sortedSectors = wardData.sectors
+        .map((s, idx) => ({ ...s, originalIdx: idx, depth: sectorDepths[idx] || 0 }))
+        .sort((a, b) => b.depth - a.depth);
+
+    const totalFlooded = sortedSectors.filter(s => s.depth >= 30).length;
+    const totalCaution = sortedSectors.filter(s => s.depth >= 15 && s.depth < 30).length;
+    const totalSafe = sortedSectors.filter(s => s.depth < 15).length;
+
+    return (
+        <div className="rounded-lg border border-white/20 bg-zinc-950 p-4 sm:p-5 shadow-lg flex flex-col gap-4">
+            <div>
+                <div className="flex items-center justify-between">
+                    <h3 className="text-sm font-bold text-white flex items-center gap-2">
+                        <Activity className="w-4 h-4 text-white" />
+                        Hotspot Telemetry &amp; Sump Overview
+                    </h3>
+                    <span className="text-[10px] font-mono px-2 py-0.5 rounded bg-zinc-900 text-zinc-200 border border-white/20">
+                        {wardData.code} Live Feed
+                    </span>
+                </div>
+                <p className="text-[11px] text-zinc-400 mt-1">
+                    Real-time depth sensors, pump status, and plain-English flood situation telemetry.
+                </p>
+            </div>
+
+            {/* Plain English Summary Box */}
+            <div className="rounded-md border border-white/20 bg-zinc-900 p-3 text-xs leading-relaxed">
+                <div className="flex items-center gap-2 text-white font-bold mb-1">
+                    <AlertTriangle className="w-4 h-4 text-yellow-400" />
+                    <span>What Is Happening Right Now:</span>
+                </div>
+                <p className="text-zinc-300 text-[11px]">
+                    Heavy rainfall ({wardData.rainfallForecast}) paired with {wardData.riverName} tide ({wardData.riverLevel}m) is creating backwater surcharge.
+                    <span className="font-bold text-red-400"> {totalFlooded} low-lying hotspots are severely flooded (&gt;30cm)</span>. 
+                    {wardData.activePumps} dewatering pumps are actively discharging stormwater.
+                </p>
+            </div>
+
+            {/* Telemetry Summary Stats */}
+            <div className="grid grid-cols-3 gap-2 text-center text-xs">
+                <div className="p-2 rounded bg-zinc-900 border border-red-500/40">
+                    <span className="block text-[9px] uppercase text-zinc-400 font-mono">Flooded</span>
+                    <span className="font-bold text-red-400 font-mono text-sm">{totalFlooded} Hotspots</span>
+                </div>
+                <div className="p-2 rounded bg-zinc-900 border border-yellow-500/40">
+                    <span className="block text-[9px] uppercase text-zinc-400 font-mono">Caution</span>
+                    <span className="font-bold text-yellow-400 font-mono text-sm">{totalCaution} Hotspots</span>
+                </div>
+                <div className="p-2 rounded bg-zinc-900 border border-emerald-500/40">
+                    <span className="block text-[9px] uppercase text-zinc-400 font-mono">Clear</span>
+                    <span className="font-bold text-emerald-400 font-mono text-sm">{totalSafe} Hotspots</span>
+                </div>
+            </div>
+
+            {/* Hotspots List */}
+            <div className="space-y-2 max-h-72 overflow-y-auto pr-1">
+                <span className="text-[10px] uppercase font-bold text-zinc-400 tracking-wider">Top Critical Hotspot Telemetry</span>
+                {sortedSectors.slice(0, 6).map((sec) => (
+                    <div 
+                        key={sec.id}
+                        onClick={() => {
+                            onEnableMap();
+                            onSelectSector(sec.originalIdx !== undefined ? sec.originalIdx : sec.id);
+                        }}
+                        className="p-2.5 rounded-md border border-zinc-800 bg-zinc-900/90 hover:border-white/40 transition-all cursor-pointer flex items-center justify-between text-xs"
+                    >
+                        <div>
+                            <div className="flex items-center gap-1.5">
+                                <span className="font-bold text-white">{sec.name}</span>
+                            </div>
+                            <span className="text-[10px] text-zinc-400 font-mono">Elev: {sec.elevation}m · {sec.coords}</span>
+                        </div>
+
+                        <div className="text-right">
+                            <span className="font-mono font-bold text-sm block text-white">{sec.depth} cm</span>
+                            <span className="text-[10px] text-zinc-400 font-mono">Elev: {sec.elevation}m · {sec.coords}</span>
+                        </div>
+
+                        <div className="text-right">
+                            <span className="font-mono font-bold text-sm block text-white">{sec.depth} cm</span>
+                            <span className={`text-[9px] font-bold px-1.5 py-0.5 rounded border ${
+                                sec.depth >= 30
+                                    ? "bg-red-500/20 text-red-300 border-red-500/40"
+                                    : sec.depth >= 15
+                                    ? "bg-yellow-500/20 text-yellow-300 border-yellow-500/40"
+                                    : "bg-emerald-500/20 text-emerald-300 border-emerald-500/40"
+                            }`}>
+                                {sec.depth >= 30 ? "🛑 IMPASSABLE" : sec.depth >= 15 ? "⚠️ CAUTION" : "🟢 SAFE"}
+                            </span>
+                        </div>
+                    </div>
+                ))}
+            </div>
+        </div>
+    );
+}
+
+// ============================================================================
+// Simulate Run Engine — Real-time Event Simulation
+// ============================================================================
+
+function ScenarioSandbox({ scenario, setScenario, pushToast }) {
+    const [simStep, setSimStep] = useState(0);
+    const [isSimRunning, setIsSimRunning] = useState(false);
+
+    const SIMULATION_PHASES = [
+        { title: "Minute 00: Cloudburst Initiation", desc: "Monsoon cloudburst delivers 54 mm/hr precipitation. Runoff begins entering drainage sumps.", status: "RUNOFF START" },
+        { title: "Minute 15: Lowland Inundation", desc: "Retention basins reach 85% capacity. Water accumulates at Kurla Subway and Bail Bazar.", status: "SURCHARGE ALERT" },
+        { title: "Minute 30: Peak Inundation", desc: "Kurla Station West Subway submersed under 42cm water. Impassable for light motor vehicles.", status: "PEAK SUBMERSION" },
+        { title: "Minute 45: Dewatering Pump Engagement", desc: "All 10 stormwater dewatering pumps engaged (45,000 L/min discharge). Backwater stabilized.", status: "PUMPS ACTIVE" },
+        { title: "Minute 60: Receding Water Level", desc: "Rainfall subsides. Water level receding by 8 cm/hr across primary corridors.", status: "RECEDING FLOW" },
+    ];
+
+    const handleRunLiveSim = () => {
+        setIsSimRunning(true);
+        setSimStep(0);
+        pushToast("Starting real-time flood event simulation run...");
+
+        let current = 0;
+        const interval = setInterval(() => {
+            current++;
+            if (current >= SIMULATION_PHASES.length) {
+                clearInterval(interval);
+                setIsSimRunning(false);
+                pushToast("Flood event simulation completed!");
+            } else {
+                setSimStep(current);
+            }
+        }, 2200);
+    };
+
+    return (
+        <div className="rounded-lg border border-white/20 bg-zinc-950 p-4 sm:p-5 shadow-lg flex flex-col gap-4">
+            <div>
+                <div className="flex items-center justify-between">
+                    <h3 className="text-sm font-bold text-white flex items-center gap-2">
+                        <Play className="w-4 h-4 text-white" />
+                        Simulate Run — Real-Time Flood Timeline
+                    </h3>
+                    <span className="text-[10px] font-mono px-2 py-0.5 rounded bg-zinc-900 text-zinc-200 border border-white/20">
+                        Event Simulator
+                    </span>
+                </div>
+                <p className="text-[11px] text-zinc-400 mt-1">
+                    Simulate cloudburst downpours, high tides, or pump outages to see what is actually happening.
+                </p>
+            </div>
+
+            {/* Live Event Execution Card */}
+            <div className="rounded-md border border-white/20 bg-zinc-900 p-3.5 space-y-2">
+                <div className="flex items-center justify-between">
+                    <span className="text-xs font-bold text-white uppercase tracking-wider">What Is Actually Happening:</span>
+                    <span className="text-[10px] font-mono font-bold px-2 py-0.5 rounded bg-zinc-800 text-zinc-200 border border-zinc-700">
+                        {SIMULATION_PHASES[simStep].status}
+                    </span>
+                </div>
+
+                <div className="p-3 rounded bg-zinc-950 border border-zinc-800">
+                    <h4 className="text-xs font-bold text-white">{SIMULATION_PHASES[simStep].title}</h4>
+                    <p className="text-[11px] text-zinc-300 mt-1 leading-relaxed">
+                        {SIMULATION_PHASES[simStep].desc}
+                    </p>
+                </div>
+
+                {/* Timeline Progress */}
+                <div className="grid grid-cols-5 gap-1 pt-1">
+                    {SIMULATION_PHASES.map((ph, idx) => (
+                        <div 
+                            key={idx}
+                            onClick={() => setSimStep(idx)}
+                            className={`h-2 rounded-sm cursor-pointer transition-all ${
+                                idx === simStep ? "bg-white" : idx < simStep ? "bg-zinc-500" : "bg-zinc-800"
+                            }`}
+                            title={ph.title}
+                        />
+                    ))}
+                </div>
+            </div>
+
+            {/* Action Button */}
+            <button
+                onClick={handleRunLiveSim}
+                disabled={isSimRunning}
+                className="w-full flex items-center justify-center gap-2 py-2.5 px-4 rounded-md bg-white hover:bg-zinc-200 text-zinc-950 text-xs font-bold border border-white shadow transition-all cursor-pointer disabled:opacity-50"
+            >
+                <Play className="w-4 h-4 fill-current text-zinc-950" />
+                <span>{isSimRunning ? `Simulating Phase ${simStep + 1} of 5…` : "▶️ Start Live Flood Event Simulation"}</span>
+            </button>
+
+            {/* What-If Sliders */}
+            <div className="pt-3 border-t border-zinc-800 space-y-3">
+                <span className="text-[10px] uppercase font-bold text-zinc-400 tracking-wider block">Environmental Stress-Test Parameters</span>
+
+                <div>
+                    <div className="flex justify-between text-xs mb-1">
+                        <span className="text-zinc-300 font-medium">Rainfall Intensity</span>
+                        <span className="font-mono text-white font-bold">
+                            {Math.round(scenario.rainfallMultiplier * 45)} mm/h ({scenario.rainfallMultiplier.toFixed(1)}x)
+                        </span>
+                    </div>
+                    <input
+                        type="range"
+                        min="0.5"
+                        max="3.0"
+                        step="0.1"
+                        value={scenario.rainfallMultiplier}
+                        onChange={(e) =>
+                            setScenario((s) => ({ ...s, rainfallMultiplier: parseFloat(e.target.value) }))
+                        }
+                        className="w-full accent-white cursor-pointer"
+                    />
+                </div>
+
+                <div>
+                    <div className="flex justify-between text-xs mb-1">
+                        <span className="text-zinc-300 font-medium">Mithi Creek Tidal Offset</span>
+                        <span className="font-mono text-white font-bold">
+                            {scenario.tideOffset >= 0 ? `+${scenario.tideOffset.toFixed(1)}m` : `${scenario.tideOffset.toFixed(1)}m`}
+                        </span>
+                    </div>
+                    <input
+                        type="range"
+                        min="-1.0"
+                        max="2.0"
+                        step="0.2"
+                        value={scenario.tideOffset}
+                        onChange={(e) =>
+                            setScenario((s) => ({ ...s, tideOffset: parseFloat(e.target.value) }))
+                        }
+                        className="w-full accent-white cursor-pointer"
+                    />
+                </div>
+            </div>
+        </div>
+    );
+}
+
+// ============================================================================
+// Smart Safe Route App — Flooded Regions & Safe Corridors
+// ============================================================================
+
+function SafeRoutingPanel(props) {
+    const {
+        routes,
+        activeRouteIndex,
+        setActiveRouteIndex,
+        isSimulatingRoute,
+        onStartSimulation,
+        routeProgress,
+        wardData,
+        sectorDepths,
+    } = props;
+
+    const currentRoute = routes[activeRouteIndex];
+
+    // Identify flooded sectors
+    const floodedSectors = wardData ? wardData.sectors
+        .map((s, idx) => ({ ...s, depth: sectorDepths[idx] || 0 }))
+        .filter(s => s.depth >= 25) : [];
+
+    return (
+        <div className="rounded-lg border border-white/20 bg-zinc-950 p-4 sm:p-5 shadow-lg flex flex-col gap-4">
+            <div>
+                <div className="flex items-center justify-between">
+                    <h3 className="text-sm font-bold text-white flex items-center gap-2">
+                        <Navigation className="w-4 h-4 text-white" />
+                        Smart Safe Route App
+                    </h3>
+                    <span className="text-[10px] font-mono px-2 py-0.5 rounded bg-zinc-900 text-zinc-200 border border-white/20">
+                        Flood-Aware Routing
+                    </span>
+                </div>
+                <p className="text-[11px] text-zinc-400 mt-1">
+                    Detects flooded road regions and computes 100% safe elevation corridors for transit.
+                </p>
+            </div>
+
+            {/* Currently Flooded Regions Box */}
+            <div className="rounded-md border border-red-500/40 bg-red-950/20 p-3">
+                <span className="text-xs font-bold text-red-300 flex items-center gap-1.5 mb-1.5">
+                    <AlertTriangle className="w-3.5 h-3.5 text-red-400" />
+                    ⛔ Currently Flooded Regions to Avoid ({floodedSectors.length} Active Hazards)
+                </span>
+                <div className="flex flex-wrap gap-1.5">
+                    {floodedSectors.slice(0, 4).map(s => (
+                        <span key={s.id} className="text-[10px] font-bold px-2 py-0.5 rounded border bg-red-500/20 border-red-500/50 text-red-300 font-mono">
+                            🛑 {s.name} ({s.depth}cm)
+                        </span>
+                    ))}
+                    {floodedSectors.length === 0 && (
+                        <span className="text-[11px] text-emerald-400">All primary road sectors clear.</span>
+                    )}
+                </div>
+            </div>
+
+            {/* Route Selection */}
+            <div className="flex gap-2">
+                {routes.map((r, idx) => (
+                    <button
+                        key={r.id}
+                        onClick={() => setActiveRouteIndex(idx)}
+                        className={`flex-1 py-2 px-2.5 rounded-md border text-xs font-semibold transition-all cursor-pointer text-left ${
+                            activeRouteIndex === idx
+                                ? "border-white bg-white text-zinc-950 font-bold shadow"
+                                : "border-zinc-800 bg-zinc-900 text-zinc-400 hover:text-white"
+                        }`}
+                    >
+                        <span className="block text-[9px] uppercase font-mono text-zinc-400">Corridor {idx + 1}</span>
+                        <span className="truncate block font-bold">{r.origin} → {r.destination}</span>
+                    </button>
+                ))}
+            </div>
+
+            {/* Route Comparison */}
+            <div className="space-y-3">
+                <div className="rounded-md border border-red-500/40 bg-zinc-900 p-3">
+                    <div className="flex items-center justify-between mb-1">
+                        <span className="text-xs font-bold text-red-400 flex items-center gap-1">
+                            ❌ Standard Direct Route
+                        </span>
+                        <span className="text-[10px] font-mono font-bold text-red-300 bg-red-500/20 px-1.5 py-0.5 rounded border border-red-500/30">
+                            BLOCKED BY FLOOD
+                        </span>
+                    </div>
+                    <p className="text-[11px] text-zinc-300 font-mono">
+                        {currentRoute.standard.dist} · {currentRoute.standard.time}
+                    </p>
+                    <p className="text-[10.5px] text-red-300 mt-1 font-sans">
+                        ⚠️ {currentRoute.standard.blockReason}
+                    </p>
+                </div>
+
+                <div className="rounded-md border border-emerald-500/50 bg-zinc-900 p-3">
+                    <div className="flex items-center justify-between mb-1">
+                        <span className="text-xs font-bold text-emerald-400 flex items-center gap-1">
+                            🟢 Smart Safe Elevation Route
+                        </span>
+                        <span className="text-[10px] font-mono font-bold text-emerald-300 bg-emerald-500/20 px-1.5 py-0.5 rounded border border-emerald-500/30">
+                            100% CLEAR &amp; SAFE
+                        </span>
+                    </div>
+                    <p className="text-[11px] text-zinc-200 font-mono">
+                        {currentRoute.safeRoute.dist} · {currentRoute.safeRoute.time} · {currentRoute.safeRoute.elevation}
+                    </p>
+                    <p className="text-[10.5px] text-emerald-300 mt-1 font-sans">
+                        ✅ {currentRoute.safeRoute.corridor}
+                    </p>
+                </div>
+            </div>
+
+            <button
+                onClick={onStartSimulation}
+                disabled={isSimulatingRoute}
+                className="w-full flex items-center justify-center gap-2 py-3 px-4 rounded-md bg-white hover:bg-zinc-200 text-zinc-950 text-xs font-bold border border-white shadow transition-all cursor-pointer"
+            >
+                <Play className="w-4 h-4 fill-current text-zinc-950" />
+                <span>{isSimulatingRoute ? `Simulating Safe Transit (${routeProgress}%)…` : "🗺️ Open Map &amp; Simulate Safe Navigation"}</span>
+            </button>
+        </div>
+    );
+}
+
+// ============================================================================
+// Tactical Map Layer Controls
+// ============================================================================
+
+function TacticalMapControls({ layers, setLayers, floodStats, wardData, selectedSector, onSelectSector, isMapEnabled, onEnableMap, onDisableMap, pushToast }) {
+    const toggleLayer = (key, label) => {
+        setLayers((prev) => {
+            const next = { ...prev, [key]: !prev[key] };
+            pushToast(`${label} layer ${next[key] ? "visible" : "hidden"}`);
+            return next;
+        });
+    };
+
+    return (
+        <div className="rounded-2xl border border-slate-800/90 bg-slate-900/85 backdrop-blur-xl p-4 sm:p-5 shadow-xl flex flex-col gap-4">
+            <div className="flex items-center justify-between">
+                <div>
+                    <h3 className="text-sm font-bold text-white flex items-center gap-2">
+                        <Layers className="w-4 h-4 text-indigo-400" />
+                        Map Controls &amp; GIS Layers
+                    </h3>
+                    <p className="text-[11px] text-slate-400 mt-0.5">
+                        Toggle spatial layers and map visibility state.
+                    </p>
+                </div>
+
+                {/* Map Enable/Disable Toggle Button */}
+                <button
+                    onClick={() => (isMapEnabled ? onDisableMap() : onEnableMap())}
+                    className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl border text-xs font-bold transition-all cursor-pointer ${isMapEnabled
+                            ? "border-emerald-500/40 bg-emerald-500/10 text-emerald-300 hover:bg-emerald-500/20"
+                            : "border-indigo-500/40 bg-indigo-600 text-white hover:bg-indigo-500"
+                        }`}
+                >
+                    <Power className="w-3.5 h-3.5" />
+                    <span>{isMapEnabled ? "Map: Active" : "Enable Map"}</span>
+                </button>
+            </div>
+
+            <div className="space-y-1 divide-y divide-slate-800/60">
+                <ToggleRow
+                    label="🌊 Flood Inundation Heatmap"
+                    checked={layers.heatmap}
+                    onChange={() => toggleLayer("heatmap", "Flood Inundation")}
+                />
+                <ToggleRow
+                    label="⚡ Drainage Pumps & Sluice Gates"
+                    checked={layers.pumps}
+                    onChange={() => toggleLayer("pumps", "Drainage Pumps")}
+                />
+                <ToggleRow
+                    label="🏥 Evacuation Shelters & Relief Camps"
+                    checked={layers.shelters}
+                    onChange={() => toggleLayer("shelters", "Emergency Shelters")}
+                />
+                <ToggleRow
+                    label="🚗 Dynamic Safe Navigation Path"
+                    checked={layers.safeCorridor}
+                    onChange={() => toggleLayer("safeCorridor", "Safe Route Corridor")}
+                />
+                <ToggleRow
+                    label="📐 Topographical Elevation Contours"
+                    checked={layers.elevationContours}
+                    onChange={() => toggleLayer("elevationContours", "Elevation Contours")}
+                />
+            </div>
+        </div>
+    );
+}
+
+// ============================================================================
+// Backend Services Deck
+// ============================================================================
+
+function BackendServicesDeck(props) {
+    const {
+        radarBusy,
+        setRadarBusy,
+        terrainBusy,
+        setTerrainBusy,
+        simBusy,
+        setSimBusy,
+        statusBusy,
+        setStatusBusy,
+        radarTime,
+        setRadarTime,
+        latency,
+        setLatency,
+        runAction,
+        pushToast,
+    } = props;
+
+    const handleRefreshRadar = async () => {
+        setRadarBusy(true);
+        try {
+            const res = await fetch("/api/run_pipeline", { method: "POST" });
+            const data = await res.json();
+            const now = new Date();
+            setRadarTime(now.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }));
+            pushToast(data.message || "Optical flow nowcast updated via pySTEPS pipeline");
+        } catch (err) {
+            pushToast("Radar telemetry refreshed (offline fallback)");
+        } finally {
+            setRadarBusy(false);
+        }
+    };
+
+    const handlePingFeeds = async () => {
+        setStatusBusy(true);
+        const startTime = performance.now();
+        try {
+            const res = await fetch("/api/telemetry_status");
+            const data = await res.json();
+            const calcLatency = Math.round(performance.now() - startTime);
+            setLatency(data.latency_ms || calcLatency || 11);
+            pushToast(`API Gateway: status 200 OK (${data.latency_ms || calcLatency}ms)`);
+        } catch (err) {
+            pushToast("API Gateway probe completed");
+        } finally {
+            setStatusBusy(false);
+        }
+    };
+
+    return (
+        <div className="rounded-2xl border border-slate-800/90 bg-slate-900/85 backdrop-blur-xl p-4 sm:p-5 shadow-xl flex flex-col gap-3">
+            <div className="flex items-center justify-between">
+                <h3 className="text-sm font-bold text-white flex items-center gap-2">
+                    <Server className="w-4 h-4 text-indigo-400" />
+                    Integrated Service Engines
+                </h3>
+                <StatusPill busy={radarBusy || terrainBusy || simBusy || statusBusy} label="All Online" />
+            </div>
+
+            <div className="grid grid-cols-2 gap-2.5">
+                <div className="p-3 rounded-xl bg-slate-900 border border-slate-800 flex flex-col justify-between">
+                    <div>
+                        <span className="text-xs font-semibold text-slate-200">IMD Radar Feed</span>
+                        <p className="text-[10px] text-slate-400 mt-0.5">Last Sync: {radarTime}</p>
+                    </div>
+                    <button
+                        onClick={handleRefreshRadar}
+                        disabled={radarBusy}
+                        className="mt-2 text-[10px] font-bold py-1 px-2 rounded bg-indigo-600/20 hover:bg-indigo-600/30 text-indigo-300 border border-indigo-500/30 transition-colors cursor-pointer text-center"
+                    >
+                        {radarBusy ? "Syncing…" : "Refresh Radar"}
+                    </button>
+                </div>
+
+                <div className="p-3 rounded-xl bg-slate-900 border border-slate-800 flex flex-col justify-between">
+                    <div>
+                        <span className="text-xs font-semibold text-slate-200">1D-2D Hydraulics</span>
+                        <p className="text-[10px] text-slate-400 mt-0.5">SWMM-HEC Coupled</p>
+                    </div>
+                    <button
+                        onClick={() => runAction(setSimBusy, "1D pipe & 2D overland mesh recalculated")}
+                        disabled={simBusy}
+                        className="mt-2 text-[10px] font-bold py-1 px-2 rounded bg-amber-600/20 hover:bg-amber-600/30 text-amber-300 border border-amber-500/30 transition-colors cursor-pointer text-center"
+                    >
+                        {simBusy ? "Calculating…" : "Run Simulation"}
+                    </button>
+                </div>
+
+                <div className="p-3 rounded-xl bg-slate-900 border border-slate-800 flex flex-col justify-between">
+                    <div>
+                        <span className="text-xs font-semibold text-slate-200">DEM Topography</span>
+                        <p className="text-[10px] text-slate-400 mt-0.5">Infiltration: 32%</p>
+                    </div>
+                    <button
+                        onClick={() => runAction(setTerrainBusy, "DEM high-resolution elevation surface updated")}
+                        disabled={terrainBusy}
+                        className="mt-2 text-[10px] font-bold py-1 px-2 rounded bg-emerald-600/20 hover:bg-emerald-600/30 text-emerald-300 border border-emerald-500/30 transition-colors cursor-pointer text-center"
+                    >
+                        {terrainBusy ? "Mapping…" : "Assess DEM"}
+                    </button>
+                </div>
+
+                <div className="p-3 rounded-xl bg-slate-900 border border-slate-800 flex flex-col justify-between">
+                    <div>
+                        <span className="text-xs font-semibold text-slate-200">API Gateway</span>
+                        <p className="text-[10px] text-slate-400 mt-0.5">Latency: {latency} ms</p>
+                    </div>
+                    <button
+                        onClick={handlePingFeeds}
+                        disabled={statusBusy}
+                        className="mt-2 text-[10px] font-bold py-1 px-2 rounded bg-slate-800 hover:bg-slate-700 text-slate-300 border border-slate-700 transition-colors cursor-pointer text-center"
+                    >
+                        {statusBusy ? "Probing…" : "Ping Feeds"}
+                    </button>
+                </div>
+            </div>
+        </div>
+    );
+}
+
+// ============================================================================
+// Ward River & Drainage Vital Card
+// ============================================================================
+
+function WardVitalMetrics({ wardData, timeStep, scenario, onOpenSitRep }) {
+    const dynamicRiverLevel = (
+        wardData.riverLevel * (0.85 + (timeStep * 0.15)) * scenario.rainfallMultiplier +
+        (scenario.tideOffset * 0.3)
+    ).toFixed(2);
+
+    const isRiverOver = dynamicRiverLevel >= wardData.dangerLevel;
+
+    return (
+        <div className="rounded-2xl border border-slate-800/90 bg-slate-900/85 backdrop-blur-xl p-4 sm:p-5 shadow-xl flex flex-col gap-3">
+            <div className="flex items-center justify-between">
+                <span className="text-xs font-bold text-slate-200 flex items-center gap-1.5">
+                    <Droplets className="w-3.5 h-3.5 text-sky-400" />
+                    {wardData.riverName}
+                </span>
+                <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full border ${isRiverOver
+                        ? "border-rose-500/40 bg-rose-500/10 text-rose-300"
+                        : "border-sky-500/40 bg-sky-500/10 text-sky-300"
+                    }`}>
+                    {isRiverOver ? "OVERFLOW STAGE" : "BANK-FULL ACTIVE"}
+                </span>
+            </div>
+
+            <div className="flex items-baseline justify-between border-b border-slate-800 pb-2.5">
+                <div>
+                    <span className="text-2xl font-bold font-mono text-white">{dynamicRiverLevel}</span>
+                    <span className="text-xs text-slate-400 ml-1 font-mono">/ {wardData.dangerLevel}m max</span>
+                </div>
+                <span className="text-[11px] text-slate-400">
+                    Drainage Pumps: <strong className="text-white font-mono">{wardData.activePumps}</strong>
+                </span>
+            </div>
+
+            <div className="flex items-center justify-between text-xs text-slate-400">
+                <span>Relief Shelters:</span>
+                <span className="font-semibold text-slate-200">{wardData.evacShelters}</span>
+            </div>
+        </div>
+    );
+}
+
+// ============================================================================
+// Data Layers & Telemetry Provenance Modal
+// ============================================================================
+
+
+// --- MODULE: client/src/components/modals/ModalsAndFooter.jsx ---
+function DeveloperSocialSection({ isVisible = false, onClose }) {
+    if (!isVisible) return null;
+    return (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/75 backdrop-blur-md animate-fade-in">
+            <div className="bg-slate-900 border border-slate-700 rounded-2xl p-6 sm:p-8 max-w-2xl w-full text-white shadow-2xl relative">
+                <button
+                    onClick={onClose}
+                    className="absolute top-4 right-4 p-2 text-slate-400 hover:text-white rounded-lg hover:bg-slate-800 transition-colors cursor-pointer"
+                >
+                    <X className="w-5 h-5" />
+                </button>
+
+                <div className="flex items-center gap-3 mb-4">
+                    <div className="w-10 h-10 rounded-xl bg-sky-500/20 border border-sky-400/40 flex items-center justify-center text-sky-400 font-bold font-mono">
+                        RD
+                    </div>
+                    <div>
+                        <h3 className="text-xl font-bold text-white">Lead Engineer &amp; Intelligence Profiles</h3>
+                        <p className="text-xs text-slate-400 font-mono">RainDrop Urban Water GIS Intelligence Engine</p>
+                    </div>
+                </div>
+                
+                {/* Social Profiles Grid */}
+                <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 my-6">
+                    <a 
+                        href="https://leetcode.com" 
+                        target="_blank" 
+                        rel="noopener noreferrer" 
+                        className="p-3.5 rounded-xl bg-slate-800/80 hover:bg-slate-800 border border-slate-700 hover:border-amber-400 transition-all flex flex-col items-center text-center group"
+                    >
+                        <span className="text-amber-400 font-bold text-xs uppercase font-mono">LeetCode</span>
+                        <span className="text-[11px] text-slate-400 mt-1 group-hover:text-white transition-colors">Algorithms &amp; System</span>
+                    </a>
+                    <a 
+                        href="https://github.com" 
+                        target="_blank" 
+                        rel="noopener noreferrer" 
+                        className="p-3.5 rounded-xl bg-slate-800/80 hover:bg-slate-800 border border-slate-700 hover:border-sky-400 transition-all flex flex-col items-center text-center group"
+                    >
+                        <span className="text-sky-400 font-bold text-xs uppercase font-mono">GitHub</span>
+                        <span className="text-[11px] text-slate-400 mt-1 group-hover:text-white transition-colors">GIS &amp; ML Pipelines</span>
+                    </a>
+                    <a 
+                        href="https://linkedin.com" 
+                        target="_blank" 
+                        rel="noopener noreferrer" 
+                        className="p-3.5 rounded-xl bg-slate-800/80 hover:bg-slate-800 border border-slate-700 hover:border-blue-400 transition-all flex flex-col items-center text-center group"
+                    >
+                        <span className="text-blue-400 font-bold text-xs uppercase font-mono">LinkedIn</span>
+                        <span className="text-[11px] text-slate-400 mt-1 group-hover:text-white transition-colors">Engineering Network</span>
+                    </a>
+                    <a 
+                        href="https://twitter.com" 
+                        target="_blank" 
+                        rel="noopener noreferrer" 
+                        className="p-3.5 rounded-xl bg-slate-800/80 hover:bg-slate-800 border border-slate-700 hover:border-cyan-400 transition-all flex flex-col items-center text-center group"
+                    >
+                        <span className="text-cyan-400 font-bold text-xs uppercase font-mono">Twitter / X</span>
+                        <span className="text-[11px] text-slate-400 mt-1 group-hover:text-white transition-colors">Radar &amp; Builds</span>
+                    </a>
+                </div>
+
+                {/* Confirmed Project Specs & Data */}
+                <div className="p-4 rounded-xl bg-slate-950 border border-slate-800 font-mono text-xs space-y-2 text-slate-300">
+                    <div className="flex justify-between text-sky-400 font-bold border-b border-slate-800 pb-1.5">
+                        <span>CONFIRMED PROJECT METRICS</span>
+                        <span>v3.4-PROD</span>
+                    </div>
+                    <div className="flex justify-between">
+                        <span className="text-slate-500">Elevation Dataset:</span>
+                        <span className="text-slate-200">16-bit Sub-meter High Precision DEM</span>
+                    </div>
+                    <div className="flex justify-between">
+                        <span className="text-slate-500">Hydro Inundation Engine:</span>
+                        <span className="text-emerald-400">ML Surrogate + 2D Hydrodynamic Models</span>
+                    </div>
+                    <div className="flex justify-between">
+                        <span className="text-slate-500">Monitored Metros:</span>
+                        <span className="text-slate-200">6 Indian Basins (Chennai, Mumbai, Kolkata, Delhi, Bengaluru, Hyderabad)</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    );
+}
+
+
+function DataLayersModal({ isOpen, onClose, mapToggles, setMapToggles, pushToast }) {
+    if (!isOpen) return null;
+
+    const layersConfig = [
+        {
+            id: "hotspots",
+            name: "Critical Flood Hotspots",
+            badge: "CartoDEM 30m Grid",
+            badgeColor: "bg-rose-50 text-rose-700 border-rose-200",
+            source: "ISRO CartoDEM Elevation + Municipal Sump Gauges",
+            frequency: "Continuous (60s cycle)",
+            description: "Real-time surface water depth computed from rainfall accumulation and elevation runoff.",
+        },
+        {
+            id: "pumps",
+            name: "Stormwater Dewatering Pumps",
+            badge: "SCADA Telemetry",
+            badgeColor: "bg-blue-50 text-blue-700 border-blue-200",
+            source: "Municipal Stormwater Drainage Operations (BMC / GCC)",
+            frequency: "Live telemetry (active suction & diesel standby)",
+            description: "High-capacity submersible dewatering pump locations and active capacity percentages.",
+        },
+        {
+            id: "shelters",
+            name: "Relief & Evacuation Shelters",
+            badge: "Disaster Authority",
+            badgeColor: "bg-indigo-50 text-indigo-700 border-indigo-200",
+            source: "State Disaster Management Authority (SDMA / NDRF)",
+            frequency: "Updated per flood shift",
+            description: "Verified community schools and disaster halls with dry rations, medical kits, and boat staging.",
+        },
+        {
+            id: "metro",
+            name: "Transit & Metro Corridors",
+            badge: "Road Network",
+            badgeColor: "bg-emerald-50 text-emerald-700 border-emerald-200",
+            source: "Metropolitan Transit Police & Rail GIS Feeds",
+            frequency: "Real-time incident updates",
+            description: "Subway gate closure advisories and elevated highway safe-elevation corridors.",
+        },
+        {
+            id: "boundaries",
+            name: "Municipal Ward Catchments",
+            badge: "Survey of India",
+            badgeColor: "bg-slate-100 text-slate-700 border-slate-200",
+            source: "Municipal Administrative GIS Polygons",
+            frequency: "Static hydro-basin boundaries",
+            description: "Natural drainage basins and administrative municipal ward boundary borders.",
+        }
+    ];
+
+    const toggleLayer = (id) => {
+        const nextState = !mapToggles[id];
+        setMapToggles((prev) => ({ ...prev, [id]: nextState }));
+        if (pushToast) {
+            pushToast(`Layer "${layersConfig.find(l => l.id === id)?.name}" ${nextState ? "enabled" : "hidden"}`);
+        }
+    };
+
+    return (
+        <div className="fixed inset-0 z-[960] flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-xs animate-in fade-in duration-200 font-sans">
+            <div className="w-full max-w-xl bg-white rounded-3xl border border-slate-200 shadow-2xl p-6 flex flex-col max-h-[90vh] overflow-hidden text-slate-900">
+                <div className="flex items-start justify-between pb-4 border-b border-slate-100">
+                    <div>
+                        <div className="flex items-center gap-2">
+                            <span className="text-[10.5px] uppercase font-bold tracking-wider px-2 py-0.5 rounded-full bg-blue-50 text-blue-700">
+                                GIS Telemetry Overlays
+                            </span>
+                        </div>
+                        <h2 className="text-lg font-extrabold text-slate-900 mt-1">Data Layers &amp; Sensor Sources</h2>
+                        <p className="text-xs text-slate-500 mt-0.5">
+                            Toggle live spatial data layers and inspect their verification authorities.
+                        </p>
+                    </div>
+                    <button
+                        onClick={onClose}
+                        className="p-2 rounded-full text-slate-400 hover:text-slate-700 hover:bg-slate-100 transition-colors cursor-pointer"
+                        title="Close"
+                    >
+                        <X className="w-5 h-5" />
+                    </button>
+                </div>
+
+                <div className="flex-1 overflow-y-auto py-4 space-y-3">
+                    {layersConfig.map((layer) => {
+                        const active = !!mapToggles[layer.id];
+                        return (
+                            <div
+                                key={layer.id}
+                                className={`p-4 rounded-2xl border transition-all ${
+                                    active
+                                        ? "bg-slate-50/80 border-slate-200 shadow-2xs"
+                                        : "bg-white border-slate-100 opacity-60 hover:opacity-100"
+                                }`}
+                            >
+                                <div className="flex items-center justify-between gap-3">
+                                    <div className="flex-1">
+                                        <div className="flex items-center gap-2">
+                                            <span className="text-xs font-bold text-slate-900">{layer.name}</span>
+                                            <span className={`text-[9.5px] font-bold px-2 py-0.5 rounded-full border ${layer.badgeColor}`}>
+                                                {layer.badge}
+                                            </span>
+                                        </div>
+                                        <p className="text-xs text-slate-600 mt-1 leading-relaxed">
+                                            {layer.description}
+                                        </p>
+                                        <div className="flex flex-wrap items-center gap-x-4 gap-y-1 mt-2 text-[10.5px] text-slate-400">
+                                            <span>Authority: <strong className="text-slate-600">{layer.source}</strong></span>
+                                            <span>Frequency: <strong className="text-slate-600">{layer.frequency}</strong></span>
+                                        </div>
+                                    </div>
+                                    <button
+                                        type="button"
+                                        onClick={() => toggleLayer(layer.id)}
+                                        className={`w-11 h-6 rounded-full transition-colors relative cursor-pointer shrink-0 ${
+                                            active ? "bg-blue-600" : "bg-slate-200"
+                                        }`}
+                                    >
+                                        <span
+                                            className={`block w-4 h-4 rounded-full bg-white shadow-xs transition-transform absolute top-1 ${
+                                                active ? "right-1" : "left-1"
+                                            }`}
+                                        />
+                                    </button>
+                                </div>
+                            </div>
+                        );
+                    })}
+                </div>
+
+                <div className="pt-4 border-t border-slate-100 flex items-center justify-between">
+                    <span className="text-xs font-semibold text-slate-500">
+                        Active Overlays: <strong className="text-slate-900 font-bold">{Object.values(mapToggles).filter(Boolean).length} / 5</strong>
+                    </span>
+                    <button
+                        type="button"
+                        onClick={onClose}
+                        className="px-5 py-2 rounded-xl bg-blue-600 hover:bg-blue-500 text-white text-xs font-bold shadow-md shadow-blue-600/20 cursor-pointer transition-all"
+                    >
+                        Done
+                    </button>
+                </div>
+            </div>
+        </div>
+    );
+}
+
+// ============================================================================
+// Situation Report (SitRep) Modal
+// ============================================================================
+
+function SitRepModal({ ward, wardData, floodStats, sectorDepths, timeStep, scenario, onClose, pushToast }) {
+    const currentForecast = HYDROGRAPH_DATA[timeStep] || HYDROGRAPH_DATA[0];
+    const wardName = ward || "Kurla";
+    const data = wardData || {
+        code: "KW-10",
+        riskLevel: "High Risk",
+        activePumps: 12,
+        riverName: "Mithi River",
+        riverLevel: "3.42",
+        dangerLevel: "3.00",
+        evacShelters: "4 Nodal Centers",
+    };
+    const stats = floodStats || { critical: 6, caution: 4, clear: 14 };
+
+    const handlePrint = () => {
+        window.print();
+    };
+
+    const handleCopyMarkdown = () => {
+        const text = `# RAINDROP MUNICIPAL SITUATION REPORT (SITREP)
+**Ward:** ${wardName} (${data.code})
+**Timestamp:** ${new Date().toLocaleString()} | Horizon: ${currentForecast.t} (${currentForecast.label})
+**Overall Risk Status:** ${data.riskLevel}
+
+## Flood Impact Metrics
+- Critical / Inundated Sectors (>30cm): ${stats.critical}
+- Caution / Waterlogged Sectors (15-30cm): ${stats.caution}
+- Clear / Passable Corridors: ${stats.clear}
+- Active Drainage Pumps: ${data.activePumps}
+- River Stage: ${data.riverName} at ${data.riverLevel}m (Danger Level: ${data.dangerLevel}m)
+- Emergency Shelters: ${data.evacShelters}
+
+## Incident Commander Directives
+1. Deploy mobile dewatering units to lowest elevation sectors in ${wardName}.
+2. Divert commuter transit along designated Safe Elevation Corridors via Kalina CST Flyover Upper Deck.
+3. Lower subway and underpass gates at critical waterlogged bottlenecks (Bail Bazar & Station West).
+4. Keep all ${data.activePumps} stormwater dewatering stations on continuous suction with auxiliary diesel backup.
+`;
+        navigator.clipboard.writeText(text).then(() => {
+            if (pushToast) {
+                pushToast("SitRep Copied", "Markdown format ready for municipal dispatch.", "success");
+            }
+        });
+    };
+
+    return (
+        <div
+            className="fixed inset-0 z-[1000] flex items-center justify-center p-4"
+            style={{ background: "rgba(15,23,42,0.65)", backdropFilter: "blur(8px)" }}
+        >
+            <div className="relative w-full max-w-2xl rounded-3xl border border-slate-200 bg-white shadow-2xl p-7 text-slate-900 font-sans animate-in fade-in zoom-in-95 duration-200 max-h-[90vh] overflow-y-auto flex flex-col gap-5">
+                {/* Header */}
+                <div className="flex items-start justify-between border-b border-slate-100 pb-4">
+                    <div className="flex items-center gap-3.5">
+                        <div className="w-10 h-10 rounded-2xl bg-blue-50 text-blue-600 flex items-center justify-center shadow-xs">
+                            <FileText className="w-5 h-5" />
+                        </div>
+                        <div>
+                            <div className="flex items-center gap-2">
+                                <span className="text-[10px] uppercase font-bold tracking-wider px-2 py-0.5 rounded-full bg-blue-100/80 text-blue-800">
+                                    Official Incident Dispatch · BMC / NDRF
+                                </span>
+                            </div>
+                            <h2 className="text-lg font-bold text-slate-900 mt-0.5">
+                                RainDrop Municipal Situation Report (SitRep)
+                            </h2>
+                            <p className="text-xs text-slate-500 font-medium">
+                                {wardName} · {data.code} · Generated {new Date().toLocaleTimeString()} · Horizon: {currentForecast.t} ({currentForecast.label})
+                            </p>
+                        </div>
+                    </div>
+                    <button
+                        type="button"
+                        onClick={onClose}
+                        className="p-2 rounded-full text-slate-400 hover:text-slate-700 hover:bg-slate-100 cursor-pointer transition-colors"
+                        title="Close SitRep"
+                    >
+                        <X className="w-5 h-5" />
+                    </button>
+                </div>
+
+                {/* KPI Cards */}
+                <div className="grid grid-cols-3 gap-3">
+                    <div className="p-3.5 rounded-2xl bg-rose-50/70 border border-rose-100">
+                        <span className="text-[10.5px] font-bold text-rose-700 uppercase tracking-wider block">Flooded Sectors</span>
+                        <p className="text-2xl font-bold text-rose-900 mt-1">{stats.critical}</p>
+                        <span className="text-[10px] text-rose-600 font-medium block mt-0.5">Roads submerged &gt;30cm</span>
+                    </div>
+
+                    <div className="p-3.5 rounded-2xl bg-emerald-50/70 border border-emerald-100">
+                        <span className="text-[10.5px] font-bold text-emerald-700 uppercase tracking-wider block">Passable Corridors</span>
+                        <p className="text-2xl font-bold text-emerald-900 mt-1">{stats.clear}</p>
+                        <span className="text-[10px] text-emerald-600 font-medium block mt-0.5">Dry elevation routes</span>
+                    </div>
+
+                    <div className="p-3.5 rounded-2xl bg-sky-50/70 border border-sky-100">
+                        <span className="text-[10.5px] font-bold text-sky-700 uppercase tracking-wider block">River Spillway</span>
+                        <p className="text-2xl font-bold text-sky-900 mt-1">{data.riverLevel}m</p>
+                        <span className="text-[10px] text-sky-600 font-medium block mt-0.5">Alert limit: {data.dangerLevel}m ({data.riverName})</span>
+                    </div>
+                </div>
+
+                {/* Directives Section */}
+                <div className="p-4.5 rounded-2xl bg-slate-50 border border-slate-200/80 space-y-2.5">
+                    <div className="flex items-center justify-between">
+                        <h4 className="text-xs font-bold text-slate-800 uppercase tracking-wider flex items-center gap-2">
+                            <Activity className="w-3.5 h-3.5 text-blue-600" />
+                            Incident Commander Directives
+                        </h4>
+                        <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-amber-100 text-amber-800">
+                            High Priority
+                        </span>
+                    </div>
+                    <ul className="text-xs text-slate-700 space-y-2 list-disc pl-4 leading-relaxed">
+                        <li>Subway and underpass gates closed at <strong>Bail Bazar</strong> and <strong>Kurla Station West</strong> to prevent entrapment.</li>
+                        <li>Direct civilian and emergency transit along designated <strong>Safe Elevation Corridors</strong> via CST Flyover Upper Deck.</li>
+                        <li>All <strong>{data.activePumps}</strong> high-capacity stormwater pumps energized on continuous suction with auxiliary diesel standby.</li>
+                        <li>Disaster management rescue teams and NDRF personnel staged at <strong>{data.evacShelters}</strong> with dry rations and inflatable boats.</li>
+                    </ul>
+                </div>
+
+                {/* Footer Controls */}
+                <div className="flex items-center justify-between pt-3 border-t border-slate-100">
+                    <div className="flex items-center gap-2.5">
+                        <button
+                            type="button"
+                            onClick={handlePrint}
+                            className="flex items-center gap-2 px-4 py-2 rounded-2xl border border-slate-200 bg-white hover:bg-slate-50 text-xs font-semibold text-slate-700 shadow-2xs cursor-pointer transition-colors"
+                        >
+                            <Printer className="w-4 h-4 text-slate-500" />
+                            Print SitRep
+                        </button>
+                        <button
+                            type="button"
+                            onClick={handleCopyMarkdown}
+                            className="flex items-center gap-2 px-4 py-2 rounded-2xl border border-slate-200 bg-white hover:bg-slate-50 text-xs font-semibold text-slate-700 shadow-2xs cursor-pointer transition-colors"
+                        >
+                            <Copy className="w-4 h-4 text-slate-500" />
+                            Copy Markdown
+                        </button>
+                    </div>
+
+                    <button
+                        type="button"
+                        onClick={onClose}
+                        className="px-5 py-2 rounded-2xl bg-blue-600 hover:bg-blue-700 text-white text-xs font-bold shadow-md shadow-blue-500/20 cursor-pointer transition-colors"
+                    >
+                        Close SitRep
+                    </button>
+                </div>
+            </div>
+        </div>
+    );
+}
+
+
+if (typeof window !== "undefined") {
+    window.RainDrop = RainDrop;
+    window.AquaSight = RainDrop; // Backward compatibility alias
+    const mountReactApp = () => {
+        const container = document.getElementById("root");
+        if (container && typeof ReactDOM !== "undefined") {
+            try {
+                if (!container._reactRoot) {
+                    container._reactRoot = ReactDOM.createRoot(container);
+                    container._reactRoot.render(React.createElement(RainDrop));
+                    console.log("RainDrop GIS app mounted successfully.");
+                }
+            } catch (e) {
+                console.error("RainDrop React mount error:", e);
+            }
+        }
+    };
+
+    if (document.readyState === "loading") {
+        document.addEventListener("DOMContentLoaded", mountReactApp);
+    } else {
+        mountReactApp();
+    }
+}
+
+
+// --- MODULE: client/src/App.jsx ---
 function RainDrop() {
     const [view, setView] = useState("hero"); // 'hero' (Editorial Landing) | 'overview' (3:7 City & Ward Matrix) | 'command' (Operations Center Map)
     const [activeTab, setActiveTab] = useState("telemetry"); // 'telemetry' | 'routes' | 'scenario' | 'map'
@@ -3404,3398 +6824,4 @@ function RainDrop() {
 // Public Hero Landing Page (Exact Editorial GIS Dark Theme with Rich Photography)
 // ============================================================================
 
-function RainDropLogo({ className = "w-7 h-7", textClassName = "text-lg font-bold text-white tracking-tight" }) {
-    return (
-        <div className="flex items-center gap-2.5 group cursor-pointer select-none">
-            <div className="relative flex items-center justify-center">
-                <svg className={className} viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg">
-                    <defs>
-                        <linearGradient id="dropGrad" x1="16" y1="2" x2="16" y2="30" gradientUnits="userSpaceOnUse">
-                            <stop offset="0%" stopColor="#38BDF8" />
-                            <stop offset="50%" stopColor="#2563EB" />
-                            <stop offset="100%" stopColor="#1D4ED8" />
-                        </linearGradient>
-                        <filter id="dropGlow" x="-20%" y="-20%" width="140%" height="140%">
-                            <feDropShadow dx="0" dy="2" stdDeviation="3" floodColor="#0284C7" floodOpacity="0.5" />
-                        </filter>
-                    </defs>
-                    <path
-                        d="M16 3C16 3 6 15.5 6 21.5C6 26.5 10.5 30 16 30C21.5 30 26 26.5 26 21.5C26 15.5 16 3 16 3Z"
-                        fill="url(#dropGrad)"
-                        filter="url(#dropGlow)"
-                    />
-                    <path
-                        d="M16 6.5C16 6.5 10 16 10 21C10 23.5 11.5 25.5 13.5 26.5C12 25 11.2 23 11.2 20.8C11.2 16.5 16 9 16 6.5Z"
-                        fill="white"
-                        fillOpacity="0.4"
-                    />
-                </svg>
-            </div>
-            <span className={textClassName}>
-                RainDrop <span className="font-light tracking-normal opacity-90">GIS</span>
-            </span>
-        </div>
-    );
-}
-
-function HeroView({ ward, wardData, onEnter, onSelectCity, onOpenMap, pushToast }) {
-    const [activeRailStep, setActiveRailStep] = useState(0); // 0: DATA, 1: COVERAGE, 2: IMPACT, 3: FUTURE
-    const [activePillarTab, setActivePillarTab] = useState(0);
-    const [scenarioRain, setScenarioRain] = useState(45); // mm/hr
-    const [scenarioTide, setScenarioTide] = useState(0.4); // meters
-    const [scenarioPumps, setScenarioPumps] = useState(90); // %
-    const [routeSimProgress, setRouteSimProgress] = useState(0);
-    const [isSimulatingRoute, setIsSimulatingRoute] = useState(false);
-
-    // CreativaX Studio State & Filmstrip Slideshow Track State
-    const [slideIndex, setSlideIndex] = useState(4); // Starts at index 4 (Real 01 in middle set)
-    const [activeArtworkIdx, setActiveArtworkIdx] = useState(0);
-    const [isTransitioning, setIsTransitioning] = useState(true);
-    const [isCarouselHovered, setIsCarouselHovered] = useState(false);
-    const [showreelModalOpen, setShowreelModalOpen] = useState(false);
-    const [mobileDrawerOpen, setMobileDrawerOpen] = useState(false);
-    const [modalArtworkIdx, setModalArtworkIdx] = useState(0);
-
-    // Responsive viewport tracking for mathematically exact slide centering
-    const [viewportWidth, setViewportWidth] = useState(
-        typeof window !== 'undefined' ? window.innerWidth : 1440
-    );
-
-    useEffect(() => {
-        const handleResize = () => setViewportWidth(window.innerWidth);
-        window.addEventListener('resize', handleResize);
-        return () => window.removeEventListener('resize', handleResize);
-    }, []);
-
-    const ARTWORKS = [
-        {
-            num: "01",
-            title: "Historic River City Ghats",
-            subtitle: "Varanasi Riverfront Topography",
-            desc: "High-resolution spatial elevation models mapping riverbank gradient steps and sacred hydrological corridors.",
-            img: "/static/images/hero-river-ghats-aerial-hd.jpg",
-            tag: "RIVER TOPOGRAPHY",
-            stats: "25.3176° N, 82.8739° E"
-        },
-        {
-            num: "02",
-            title: "Harbor Tides & Coastal Fleets",
-            subtitle: "Mumbai Harbor Tidal Basin",
-            desc: "Coastal surge modeling and astronomical high-tide boundary conditions for peninsular megacities.",
-            img: "/static/images/hero-mumbai-harbor-boats.jpg",
-            tag: "COASTAL DYNAMICS",
-            stats: "18.9220° N, 72.8347° E"
-        },
-        {
-            num: "03",
-            title: "Urban Monsoons & Street Reflections",
-            subtitle: "Kolkata Metropolitan Grid",
-            desc: "Street-level micro-inundation nowcasting tracking waterlogged taxi avenues and low-elevation sumps.",
-            img: "/static/images/hero-kolkata-taxi-reflection.jpg",
-            tag: "URBAN INUNDATION",
-            stats: "22.5726° N, 88.3639° E"
-        },
-        {
-            num: "04",
-            title: "Highway Drainage & Storm Surges",
-            subtitle: "Corridor Transit Bypass",
-            desc: "Dual-corridor safe elevation routing bypassing flooded underpasses and high-velocity stormwater splash zones.",
-            img: "/static/images/hero-monsoon-bus-splash.jpg",
-            tag: "TRANSIT RESILIENCE",
-            stats: "22.6200° N, 88.4200° E"
-        }
-    ];
-
-    // 3 complete sets of ARTWORKS (indices 0..3, 4..7, 8..11) for true infinite forward/backward track sliding
-    const EXTENDED_SLIDES = [
-        ...ARTWORKS, // Set 0: buffer on the left
-        ...ARTWORKS, // Set 1: active home set (starts at index 4)
-        ...ARTWORKS  // Set 2: buffer on the right
-    ];
-
-    // Responsive card dimensions & exact horizontal center alignment:
-    // Active card is prominent (48vw, max 760px); inactive cards are compact (23vw, max 360px)
-    const cardWidthActive = Math.min(760, Math.max(340, Math.round(viewportWidth * 0.48)));
-    const cardWidthInactive = Math.min(360, Math.max(200, Math.round(viewportWidth * 0.23)));
-    const carouselGap = 20;
-
-    // Center equation: (viewport / 2) - (activeCardWidth / 2) places the active card's center at exactly 50vw
-    const centerOffset = Math.round(viewportWidth / 2 - (cardWidthActive / 2));
-    const slideStep = cardWidthInactive + carouselGap;
-    const translateX = centerOffset - (slideIndex * slideStep);
-
-    // Automatic slide progression every 1.75 seconds with smooth 750ms glide
-    useEffect(() => {
-        if (isCarouselHovered) return;
-        const timer = setInterval(() => {
-            setIsTransitioning(true);
-            setSlideIndex((prev) => {
-                if (prev >= 8) return 5;
-                return prev + 1;
-            });
-        }, 1750);
-        return () => clearInterval(timer);
-    }, [isCarouselHovered]);
-
-    // Rock-solid infinite loop normalization:
-    // When transitioning past index 7 to index 8 (Slide 01 in Set 2), wait for the 750ms transition
-    // to complete, then silently reset to index 4 (Slide 01 in Set 1) with transition disabled.
-    // Because Slide 8 and Slide 4 are visually identical on screen, this reset is 100% invisible!
-    useEffect(() => {
-        if (slideIndex >= 8) {
-            const t = setTimeout(() => {
-                setIsTransitioning(false);
-                setSlideIndex(4);
-            }, 750);
-            return () => clearTimeout(t);
-        } else if (slideIndex < 4) {
-            const t = setTimeout(() => {
-                setIsTransitioning(false);
-                setSlideIndex((prev) => prev + 4);
-            }, 750);
-            return () => clearTimeout(t);
-        }
-    }, [slideIndex]);
-
-    // Calculate active project index (0, 1, 2, 3) and sync activeArtworkIdx
-    const activeProjectIdx = ((slideIndex % 4) + 4) % 4;
-
-    useEffect(() => {
-        setActiveArtworkIdx(activeProjectIdx);
-    }, [activeProjectIdx]);
-
-    const handleDotClick = (targetIdx) => {
-        setIsTransitioning(true);
-        setSlideIndex(4 + targetIdx);
-    };
-
-
-
-    // Dynamic calculation for the What-If sandbox
-    const computedDepthCm = Math.max(0, Math.round((scenarioRain * 0.45) + (scenarioTide * 12) - ((scenarioPumps / 100) * 16)));
-    const computedClearanceHours = Math.max(0.5, Number(((computedDepthCm * 0.12) / (scenarioPumps / 100)).toFixed(1)));
-
-    const scrollTo = (id) => {
-        const el = document.getElementById(id);
-        if (el) {
-            el.scrollIntoView({ behavior: "smooth" });
-        }
-    };
-
-    const handleRunRouteSim = () => {
-        setIsSimulatingRoute(true);
-        setRouteSimProgress(0);
-        const timer = setInterval(() => {
-            setRouteSimProgress((prev) => {
-                if (prev >= 100) {
-                    clearInterval(timer);
-                    setIsSimulatingRoute(false);
-                    if (pushToast) pushToast("Dual-Corridor: Emergency vehicle successfully routed via elevated bypass!");
-                    return 100;
-                }
-                return prev + 10;
-            });
-        }, 120);
-    };
-
-    const cityCards = [
-        {
-            city: "Chennai",
-            state: "Tamil Nadu",
-            river: "Adyar & Cooum Basin",
-            focus: "Coastal Storm Canals",
-            risk: "High Watch",
-            riskType: "high",
-            pumps: "49 / 54 Active",
-            elevation: "Sea Level Basin",
-            img: "/static/images/pexels-wanderinglenses-13670217.jpg"
-        },
-        {
-            city: "Mumbai",
-            state: "Maharashtra",
-            river: "Mithi River & Mahim Bay",
-            focus: "Tidal Creek Outfalls",
-            risk: "High Watch",
-            riskType: "high",
-            pumps: "51 / 58 Active",
-            elevation: "Coastal Lowland",
-            img: "/static/images/zoshua-colah-1fradOPdjBM-unsplash.jpg"
-        },
-        {
-            city: "Delhi",
-            state: "NCR",
-            river: "Yamuna River Basin",
-            focus: "Ring Road Underpasses",
-            risk: "High Watch",
-            riskType: "high",
-            pumps: "62 / 69 Active",
-            elevation: "River Floodplain",
-            img: "/static/images/dibakar-roy-KbG3OsDKkCM-unsplash.jpg"
-        },
-        {
-            city: "Kolkata",
-            state: "West Bengal",
-            river: "Hooghly River & Canals",
-            focus: "Historic Sump Stations",
-            risk: "High Watch",
-            riskType: "high",
-            pumps: "44 / 50 Active",
-            elevation: "Delta Lowland",
-            img: "/static/images/hero-kolkata-taxi-reflection.jpg"
-        },
-        {
-            city: "Bengaluru",
-            state: "Karnataka",
-            river: "Bellandur & Vrishabhavathi",
-            focus: "Valley Storm Drains",
-            risk: "Moderate",
-            riskType: "mod",
-            pumps: "38 / 42 Active",
-            elevation: "Elevated Plateau",
-            img: "/static/images/hero-aerial-drone.jpg"
-        },
-        {
-            city: "Hyderabad",
-            state: "Telangana",
-            river: "Musi River & Hussain Sagar",
-            focus: "Storm Culvert Runoff",
-            risk: "Moderate",
-            riskType: "mod",
-            pumps: "34 / 38 Active",
-            elevation: "Deccan Basin",
-            img: "/static/images/dibakar-roy-aby-GGLtD-A-unsplash.jpg"
-        }
-    ];
-
-    const GIS_PILLARS = [
-        {
-            num: "01",
-            title: "3D Street Elevation Mapping",
-            badge: "Terrain Heights",
-            tagline: "Pinpoints low road dips and hollows where stormwater gathers first.",
-            desc: "By reading high-accuracy satellite terrain heights across every street, RainDrop reveals exactly which intersections, underpasses, and neighborhood lanes sit in natural low points.",
-            img: "/static/images/dibakar-roy-FbOchRlXaPs-unsplash.jpg",
-            benefits: ["Sub-meter street height precision", "Highlights deep road hollows", "Calculates downhill water flow", "Flags trapped water pockets"],
-            tag: "Elevation Topography"
-        },
-        {
-            num: "02",
-            title: "Live Rainstorm Radar Tracking",
-            badge: "Weather Radar",
-            tagline: "Follows heavy cloudbursts minute-by-minute hours before rainfall peaks.",
-            desc: "Streams live weather radar across every metropolitan area. It tracks storm clouds in motion so residents and municipal crews know exactly when and where heavy downpours will hit.",
-            img: "/static/images/dibakar-roy-DccG84ivd3k-unsplash.jpg",
-            benefits: ["Live radar precipitation feed", "Storm direction and speed tracking", "5-minute cloud updates", "Up to 6 hours advance warning"],
-            tag: "Radar Telemetry"
-        },
-        {
-            num: "03",
-            title: "Canals & Drainage Water Flow",
-            badge: "Waterway Movement",
-            tagline: "Monitors city canals, sea tides, and stormwater drainage lines.",
-            desc: "Watches how water travels through underground pipes, open city canals, and river outfall gates, accounting for ocean high tides that push seawater back into neighborhood drains.",
-            img: "/static/images/dibakar-roy-P7Z3HwNWPeQ-unsplash.jpg",
-            benefits: ["Underground pipe capacity checks", "Tide and river backflow tracking", "Canal blockage detection", "Gate opening advisories"],
-            tag: "Hydrodynamics"
-        },
-        {
-            num: "04",
-            title: "Instant Street Flood Depth Alerts",
-            badge: "Real-Time Depth",
-            tagline: "Calculates standing water depth across every neighborhood in milliseconds.",
-            desc: "Instead of waiting hours for slow simulations, our smart predictive model calculates whether a street will have 5 cm or 45 cm of water in milliseconds as rain falls.",
-            img: "/static/images/hero-aerial-drone.jpg",
-            benefits: ["Instant depth forecasts in cm", "Door-to-door street accuracy", "Clear vehicle safety limits", "Fast response advisories"],
-            tag: "Surrogate Intelligence"
-        }
-    ];
-
-    const currentArt = ARTWORKS[activeArtworkIdx] || ARTWORKS[0];
-
-    return (
-        <div className="min-h-screen bg-white text-slate-900 flex flex-col items-center justify-start p-0 m-0 font-sans antialiased w-full overflow-x-hidden selection:bg-emerald-600 selection:text-white">
-            
-            {/* ========================================================================= */}
-            {/* VERDE FULL-SCREEN NATURE VIDEO HERO SECTION (100vw x 100vh Full Viewport) */}
-            {/* ========================================================================= */}
-            <section className="relative w-full h-screen min-h-screen overflow-hidden flex flex-col justify-between">
-
-                {/* 1. Background Video & Multi-Layer Ambient Overlays (Full Bleed Edge-to-Edge) */}
-                <div className="absolute inset-0 w-full h-full z-0 overflow-hidden pointer-events-none">
-                    <video
-                        id="bg-video"
-                        autoPlay
-                        loop
-                        muted
-                        playsInline
-                        preload="auto"
-                        poster="/static/images/rain-video-poster.jpg"
-                        className="w-full h-full object-cover scale-[1.01] transition-transform duration-1000"
-                    >
-                        <source src="/static/VEDIO/RAIN.mp4" type="video/mp4" />
-                        <source src="https://strvid.nyc3.cdn.digitaloceanspaces.com/motionsite/nature-sunset.mp4" type="video/mp4" />
-                    </video>
-                    {/* Linear Top-to-Bottom Gradient */}
-                    <div className="absolute inset-0 bg-gradient-to-b from-black/75 via-black/30 to-black/85 pointer-events-none" />
-                    {/* Radial Vignette */}
-                    <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,transparent_0%,rgba(0,0,0,0.2)_50%,rgba(0,0,0,0.5)_100%)] pointer-events-none" />
-                </div>
-
-                {/* 2. Top Header & Navigation Inside Hero */}
-                <header className="relative z-30 w-full max-w-7xl mx-auto px-6 sm:px-10 lg:px-14 pt-6 sm:pt-8 pb-4 flex items-center justify-between">
-                    {/* Brand Logo with Water Droplet / Sprout SVG */}
-                    <div 
-                        onClick={() => {
-                            window.scrollTo({ top: 0, behavior: "smooth" });
-                            setActiveRailStep(0);
-                        }}
-                        className="group flex items-center gap-2.5 text-white tracking-[0.2em] font-light text-xl sm:text-2xl cursor-pointer transition-opacity hover:opacity-90 select-none"
-                    >
-                        <svg width="28" height="28" style={{ width: '28px', height: '28px', minWidth: '28px' }} className="w-6 h-6 sm:w-7 sm:h-7 text-emerald-400 transition-transform duration-500 group-hover:scale-110 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
-                            <path d="M12 22V12"></path>
-                            <path d="M12 12C12 7.58172 8.41828 4 4 4C4 8.41828 7.58172 12 12 12Z"></path>
-                            <path d="M12 15C12 11.134 15.134 8 19 8C19 11.866 15.866 15 12 15Z"></path>
-                        </svg>
-                        <span className="font-normal tracking-[0.25em]">RAINDROP</span>
-                    </div>
-
-                    {/* Desktop Navigation Links with animated underline */}
-                    <nav className="hidden lg:flex items-center space-x-8 text-[12px] font-semibold tracking-[0.2em] uppercase text-white/90">
-                        <button 
-                            onClick={() => { scrollTo("home"); setActiveRailStep(0); }} 
-                            className="hover:text-white transition-colors relative py-1 after:content-[''] after:absolute after:bottom-0 after:left-0 after:w-full after:h-[1px] after:bg-white cursor-pointer"
-                        >
-                            LIVE RADAR
-                        </button>
-                        <button 
-                            onClick={() => { scrollTo("coverage"); setActiveRailStep(1); }} 
-                            className="hover:text-white/70 transition-colors py-1 relative group cursor-pointer"
-                        >
-                            CITY BASINS
-                            <span className="absolute bottom-0 left-0 w-full h-[1px] bg-white scale-x-0 group-hover:scale-x-100 transition-transform duration-300"></span>
-                        </button>
-                        <button 
-                            onClick={() => { scrollTo("data"); setActiveRailStep(0); }} 
-                            className="hover:text-white/70 transition-colors py-1 relative group cursor-pointer"
-                        >
-                            HOW IT WORKS
-                            <span className="absolute bottom-0 left-0 w-full h-[1px] bg-white scale-x-0 group-hover:scale-x-100 transition-transform duration-300"></span>
-                        </button>
-                        <button 
-                            onClick={() => { scrollTo("solutions"); setActiveRailStep(2); }} 
-                            className="hover:text-white/70 transition-colors py-1 relative group cursor-pointer"
-                        >
-                            SAFE ROUTES
-                            <span className="absolute bottom-0 left-0 w-full h-[1px] bg-white scale-x-0 group-hover:scale-x-100 transition-transform duration-300"></span>
-                        </button>
-                        <button 
-                            onClick={() => scrollTo("command-contact")} 
-                            className="hover:text-white/70 transition-colors py-1 relative group cursor-pointer"
-                        >
-                            EMERGENCY
-                            <span className="absolute bottom-0 left-0 w-full h-[1px] bg-white scale-x-0 group-hover:scale-x-100 transition-transform duration-300"></span>
-                        </button>
-                    </nav>
-
-                    {/* Right Header Action Button */}
-                    <div className="hidden lg:flex items-center">
-                        <button
-                            type="button"
-                            onClick={() => {
-                                if (onOpenMap) onOpenMap(ward, "Chennai");
-                                else onEnter();
-                            }}
-                            className="px-6 py-2.5 rounded-full border border-white/80 text-white text-[11px] font-semibold tracking-[0.2em] uppercase transition-all duration-300 hover:bg-white hover:text-black active:scale-95 cursor-pointer"
-                        >
-                            VIEW LIVE MAP
-                        </button>
-                    </div>
-
-                    {/* Mobile Menu Toggle Button */}
-                    <button
-                        type="button"
-                        onClick={() => setMobileDrawerOpen(!mobileDrawerOpen)}
-                        aria-label="Toggle navigation menu"
-                        className="lg:hidden p-2 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-white/40 cursor-pointer"
-                    >
-                        {mobileDrawerOpen ? (
-                            <X className="w-7 h-7" />
-                        ) : (
-                            <Menu className="w-7 h-7" />
-                        )}
-                    </button>
-                </header>
-
-                {/* Mobile Navigation Drawer */}
-                {mobileDrawerOpen && (
-                    <div className="absolute inset-0 bg-black/95 backdrop-blur-2xl z-40 lg:hidden flex flex-col justify-between p-8 pt-24 animate-fadeIn">
-                        <div className="flex flex-col space-y-5 text-center">
-                            <button onClick={() => { scrollTo("home"); setMobileDrawerOpen(false); }} className="text-2xl font-editorial text-white tracking-widest hover:text-emerald-300 transition-colors">LIVE RADAR</button>
-                            <button onClick={() => { scrollTo("coverage"); setMobileDrawerOpen(false); }} className="text-2xl font-editorial text-white/80 tracking-widest hover:text-emerald-300 transition-colors">CITY BASINS</button>
-                            <button onClick={() => { scrollTo("data"); setMobileDrawerOpen(false); }} className="text-2xl font-editorial text-white/80 tracking-widest hover:text-emerald-300 transition-colors">HOW IT WORKS</button>
-                            <button onClick={() => { scrollTo("solutions"); setMobileDrawerOpen(false); }} className="text-2xl font-editorial text-white/80 tracking-widest hover:text-emerald-300 transition-colors">SAFE ROUTES</button>
-                            <button onClick={() => { scrollTo("command-contact"); setMobileDrawerOpen(false); }} className="text-2xl font-editorial text-white/80 tracking-widest hover:text-emerald-300 transition-colors">EMERGENCY</button>
-                        </div>
-                        <div className="flex flex-col items-center space-y-5 pt-4 border-t border-white/10">
-                            <button
-                                onClick={() => {
-                                    setMobileDrawerOpen(false);
-                                    if (onOpenMap) onOpenMap(ward, "Chennai");
-                                    else onEnter();
-                                }}
-                                className="w-full text-center py-3 rounded-full border border-white/80 text-white text-xs font-semibold tracking-[0.2em] uppercase hover:bg-white hover:text-black transition-all"
-                            >
-                                VIEW LIVE MAP
-                            </button>
-                        </div>
-                    </div>
-                )}
-
-                {/* 3. Main Hero Core Content */}
-                <div className="relative z-10 w-full max-w-7xl mx-auto px-6 sm:px-10 lg:px-14 my-auto pb-16 sm:pb-20">
-                    <div className="max-w-3xl">
-                        {/* Serif Headline with Cormorant Garamond */}
-                        <h1 className="font-editorial text-5xl sm:text-6xl md:text-7xl lg:text-[95px] leading-[0.95] tracking-[-0.01em] font-bold text-white text-glow">
-                            Predict Floods.<br />Protect Cities.
-                        </h1>
-
-                        {/* Subtitle */}
-                        <p className="mt-4 sm:mt-6 text-base sm:text-lg md:text-xl text-white/90 font-medium max-w-lg leading-relaxed text-glow">
-                            Real-time street water level alerts, storm drain tracking, and safe evacuation routes before floodwaters rise.
-                        </p>
-
-                        {/* CTA Action (Clean Single Pill Button Without Video Play Button) */}
-                        <div className="mt-7 sm:mt-9 flex items-center">
-                            <button
-                                type="button"
-                                onClick={() => {
-                                    if (onOpenMap) onOpenMap(ward, "Chennai");
-                                    else onEnter();
-                                }}
-                                className="inline-flex items-center justify-center px-8 py-4 bg-white text-black font-semibold text-xs sm:text-sm tracking-[0.18em] uppercase rounded-md shadow-xl transition-all duration-300 hover:bg-white/90 hover:scale-105 hover:shadow-2xl hover:shadow-white/20 active:scale-95 cursor-pointer"
-                            >
-                                EXPLORE LIVE NOWCAST
-                            </button>
-                        </div>
-                    </div>
-                </div>
-
-                {/* 4. Bottom-Right White Cutout Tab with Concave Fillet */}
-                <div className="absolute bottom-0 right-0 z-30 bg-white text-black px-6 sm:px-10 py-4 sm:py-5 rounded-tl-[24px] flex items-center gap-3 shadow-2xl">
-                    {/* Left Inverted Fillet (Concave Corner) */}
-                    <svg width="24" height="24" style={{ width: '24px', height: '24px' }} className="absolute bottom-0 -left-[24px] w-6 h-6 text-white pointer-events-none" viewBox="0 0 24 24" fill="none">
-                        <path d="M0,24 A24,24 0 0,0 24,0 L24,24 Z" fill="currentColor"></path>
-                    </svg>
-
-                    {/* Water Sprout Logo Icon */}
-                    <svg width="20" height="20" style={{ width: '20px', height: '20px', minWidth: '20px' }} className="w-4 h-4 sm:w-5 sm:h-5 text-emerald-700 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                        <path d="M12 22V12"></path>
-                        <path d="M12 12C12 7.58172 8.41828 4 4 4C4 8.41828 7.58172 12 12 12Z"></path>
-                        <path d="M12 15C12 11.134 15.134 8 19 8C19 11.866 15.866 15 12 15Z"></path>
-                    </svg>
-                    <div className="flex items-center gap-2 sm:gap-3 text-[10px] sm:text-xs font-semibold tracking-[0.2em] uppercase text-black">
-                        <span className="hover:text-emerald-700 transition-colors">REAL-TIME RADAR</span>
-                        <span className="text-black/40">•</span>
-                        <span className="hover:text-emerald-700 transition-colors">ZERO FLOOD DELAYS</span>
-                        <span className="text-black/40">•</span>
-                        <span className="hover:text-emerald-700 transition-colors">6 INDIAN BASINS</span>
-                    </div>
-                </div>
-
-            </section>
-
-            {/* ========================================================================= */}
-            {/* EDITORIAL GIS CAROUSEL SECTION — Dark Card Filmstrip                      */}
-            {/* ========================================================================= */}
-            <section
-                className="w-full bg-white border-t border-neutral-200 text-neutral-900 font-sans"
-                style={{ paddingTop: '96px', paddingBottom: '0' }}
-            >
-                {/* ── Header (constrained) ── */}
-                <div className="relative w-full max-w-7xl mx-auto px-6 sm:px-10 lg:px-14 mb-12">
-                    {/* "OUR FOCUS AREAS" label with flanking lines */}
-                    <div className="flex items-center justify-center gap-4 mb-4">
-                        <span style={{ flex: '0 0 60px', height: '1px', background: '#93c5fd' }} />
-                        <span
-                            className="font-bebas uppercase tracking-[0.35em] text-sky-500"
-                            style={{ fontSize: '13px', letterSpacing: '0.3em' }}
-                        >
-                            OUR FOCUS AREAS
-                        </span>
-                        <span style={{ flex: '0 0 60px', height: '1px', background: '#93c5fd' }} />
-                    </div>
-
-                    {/* Main title — centred */}
-                    <h2
-                        className="font-bebas text-center text-neutral-950 uppercase leading-[0.9] tracking-wide"
-                        style={{ fontSize: 'clamp(28px, 5.5vw, 80px)', marginBottom: '12px', letterSpacing: '0.02em' }}
-                    >
-                        DATA-DRIVEN SOLUTIONS FOR SAFER CITIES
-                    </h2>
-
-                    {/* Subtitle — centred */}
-                    <p
-                        className="font-bebas text-center text-neutral-500 uppercase tracking-[0.18em]"
-                        style={{ fontSize: '12px', marginBottom: '0' }}
-                    >
-                        EXPLORE KEY USE CASES WHERE REAL-TIME GEOSPATIAL DATA AND FORECASTING CREATE MEASURABLE IMPACT.
-                    </p>
-
-                    {/* VIEW ALL PROJECTS — absolute top-right */}
-                    <button
-                        type="button"
-                        onClick={() => {
-                            const el = document.getElementById('cities');
-                            if (el) el.scrollIntoView({ behavior: 'smooth' });
-                        }}
-                        className="font-bebas uppercase tracking-widest text-neutral-900 hover:bg-neutral-100 transition-colors cursor-pointer"
-                        style={{
-                            position: 'absolute',
-                            top: '0',
-                            right: '56px',
-                            fontSize: '12px',
-                            letterSpacing: '0.12em',
-                            border: '1.5px solid #737373',
-                            borderRadius: '999px',
-                            padding: '8px 20px',
-                        }}
-                    >
-                        VIEW ALL PROJECTS
-                    </button>
-                </div>
-
-                {/* ── Full-bleed Filmstrip Stage ── */}
-                <div
-                    className="w-full select-none"
-                    style={{ overflow: 'hidden', paddingTop: '28px', paddingBottom: '16px', minHeight: '490px' }}
-                    onMouseEnter={() => setIsCarouselHovered(true)}
-                    onMouseLeave={() => setIsCarouselHovered(false)}
-                >
-                    <div
-                        style={{
-                            display: 'flex',
-                            alignItems: 'flex-end',
-                            gap: `${carouselGap}px`,
-                            transform: `translate3d(${translateX}px, 0, 0)`,
-                            transition: isTransitioning
-                                ? 'transform 750ms cubic-bezier(0.25, 1, 0.5, 1)'
-                                : 'none',
-                            willChange: 'transform',
-                        }}
-                    >
-                        {EXTENDED_SLIDES.map((art, idx) => {
-                            const isCurrent = idx === slideIndex;
-                            return (
-                                <div
-                                    key={`${art.num}-${idx}`}
-                                    onClick={() => {
-                                        setIsTransitioning(true);
-                                        setSlideIndex(idx);
-                                    }}
-                                    style={{
-                                        position: 'relative',
-                                        flexShrink: '0',
-                                        cursor: 'pointer',
-                                        borderRadius: '16px',
-                                        overflow: 'hidden',
-                                        boxShadow: isCurrent
-                                            ? '0 24px 64px rgba(0,0,0,0.38)'
-                                            : '0 8px 24px rgba(0,0,0,0.16)',
-                                        width: `${isCurrent ? cardWidthActive : cardWidthInactive}px`,
-                                        height: isCurrent ? '430px' : '350px',
-                                        transform: isCurrent ? 'translateY(-16px)' : 'translateY(0)',
-                                        opacity: isCurrent ? 1 : 0.72,
-                                        transition: isTransitioning
-                                            ? 'width 750ms cubic-bezier(0.25, 1, 0.5, 1), height 750ms cubic-bezier(0.25, 1, 0.5, 1), transform 750ms cubic-bezier(0.25, 1, 0.5, 1), opacity 750ms ease, box-shadow 750ms ease'
-                                            : 'none',
-                                        willChange: 'transform, width',
-                                    }}
-                                >
-                                    {/* Full-card background image */}
-                                    <img
-                                        src={art.img}
-                                        alt={art.title}
-                                        style={{
-                                            position: 'absolute',
-                                            inset: '0',
-                                            width: '100%',
-                                            height: '100%',
-                                            objectFit: 'cover',
-                                            objectPosition: 'center',
-                                            display: 'block',
-                                        }}
-                                    />
-
-                                    {/* Dark gradient overlay — stronger at bottom */}
-                                    <div
-                                        style={{
-                                            position: 'absolute',
-                                            inset: '0',
-                                            background: isCurrent
-                                                ? 'linear-gradient(to top, rgba(0,0,0,0.85) 0%, rgba(0,0,0,0.25) 55%, rgba(0,0,0,0.15) 100%)'
-                                                : 'linear-gradient(to top, rgba(0,0,0,0.75) 0%, rgba(0,0,0,0.35) 50%, rgba(0,0,0,0.2) 100%)',
-                                        }}
-                                    />
-
-                                    {/* Top label row: "02 — COASTAL DYNAMICS" */}
-                                    <div
-                                        style={{
-                                            position: 'absolute',
-                                            top: '18px',
-                                            left: '18px',
-                                            right: '18px',
-                                            display: 'flex',
-                                            alignItems: 'center',
-                                            gap: '10px',
-                                        }}
-                                    >
-                                        <span
-                                            className="font-bebas text-white"
-                                            style={{ fontSize: '14px', letterSpacing: '0.12em', opacity: 0.9 }}
-                                        >
-                                            {art.num}
-                                        </span>
-                                        <span
-                                            style={{
-                                                width: '24px',
-                                                height: '1px',
-                                                background: 'rgba(255,255,255,0.5)',
-                                                flexShrink: '0',
-                                            }}
-                                        />
-                                        <span
-                                            className="font-bebas text-white uppercase"
-                                            style={{ fontSize: '11px', letterSpacing: '0.22em', opacity: 0.75 }}
-                                        >
-                                            {art.tag}
-                                        </span>
-                                    </div>
-
-                                    {/* Bottom content area */}
-                                    <div
-                                        style={{
-                                            position: 'absolute',
-                                            bottom: '0',
-                                            left: '0',
-                                            right: '0',
-                                            padding: isCurrent ? '28px' : '16px 18px',
-                                        }}
-                                    >
-                                        {/* Category label (inactive only — shown in small) */}
-                                        {!isCurrent && (
-                                            <span
-                                                className="font-bebas text-white uppercase block"
-                                                style={{
-                                                    fontSize: '9px',
-                                                    letterSpacing: '0.2em',
-                                                    opacity: 0.6,
-                                                    marginBottom: '4px',
-                                                }}
-                                            >
-                                                {art.tag}
-                                            </span>
-                                        )}
-
-                                        {/* Title */}
-                                        <h3
-                                            className="font-bebas text-white uppercase leading-[0.95]"
-                                            style={{
-                                                fontSize: isCurrent
-                                                    ? 'clamp(24px, 3vw, 44px)'
-                                                    : 'clamp(13px, 1.5vw, 20px)',
-                                                marginBottom: isCurrent ? '6px' : '0',
-                                            }}
-                                        >
-                                            {art.title}
-                                        </h3>
-
-                                        {/* Active-only: subtitle + progress + button */}
-                                        {isCurrent && (
-                                            <>
-                                                <p
-                                                    className="font-bebas text-white uppercase"
-                                                    style={{
-                                                        fontSize: '11px',
-                                                        letterSpacing: '0.15em',
-                                                        opacity: 0.65,
-                                                        marginBottom: '20px',
-                                                    }}
-                                                >
-                                                    {art.subtitle}
-                                                </p>
-                                                <div
-                                                    style={{
-                                                        display: 'flex',
-                                                        alignItems: 'center',
-                                                        justifyContent: 'space-between',
-                                                    }}
-                                                >
-                                                    <button
-                                                        type="button"
-                                                        onClick={(e) => {
-                                                            e.stopPropagation();
-                                                            setModalArtworkIdx(
-                                                                art.num === '01' ? 0 :
-                                                                art.num === '02' ? 1 :
-                                                                art.num === '03' ? 2 : 3
-                                                            );
-                                                            setShowreelModalOpen(true);
-                                                        }}
-                                                        className="font-bebas text-white uppercase hover:bg-white hover:text-black transition-all cursor-pointer"
-                                                        style={{
-                                                            fontSize: '12px',
-                                                            letterSpacing: '0.15em',
-                                                            border: '1.5px solid rgba(255,255,255,0.7)',
-                                                            borderRadius: '999px',
-                                                            padding: '7px 20px',
-                                                        }}
-                                                    >
-                                                        EXPLORE PROJECT
-                                                    </button>
-                                                    <span
-                                                        className="font-bebas text-white"
-                                                        style={{
-                                                            fontSize: '13px',
-                                                            letterSpacing: '0.1em',
-                                                            opacity: 0.45,
-                                                        }}
-                                                    >
-                                                        {art.num} / 04
-                                                    </span>
-                                                </div>
-                                            </>
-                                        )}
-
-                                        {/* Inactive slide: slide number / 04 */}
-                                        {!isCurrent && (
-                                            <span
-                                                className="font-bebas text-white block"
-                                                style={{
-                                                    fontSize: '10px',
-                                                    letterSpacing: '0.12em',
-                                                    opacity: 0.4,
-                                                    marginTop: '4px',
-                                                }}
-                                            >
-                                                {art.num} / 04
-                                            </span>
-                                        )}
-                                    </div>
-                                </div>
-                            );
-                        })}
-                    </div>
-                </div>
-
-                {/* ── Dot Pagination ── */}
-                <div
-                    style={{
-                        display: 'flex',
-                        justifyContent: 'center',
-                        alignItems: 'center',
-                        gap: '8px',
-                        marginTop: '20px',
-                        marginBottom: '20px',
-                    }}
-                >
-                    {ARTWORKS.map((art, idx) => {
-                        const isActive = idx === activeProjectIdx;
-                        return (
-                            <button
-                                key={art.num}
-                                type="button"
-                                onClick={() => handleDotClick(idx)}
-                                aria-label={`Go to slide ${art.num}`}
-                                style={{
-                                    width: isActive ? '28px' : '8px',
-                                    height: '8px',
-                                    borderRadius: '999px',
-                                    background: isActive ? '#2563eb' : '#d1d5db',
-                                    border: 'none',
-                                    padding: '0',
-                                    cursor: 'pointer',
-                                    transition: 'width 300ms ease, background 300ms ease',
-                                }}
-                            />
-                        );
-                    })}
-                </div>
-
-                {/* ── Bottom Tagline Strip ── */}
-                <div
-                    className="w-full max-w-7xl mx-auto"
-                    style={{
-                        display: 'flex',
-                        alignItems: 'center',
-                        justifyContent: 'space-between',
-                        border: '1px solid #e5e7eb',
-                        borderRadius: '999px',
-                        padding: '14px 32px',
-                        marginLeft: 'auto',
-                        marginRight: 'auto',
-                        marginBottom: '0',
-                        background: '#fafafa',
-                        maxWidth: '1280px',
-                        width: 'calc(100% - 48px)',
-                    }}
-                >
-                    <p
-                        className="font-bebas text-neutral-500 uppercase"
-                        style={{ fontSize: '11px', letterSpacing: '0.18em' }}
-                    >
-                        FROM RIVERS TO COASTLINES TO URBAN STREETS — TURNING REAL-TIME DATA INTO SAFER, MORE RESILIENT CITIES.
-                    </p>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '20px', flexShrink: '0' }}>
-                        <span style={{ width: '1px', height: '18px', background: '#d1d5db' }} />
-                        <button
-                            type="button"
-                            onClick={() => {
-                                const el = document.getElementById('cities');
-                                if (el) el.scrollIntoView({ behavior: 'smooth' });
-                            }}
-                            className="font-bebas text-sky-600 uppercase hover:text-sky-800 transition-colors cursor-pointer"
-                            style={{ fontSize: '11px', letterSpacing: '0.18em', background: 'none', border: 'none', padding: '0' }}
-                        >
-                            LEARN MORE
-                        </button>
-                    </div>
-                </div>
-                <div style={{ height: '32px' }} />
-            </section>
-
-
-            {/* ========================================================================= */}
-            {/* FULLSCREEN NATURE VIDEO MODAL POPUP                                       */}
-            {/* ========================================================================= */}
-            {showreelModalOpen && (
-                <div 
-                    className="fixed inset-0 bg-black/90 z-50 flex items-center justify-center p-4 sm:p-10 transition-opacity duration-500"
-                    onClick={() => setShowreelModalOpen(false)}
-                >
-                    <div 
-                        className="relative w-full max-w-4xl aspect-video bg-black rounded-xl overflow-hidden shadow-2xl border border-white/20"
-                        onClick={(e) => e.stopPropagation()}
-                    >
-                        <button 
-                            onClick={() => setShowreelModalOpen(false)}
-                            aria-label="Close modal" 
-                            className="absolute top-4 right-4 z-10 px-4 py-2 rounded bg-black/80 text-white font-bebas text-sm tracking-widest hover:bg-white hover:text-black transition-all cursor-pointer"
-                        >
-                            CLOSE
-                        </button>
-                        <video 
-                            id="modal-video" 
-                            controls 
-                            autoPlay 
-                            playsInline 
-                            className="w-full h-full object-cover"
-                            poster={ARTWORKS[modalArtworkIdx ?? activeProjectIdx]?.img}
-                        >
-                            <source src="/static/VEDIO/RAIN.mp4" type="video/mp4" />
-                            <source src="https://strvid.nyc3.cdn.digitaloceanspaces.com/motionsite/nature-sunset.mp4" type="video/mp4" />
-                        </video>
-                    </div>
-                </div>
-            )}
-
-            {/* ========================================================================= */}
-            {/* ========================================================================= */}
-            {/* BELOW-SLIDESHOW CONTAINER: Light Architectural Environmental Dashboard    */}
-            {/* ========================================================================= */}
-            <div className="w-full bg-gradient-to-b from-[#D4E8F2] via-[#C5E1EE] to-[#B3D7E9] text-slate-900 relative">
-                {/* Main Full-Width Container with Pleasing Human-Eye Margins */}
-                <div className="w-full px-5 sm:px-10 lg:px-14 xl:px-18 mx-auto flex flex-col">
-
-                    {/* ========================================================================= */}
-                    {/* SECTION 01: PILLARS — Visual Environmental Intelligence (4 Pillars)       */}
-                    {/* ========================================================================= */}
-                    <section id="data" className="relative py-20 sm:py-28 w-full flex flex-col gap-10 sm:gap-12 border-b border-[#9DC6DA]">
-                        {/* Section Header */}
-                        <div className="flex flex-col lg:flex-row lg:items-end justify-between gap-8 border-b border-[#9DC6DA] pb-8 sm:pb-10">
-                            <div className="max-w-4xl">
-                                <div className="inline-flex items-center gap-2.5 px-3.5 py-1.5 rounded-md bg-sky-100/90 border border-sky-300 text-sky-900 font-mono text-xs font-bold tracking-wider uppercase shadow-xs">
-                                    <Layers className="w-3.5 h-3.5 text-sky-700" />
-                                    <span>SYSTEM PILLARS // 01</span>
-                                </div>
-                                <h2 className="font-editorial text-4xl sm:text-5xl lg:text-6xl font-normal text-slate-900 mt-4 tracking-tight leading-[1.12]">
-                                    How RainDrop Sees &amp; Understands Urban Rainfall
-                                </h2>
-                                <p className="text-slate-700 text-lg sm:text-xl lg:text-2xl mt-4 leading-relaxed font-sans font-light">
-                                    From high-accuracy street terrain heights to real-time weather radar, four integrated intelligence layers predict street runoff before storm centers peak.
-                                </p>
-                            </div>
-
-                            <button
-                                onClick={() => {
-                                    if (window._openGisSpecsModal) window._openGisSpecsModal();
-                                    else if (pushToast) pushToast("Opening Data Specifications");
-                                }}
-                                className="flex items-center gap-2.5 px-7 py-3.5 rounded-xl bg-sky-700 hover:bg-sky-800 text-white text-sm font-bold tracking-wide uppercase transition-all duration-200 shadow-md hover:shadow-lg cursor-pointer shrink-0"
-                            >
-                                <Sliders className="w-4 h-4 text-sky-200" />
-                                <span>Inspect Data Layers</span>
-                            </button>
-                        </div>
-
-                        {/* 4 Separate Channel Cards with Pleasant Gaps */}
-                        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5 sm:gap-6">
-                            {GIS_PILLARS.map((pillar, idx) => (
-                                <button
-                                    key={pillar.num}
-                                    type="button"
-                                    onClick={() => setActivePillarTab(idx)}
-                                    className={`text-left p-6 sm:p-7 rounded-2xl border transition-all duration-300 ease-out cursor-pointer flex flex-col justify-between relative shadow-sm hover:shadow-md ${
-                                        activePillarTab === idx
-                                            ? "bg-white border-sky-600 ring-2 ring-sky-500/30 -translate-y-1"
-                                            : "bg-white/85 border-[#9DC6DA] hover:bg-white hover:border-sky-400"
-                                    }`}
-                                >
-                                    {/* Active Highlight Top Indicator */}
-                                    {activePillarTab === idx && (
-                                        <div className="absolute top-0 left-6 right-6 h-1 bg-sky-600 rounded-full" />
-                                    )}
-
-                                    <div className="flex items-center justify-between w-full mb-3.5">
-                                        <span className={`font-mono text-sm font-bold tracking-wider ${
-                                            activePillarTab === idx ? "text-sky-700" : "text-slate-400"
-                                        }`}>
-                                            [{pillar.num}]
-                                        </span>
-                                        <span className={`text-[11px] font-bold uppercase tracking-wider px-2.5 py-0.5 rounded-sm border ${
-                                            activePillarTab === idx
-                                                ? "bg-sky-100 text-sky-900 border-sky-300"
-                                                : "bg-slate-100 text-slate-600 border-slate-200"
-                                        }`}>
-                                            {pillar.badge}
-                                        </span>
-                                    </div>
-
-                                    <div>
-                                        <h3 className={`font-sans font-bold text-lg sm:text-xl transition-colors ${
-                                            activePillarTab === idx ? "text-slate-900" : "text-slate-800"
-                                        }`}>
-                                            {pillar.title}
-                                        </h3>
-                                        <p className="text-sm text-slate-600 mt-2 font-sans font-normal leading-relaxed">
-                                            {pillar.tagline}
-                                        </p>
-                                    </div>
-                                </button>
-                            ))}
-                        </div>
-
-                        {/* Separate Panoramic Telemetry Showcase with Generous Spacing */}
-                        <div className="p-6 sm:p-8 lg:p-10 rounded-3xl bg-white/95 border border-[#9DC6DA] shadow-md grid grid-cols-1 lg:grid-cols-12 gap-8 sm:gap-10 items-center">
-                            {/* Left: Large Photography Viewport (7 Cols) */}
-                            <div className="lg:col-span-7 relative min-h-[340px] sm:min-h-[420px] lg:min-h-[460px] rounded-2xl overflow-hidden bg-slate-950 border border-[#B3D6E6] group shadow-inner">
-                                <img
-                                    src={GIS_PILLARS[activePillarTab].img}
-                                    alt={GIS_PILLARS[activePillarTab].title}
-                                    className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700 ease-out"
-                                />
-                                <div className="absolute inset-0 bg-gradient-to-t from-slate-950/85 via-slate-950/20 to-transparent" />
-
-                                {/* High-Tech Top Overlay Badge */}
-                                <div className="absolute top-4 left-4 right-4 flex items-center justify-between pointer-events-none">
-                                    <div className="flex items-center gap-2 bg-white/90 backdrop-blur-md border border-slate-200 px-3.5 py-1.5 rounded-md font-mono text-xs text-sky-950 font-bold uppercase tracking-wider shadow-xs">
-                                        <Activity className="w-3.5 h-3.5 text-sky-700 animate-pulse" />
-                                        <span>SENSOR STREAM: {GIS_PILLARS[activePillarTab].tag}</span>
-                                    </div>
-                                    <div className="hidden sm:block font-mono text-xs text-slate-700 bg-white/90 backdrop-blur-md px-3 py-1.5 rounded-md border border-slate-200 font-semibold shadow-xs">
-                                        FPS: 60 · LATENCY: 11.2ms
-                                    </div>
-                                </div>
-
-                                {/* Bottom Image Info */}
-                                <div className="absolute bottom-5 left-5 right-5 sm:bottom-6 sm:left-6 sm:right-6">
-                                    <span className="font-mono text-xs uppercase tracking-widest text-sky-400 font-bold block mb-1">
-                                        LIVE ENVIRONMENTAL OBSERVATION
-                                    </span>
-                                    <h4 className="text-2xl sm:text-3xl font-editorial text-white">
-                                        {GIS_PILLARS[activePillarTab].title}
-                                    </h4>
-                                </div>
-                            </div>
-
-                            {/* Right: Technical Telemetry Readout (5 Cols) */}
-                            <div className="lg:col-span-5 flex flex-col justify-between gap-6 sm:gap-8">
-                                <div>
-                                    <div className="flex items-center justify-between border-b border-[#B3D6E6] pb-3 mb-5">
-                                        <span className="font-mono text-xs uppercase tracking-widest text-slate-500 font-bold">
-                                            LAYER ANALYSIS // SPEC 0{activePillarTab + 1}
-                                        </span>
-                                        <span className="font-mono text-xs text-sky-700 font-bold">
-                                            REAL-TIME DATA READY
-                                        </span>
-                                    </div>
-
-                                    <p className="text-base sm:text-lg text-slate-800 leading-relaxed font-sans">
-                                        {GIS_PILLARS[activePillarTab].desc}
-                                    </p>
-
-                                    <div className="mt-6 sm:mt-7 space-y-3.5">
-                                        <span className="font-mono text-xs uppercase tracking-widest text-slate-500 font-bold block">
-                                            OPERATIONAL CAPABILITIES
-                                        </span>
-                                        {GIS_PILLARS[activePillarTab].benefits.map((benefit) => (
-                                            <div key={benefit} className="flex items-start gap-3 text-base text-slate-800 font-medium">
-                                                <div className="w-2.5 h-2.5 rounded-full bg-sky-600 mt-1.5 shrink-0" />
-                                                <span>{benefit}</span>
-                                            </div>
-                                        ))}
-                                    </div>
-                                </div>
-
-                                <div className="pt-5 border-t border-[#B3D6E6] flex items-center justify-between">
-                                    <div className="font-mono text-xs text-slate-600">
-                                        UPDATE CADENCE: <strong className="text-slate-900">EVERY 60 SEC</strong>
-                                    </div>
-                                    <button
-                                        onClick={() => onOpenMap(ward, "Chennai")}
-                                        className="flex items-center gap-1.5 font-sans text-sm font-bold text-sky-700 hover:text-sky-800 transition-colors cursor-pointer"
-                                    >
-                                        <span>Open City Map</span>
-                                        <ArrowRight className="w-4 h-4" />
-                                    </button>
-                                </div>
-                            </div>
-                        </div>
-                    </section>
-
-                    {/* ========================================================================= */}
-                    {/* SECTION 02: COVERAGE — 6 Monitored Metropolitan Basins                    */}
-                    {/* ========================================================================= */}
-                    <section id="coverage" className="relative py-20 sm:py-28 w-full flex flex-col gap-10 sm:gap-12 border-b border-[#9DC6DA]">
-                        <div className="flex flex-col lg:flex-row lg:items-end justify-between gap-8 border-b border-[#9DC6DA] pb-8 sm:pb-10">
-                            <div className="max-w-4xl">
-                                <div className="inline-flex items-center gap-2.5 px-3.5 py-1.5 rounded-md bg-sky-100/90 border border-sky-300 text-sky-900 font-mono text-xs font-bold tracking-wider uppercase shadow-xs">
-                                    <Waves className="w-3.5 h-3.5 text-sky-700" />
-                                    <span>URBAN BASIN MATRIX // 02</span>
-                                </div>
-                                <h2 className="font-editorial text-4xl sm:text-5xl lg:text-6xl font-normal text-slate-900 mt-4 tracking-tight leading-[1.12]">
-                                    Live City Waterways Across 6 Indian Metros
-                                </h2>
-                                <p className="text-slate-700 text-lg sm:text-xl lg:text-2xl mt-4 leading-relaxed font-sans font-light">
-                                    Continuous 24/7 water monitoring across India's premier coastal and river basins. Select any metro to load real-time municipal diagnostics.
-                                </p>
-                            </div>
-
-                            <button
-                                onClick={onEnter}
-                                className="flex items-center gap-2 px-7 py-3.5 rounded-xl bg-slate-900 hover:bg-slate-800 text-white text-sm font-bold uppercase tracking-wider transition-all duration-200 shadow-md hover:shadow-lg cursor-pointer shrink-0"
-                            >
-                                <span>Explore All Metros</span>
-                                <ArrowRight className="w-4 h-4 text-sky-400" />
-                            </button>
-                        </div>
-
-                        {/* 6 City Cards Grid with Pleasant Spacing */}
-                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 sm:gap-8">
-                            {cityCards.map((item) => (
-                                <div
-                                    key={item.city}
-                                    onClick={() => {
-                                        if (onSelectCity) onSelectCity(item.city);
-                                        else onEnter();
-                                    }}
-                                    className="group relative rounded-2xl bg-white/95 border border-[#9DC6DA] hover:border-sky-600 shadow-sm hover:shadow-xl transition-all duration-300 ease-out cursor-pointer flex flex-col justify-between hover:-translate-y-1.5 overflow-hidden"
-                                >
-                                    {/* City Photo Header */}
-                                    <div className="relative h-64 sm:h-72 w-full overflow-hidden bg-slate-900">
-                                        <img
-                                            src={item.img}
-                                            alt={`${item.city} Skyline and Waterway`}
-                                            className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700 ease-out"
-                                        />
-                                        <div className="absolute inset-0 bg-gradient-to-t from-slate-950/85 via-slate-950/20 to-transparent" />
-                                        
-                                        {/* Risk Badge */}
-                                        <div className="absolute top-4 right-4">
-                                            <span className={`px-3 py-1 rounded-sm text-xs font-bold uppercase tracking-wider ${
-                                                item.riskType === "high"
-                                                    ? "bg-rose-100 text-rose-900 border border-rose-300"
-                                                    : "bg-amber-100 text-amber-900 border border-amber-300"
-                                            }`}>
-                                                {item.risk}
-                                            </span>
-                                        </div>
-
-                                        <div className="absolute bottom-4 left-6 right-6">
-                                            <span className="font-mono text-xs text-sky-300 font-bold uppercase tracking-widest">{item.state}</span>
-                                            <h3 className="font-editorial text-3xl sm:text-4xl text-white group-hover:text-sky-300 transition-colors mt-0.5">
-                                                {item.city}
-                                            </h3>
-                                        </div>
-                                    </div>
-
-                                    {/* Body Specs in Layman Terms */}
-                                    <div className="p-6 sm:p-8 flex flex-col justify-between flex-1">
-                                        <div className="space-y-3.5 text-base text-slate-700 font-sans">
-                                            <div className="flex items-center justify-between border-b border-[#B3D6E6]/70 pb-3">
-                                                <span className="text-slate-500 font-mono text-xs uppercase tracking-wider">Primary Waterway</span>
-                                                <span className="font-bold text-slate-900">{item.river}</span>
-                                            </div>
-                                            <div className="flex items-center justify-between border-b border-[#B3D6E6]/70 pb-3">
-                                                <span className="text-slate-500 font-mono text-xs uppercase tracking-wider">Key Focus</span>
-                                                <span className="text-slate-800 font-medium">{item.focus}</span>
-                                            </div>
-                                            <div className="flex items-center justify-between">
-                                                <span className="text-slate-500 font-mono text-xs uppercase tracking-wider">Elevation Profile</span>
-                                                <span className="text-sky-800 font-mono text-sm font-semibold">{item.elevation}</span>
-                                            </div>
-                                        </div>
-
-                                        {/* Card Footer */}
-                                        <div className="mt-7 pt-5 border-t border-[#B3D6E6] flex items-center justify-between">
-                                            <div>
-                                                <span className="text-base font-bold text-slate-900 block">
-                                                    {item.pumps}
-                                                </span>
-                                                <span className="text-xs text-slate-500 block">
-                                                    Drainage Pumps Ready
-                                                </span>
-                                            </div>
-
-                                            <div className="flex items-center gap-1.5 text-base font-bold text-sky-700 group-hover:text-sky-800 transition-colors">
-                                                <span>Open City Map</span>
-                                                <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
-                                            </div>
-                                        </div>
-                                    </div>
-                                </div>
-                            ))}
-                        </div>
-                    </section>
-
-                    {/* ========================================================================= */}
-                    {/* SECTION 03: CITIZEN IMPACT & TRANSIT SAFETY (4 Pictorial Cards)            */}
-                    {/* ========================================================================= */}
-                    <section id="solutions" className="relative py-20 sm:py-28 w-full flex flex-col gap-10 sm:gap-12">
-                        <div className="flex flex-col lg:flex-row lg:items-end justify-between gap-8 border-b border-[#9DC6DA] pb-8 sm:pb-10">
-                            <div className="max-w-4xl">
-                                <div className="inline-flex items-center gap-2.5 px-3.5 py-1.5 rounded-md bg-sky-100/90 border border-sky-300 text-sky-900 font-mono text-xs font-bold tracking-wider uppercase shadow-xs">
-                                    <ShieldCheck className="w-3.5 h-3.5 text-sky-700" />
-                                    <span>CIVIL PROTECTION &amp; CITIZEN SAFETY // 03</span>
-                                </div>
-                                <h2 className="font-editorial text-4xl sm:text-5xl lg:text-6xl font-normal text-slate-900 mt-4 tracking-tight leading-[1.12]">
-                                    Real Problems Citizens Face — And How We Solve Them
-                                </h2>
-                                <p className="text-slate-700 text-lg sm:text-xl lg:text-2xl mt-4 leading-relaxed font-sans font-light">
-                                    Monsoon deluges shouldn't cause flooded vehicles, stranded commuters, or waterlogged neighborhoods. Here is how real-time insights protect daily life.
-                                </p>
-                            </div>
-
-                            <button
-                                onClick={onEnter}
-                                className="flex items-center gap-1.5 text-base font-bold text-sky-800 hover:text-sky-900 transition-colors cursor-pointer shrink-0"
-                            >
-                                <span>Explore All Hotspots</span>
-                                <ArrowRight className="w-4 h-4" />
-                            </button>
-                        </div>
-
-                        {/* 4 Large Pictorial Impact Cards with Pleasant Gaps */}
-                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 sm:gap-8">
-                            {/* Card 1: Monsoon Bus Splash */}
-                            <div 
-                                onClick={() => { if (onSelectCity) onSelectCity("Kolkata"); else onEnter(); }}
-                                className="group rounded-2xl bg-white/95 border border-[#9DC6DA] hover:border-sky-600 transition-all duration-300 ease-out overflow-hidden flex flex-col cursor-pointer hover:-translate-y-1.5 shadow-sm hover:shadow-xl"
-                            >
-                                <div className="relative h-64 sm:h-72 overflow-hidden bg-slate-900">
-                                    <img
-                                        src="/static/images/hero-monsoon-bus-splash.jpg"
-                                        alt="City Bus moving through heavy rainwater"
-                                        className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700 ease-out"
-                                    />
-                                    <div className="absolute top-4 left-4 bg-white/95 text-slate-900 text-xs font-bold px-3 py-1 rounded-sm border border-slate-200 shadow-xs">
-                                        Public Transit
-                                    </div>
-                                </div>
-                                <div className="p-6 sm:p-8 flex flex-col justify-between flex-1">
-                                    <div>
-                                        <h3 className="font-sans font-bold text-slate-900 text-xl group-hover:text-sky-700 transition-colors">
-                                            Keeping Public Buses Moving
-                                        </h3>
-                                        <p className="text-base text-slate-700 mt-3.5 leading-relaxed font-sans">
-                                            Routes city buses away from submerged lowlands onto dry flyover bypasses before main arterial roads flood.
-                                        </p>
-                                    </div>
-                                    <div className="mt-7 flex items-center justify-between text-sm border-t border-[#B3D6E6] pt-4">
-                                        <span className="font-bold text-sky-800">✓ Zero Stranded Commuters</span>
-                                        <span className="text-sky-700 font-bold group-hover:translate-x-1 transition-transform">See Live →</span>
-                                    </div>
-                                </div>
-                            </div>
-
-                            {/* Card 2: Vehicle Engine Protection */}
-                            <div 
-                                onClick={() => { if (onSelectCity) onSelectCity("Kolkata"); else onEnter(); }}
-                                className="group rounded-2xl bg-white/95 border border-[#9DC6DA] hover:border-amber-600 transition-all duration-300 ease-out overflow-hidden flex flex-col cursor-pointer hover:-translate-y-1.5 shadow-sm hover:shadow-xl"
-                            >
-                                <div className="relative h-64 sm:h-72 overflow-hidden bg-slate-900">
-                                    <img
-                                        src="/static/images/pexels-dibakar-roy-2432543-18192646.jpg"
-                                        alt="Car driving through rain street reflection"
-                                        className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700 ease-out"
-                                    />
-                                    <div className="absolute top-4 left-4 bg-white/95 text-amber-900 text-xs font-bold px-3 py-1 rounded-sm border border-amber-200 shadow-xs">
-                                        Vehicle Safety
-                                    </div>
-                                </div>
-                                <div className="p-6 sm:p-8 flex flex-col justify-between flex-1">
-                                    <div>
-                                        <h3 className="font-sans font-bold text-slate-900 text-xl group-hover:text-amber-800 transition-colors">
-                                            Preventing Engine Damage
-                                        </h3>
-                                        <p className="text-base text-slate-700 mt-3.5 leading-relaxed font-sans">
-                                            Flags exact street puddle depths before you drive in, preventing engine water intake and expensive vehicle repairs.
-                                        </p>
-                                    </div>
-                                    <div className="mt-7 flex items-center justify-between text-sm border-t border-[#B3D6E6] pt-4">
-                                        <span className="font-bold text-amber-800">✓ 100% Engine Safety</span>
-                                        <span className="text-sky-700 font-bold group-hover:translate-x-1 transition-transform">See Live →</span>
-                                    </div>
-                                </div>
-                            </div>
-
-                            {/* Card 3: Riverside Community Safety */}
-                            <div 
-                                onClick={() => { if (onSelectCity) onSelectCity("Delhi"); else onEnter(); }}
-                                className="group rounded-2xl bg-white/95 border border-[#9DC6DA] hover:border-teal-600 transition-all duration-300 ease-out overflow-hidden flex flex-col cursor-pointer hover:-translate-y-1.5 shadow-sm hover:shadow-xl"
-                            >
-                                <div className="relative h-64 sm:h-72 overflow-hidden bg-slate-900">
-                                    <img
-                                        src="/static/images/hero-river-ghats-aerial-hd.jpg"
-                                        alt="Riverside community and riverfront view"
-                                        className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700 ease-out"
-                                    />
-                                    <div className="absolute top-4 left-4 bg-white/95 text-teal-900 text-xs font-bold px-3 py-1 rounded-sm border border-teal-200 shadow-xs">
-                                        River Safety
-                                    </div>
-                                </div>
-                                <div className="p-6 sm:p-8 flex flex-col justify-between flex-1">
-                                    <div>
-                                        <h3 className="font-sans font-bold text-slate-900 text-xl group-hover:text-teal-800 transition-colors">
-                                            Protecting Riverside Areas
-                                        </h3>
-                                        <p className="text-base text-slate-700 mt-3.5 leading-relaxed font-sans">
-                                            Continuous river gauges upstream give residents and authorities up to 6 hours of advance notice before river levels peak.
-                                        </p>
-                                    </div>
-                                    <div className="mt-7 flex items-center justify-between text-sm border-t border-[#B3D6E6] pt-4">
-                                        <span className="font-bold text-teal-800">✓ 6h Advance Surge Notice</span>
-                                        <span className="text-sky-700 font-bold group-hover:translate-x-1 transition-transform">See Live →</span>
-                                    </div>
-                                </div>
-                            </div>
-
-                            {/* Card 4: Proactive Pump Station Dewatering */}
-                            <div 
-                                onClick={() => { if (onSelectCity) onSelectCity("Chennai"); else onEnter(); }}
-                                className="group rounded-2xl bg-white/95 border border-[#9DC6DA] hover:border-sky-600 transition-all duration-300 ease-out overflow-hidden flex flex-col cursor-pointer hover:-translate-y-1.5 shadow-sm hover:shadow-xl"
-                            >
-                                <div className="relative h-64 sm:h-72 overflow-hidden bg-slate-900">
-                                    <img
-                                        src="/static/images/pexels-dibakar-roy-2432543-19391751.jpg"
-                                        alt="Drainage canal pumps in action"
-                                        className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700 ease-out"
-                                    />
-                                    <div className="absolute top-4 left-4 bg-white/95 text-sky-900 text-xs font-bold px-3 py-1 rounded-sm border border-sky-200 shadow-xs">
-                                        Pump Activation
-                                    </div>
-                                </div>
-                                <div className="p-6 sm:p-8 flex flex-col justify-between flex-1">
-                                    <div>
-                                        <h3 className="font-sans font-bold text-slate-900 text-xl group-hover:text-sky-700 transition-colors">
-                                            Proactive Pump Activation
-                                        </h3>
-                                        <p className="text-base text-slate-700 mt-3.5 leading-relaxed font-sans">
-                                            Alerts municipal drainage teams where stormwater will pool so heavy pumps start draining sumps well before water overflows.
-                                        </p>
-                                    </div>
-                                    <div className="mt-7 flex items-center justify-between text-sm border-t border-[#B3D6E6] pt-4">
-                                        <span className="font-bold text-sky-800">✓ Automated Sump Clearing</span>
-                                        <span className="text-sky-700 font-bold group-hover:translate-x-1 transition-transform">See Live →</span>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    </section>
-                </div>
-            </div>
-        </div>
-    );
-}
-
-/**
- * Ready-to-invoke Developer Social Handles & Confirmed Project Intelligence Component
- * Configured so it does not clutter the primary UI directly, and is ready for invocation whenever needed.
- * Can be triggered via window._openDeveloperProfile() or state.
- */
-function DeveloperSocialSection({ isVisible = false, onClose }) {
-    if (!isVisible) return null;
-    return (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/75 backdrop-blur-md animate-fade-in">
-            <div className="bg-slate-900 border border-slate-700 rounded-2xl p-6 sm:p-8 max-w-2xl w-full text-white shadow-2xl relative">
-                <button
-                    onClick={onClose}
-                    className="absolute top-4 right-4 p-2 text-slate-400 hover:text-white rounded-lg hover:bg-slate-800 transition-colors cursor-pointer"
-                >
-                    <X className="w-5 h-5" />
-                </button>
-
-                <div className="flex items-center gap-3 mb-4">
-                    <div className="w-10 h-10 rounded-xl bg-sky-500/20 border border-sky-400/40 flex items-center justify-center text-sky-400 font-bold font-mono">
-                        RD
-                    </div>
-                    <div>
-                        <h3 className="text-xl font-bold text-white">Lead Engineer &amp; Intelligence Profiles</h3>
-                        <p className="text-xs text-slate-400 font-mono">RainDrop Urban Water GIS Intelligence Engine</p>
-                    </div>
-                </div>
-                
-                {/* Social Profiles Grid */}
-                <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 my-6">
-                    <a 
-                        href="https://leetcode.com" 
-                        target="_blank" 
-                        rel="noopener noreferrer" 
-                        className="p-3.5 rounded-xl bg-slate-800/80 hover:bg-slate-800 border border-slate-700 hover:border-amber-400 transition-all flex flex-col items-center text-center group"
-                    >
-                        <span className="text-amber-400 font-bold text-xs uppercase font-mono">LeetCode</span>
-                        <span className="text-[11px] text-slate-400 mt-1 group-hover:text-white transition-colors">Algorithms &amp; System</span>
-                    </a>
-                    <a 
-                        href="https://github.com" 
-                        target="_blank" 
-                        rel="noopener noreferrer" 
-                        className="p-3.5 rounded-xl bg-slate-800/80 hover:bg-slate-800 border border-slate-700 hover:border-sky-400 transition-all flex flex-col items-center text-center group"
-                    >
-                        <span className="text-sky-400 font-bold text-xs uppercase font-mono">GitHub</span>
-                        <span className="text-[11px] text-slate-400 mt-1 group-hover:text-white transition-colors">GIS &amp; ML Pipelines</span>
-                    </a>
-                    <a 
-                        href="https://linkedin.com" 
-                        target="_blank" 
-                        rel="noopener noreferrer" 
-                        className="p-3.5 rounded-xl bg-slate-800/80 hover:bg-slate-800 border border-slate-700 hover:border-blue-400 transition-all flex flex-col items-center text-center group"
-                    >
-                        <span className="text-blue-400 font-bold text-xs uppercase font-mono">LinkedIn</span>
-                        <span className="text-[11px] text-slate-400 mt-1 group-hover:text-white transition-colors">Engineering Network</span>
-                    </a>
-                    <a 
-                        href="https://twitter.com" 
-                        target="_blank" 
-                        rel="noopener noreferrer" 
-                        className="p-3.5 rounded-xl bg-slate-800/80 hover:bg-slate-800 border border-slate-700 hover:border-cyan-400 transition-all flex flex-col items-center text-center group"
-                    >
-                        <span className="text-cyan-400 font-bold text-xs uppercase font-mono">Twitter / X</span>
-                        <span className="text-[11px] text-slate-400 mt-1 group-hover:text-white transition-colors">Radar &amp; Builds</span>
-                    </a>
-                </div>
-
-                {/* Confirmed Project Specs & Data */}
-                <div className="p-4 rounded-xl bg-slate-950 border border-slate-800 font-mono text-xs space-y-2 text-slate-300">
-                    <div className="flex justify-between text-sky-400 font-bold border-b border-slate-800 pb-1.5">
-                        <span>CONFIRMED PROJECT METRICS</span>
-                        <span>v3.4-PROD</span>
-                    </div>
-                    <div className="flex justify-between">
-                        <span className="text-slate-500">Elevation Dataset:</span>
-                        <span className="text-slate-200">16-bit Sub-meter High Precision DEM</span>
-                    </div>
-                    <div className="flex justify-between">
-                        <span className="text-slate-500">Hydro Inundation Engine:</span>
-                        <span className="text-emerald-400">ML Surrogate + 2D Hydrodynamic Models</span>
-                    </div>
-                    <div className="flex justify-between">
-                        <span className="text-slate-500">Monitored Metros:</span>
-                        <span className="text-slate-200">6 Indian Basins (Chennai, Mumbai, Kolkata, Delhi, Bengaluru, Hyderabad)</span>
-                    </div>
-                </div>
-            </div>
-        </div>
-    );
-}
-
-function MapStandbyDeck({ wardData, floodStats, onEnableMap }) {
-    return (
-        <div className="relative rounded-lg border border-white/20 bg-zinc-950 p-8 sm:p-10 flex flex-col items-center justify-center text-center shadow-xl overflow-hidden min-h-[480px]">
-            <div className="relative z-10 grid place-items-center w-16 h-16 rounded-lg bg-zinc-900 border border-white/30 text-white mb-5 shadow-lg">
-                <MapPin className="w-8 h-8 text-white" />
-            </div>
-
-            <div className="relative z-10 max-w-md space-y-2">
-                <span className="text-[11px] uppercase font-bold tracking-widest text-zinc-300 bg-zinc-900 px-3 py-1 rounded-md border border-white/20">
-                    Spatial Map Standby Mode
-                </span>
-                <h2 className="text-2xl font-bold text-white tracking-tight pt-1">
-                    {wardData.name} Flood Map
-                </h2>
-                <p className="text-xs text-zinc-400 leading-relaxed">
-                    Interactive spatial map visualization is currently hidden. Click the button below to load the live spatial flood grid, depth gauges, and safe corridor routing.
-                </p>
-            </div>
-
-            {/* Primary Enable Button */}
-            <div className="relative z-10 mt-7 flex flex-col sm:flex-row items-center gap-3">
-                <button
-                    onClick={onEnableMap}
-                    className="group flex items-center gap-3 px-8 py-3.5 rounded-md bg-white hover:bg-zinc-200 text-zinc-950 text-xs font-bold border border-white shadow-lg transition-all cursor-pointer"
-                    type="button"
-                >
-                    <Power className="w-4 h-4 fill-current text-zinc-950" />
-                    <span>🗺️ View Interactive Map</span>
-                    <ArrowRight className="w-4 h-4 transition-transform group-hover:translate-x-1" />
-                </button>
-            </div>
-
-            <div className="relative z-10 mt-8 grid grid-cols-3 gap-3 w-full max-w-md border-t border-zinc-800 pt-5 text-xs">
-                <div className="p-3 rounded-md bg-zinc-900 border border-zinc-800 text-center">
-                    <span className="block text-[10px] text-zinc-400 font-mono uppercase">Monitored Sectors</span>
-                    <span className="font-bold text-white font-mono text-sm">{wardData.sectors.length} Nodes</span>
-                </div>
-                <div className="p-3 rounded-md bg-zinc-900 border border-red-500/40 text-center">
-                    <span className="block text-[10px] text-red-300 font-mono uppercase">Flooded / Impassable</span>
-                    <span className="font-bold text-red-400 font-mono text-sm">{floodStats.critical} High Risk</span>
-                </div>
-                <div className="p-3 rounded-md bg-zinc-900 border border-emerald-500/40 text-center">
-                    <span className="block text-[10px] text-emerald-300 font-mono uppercase">Clear / Passable</span>
-                    <span className="font-bold text-emerald-400 font-mono text-sm">{floodStats.clear} Clear</span>
-                </div>
-            </div>
-        </div>
-    );
-}
-
-// ============================================================================
-// Top Navbar & Controls
-// ============================================================================
-
-// ============================================================================
-// Top Navbar & Controls
-// ============================================================================
-
-function TopNavbar(props) {
-    const {
-        selectedCity,
-        setSelectedCity,
-        ward,
-        wardOpen,
-        setWardOpen,
-        setWard,
-        setSelectedSector,
-        soundEnabled,
-        setSoundEnabled,
-        isMapEnabled,
-        onToggleMap,
-        onSwitchToHero,
-        pushToast,
-        setIsMapEnabled,
-    } = props;
-
-    const CITIES = ["All Cities", "Chennai", "Mumbai", "Delhi", "Bengaluru", "Kolkata", "Hyderabad"];
-
-    // Filter available wards based on selected city
-    const filteredWards = useMemo(() => {
-        if (!selectedCity || selectedCity === "All Cities") return Object.keys(WARDS_DATA);
-        return Object.keys(WARDS_DATA).filter((w) => WARDS_DATA[w].city === selectedCity);
-    }, [selectedCity]);
-
-    return (
-        <header className="flex flex-wrap items-center justify-between gap-3 p-3.5 rounded-2xl border border-slate-200 bg-white shadow-sm">
-            <div className="flex items-center gap-3">
-                <button
-                    onClick={onSwitchToHero}
-                    className="flex items-center gap-3 text-left group cursor-pointer"
-                    title="Return to Welcome Screen"
-                >
-                    <div className="grid place-items-center w-10 h-10 rounded-xl bg-blue-600 border border-blue-700 text-white shadow-sm">
-                        <Waves className="w-5 h-5 text-white" />
-                    </div>
-                    <div>
-                        <div className="flex items-center gap-2">
-                            <h1 className="text-base font-extrabold text-blue-950 tracking-tight">RainDrop GIS</h1>
-                            <span className="px-2 py-0.5 rounded-md text-[10px] font-bold bg-blue-50 text-blue-700 border border-blue-200">
-                                PUBLIC SAFETY
-                            </span>
-                        </div>
-                        <p className="text-[10px] text-slate-500 font-mono tracking-wide">
-                            Urban Flood Intelligence &amp; Nowcasting Platform
-                        </p>
-                    </div>
-                </button>
-
-                {/* City Filter Pills */}
-                <div className="hidden lg:flex items-center gap-1 bg-slate-100 p-1 rounded-xl border border-slate-200 ml-2">
-                    {CITIES.map((c) => (
-                        <button
-                            key={c}
-                            onClick={() => {
-                                setSelectedCity(c);
-                                if (c !== "All Cities") {
-                                    const first = Object.keys(WARDS_DATA).find((w) => WARDS_DATA[w].city === c);
-                                    if (first) setWard(first);
-                                }
-                            }}
-                            className={`px-2.5 py-1 rounded-lg text-xs font-bold transition-all cursor-pointer ${
-                                selectedCity === c
-                                    ? "bg-blue-600 text-white shadow-sm"
-                                    : "text-slate-600 hover:text-blue-600 hover:bg-white/60"
-                            }`}
-                        >
-                            {c === "All Cities" ? "🌐 All Cities" : c}
-                        </button>
-                    ))}
-                </div>
-            </div>
-
-            <div className="flex items-center gap-2">
-                {/* Dedicated Home Button leading to Landing Page */}
-                <button
-                    onClick={onSwitchToHero}
-                    className="flex items-center gap-1.5 px-3.5 py-2 rounded-xl border border-slate-300 bg-white hover:bg-slate-50 text-slate-800 text-xs font-bold transition-all cursor-pointer shadow-xs"
-                    title="Return to Landing Page"
-                >
-                    <Home className="w-4 h-4 text-emerald-700" />
-                    <span>Home</span>
-                </button>
-
-                {/* Enable / Standby Map Toggle Button */}
-                <button
-                    onClick={onToggleMap}
-                    className={`flex items-center gap-1.5 px-3.5 py-2 rounded-xl border text-xs font-bold transition-all cursor-pointer shadow-sm ${
-                        isMapEnabled
-                            ? "border-emerald-300 bg-emerald-600 text-white hover:bg-emerald-700"
-                            : "border-blue-200 bg-blue-50 text-blue-800 hover:bg-blue-100"
-                    }`}
-                >
-                    <Power className="w-3.5 h-3.5" />
-                    <span className="hidden sm:inline">{isMapEnabled ? "🗺️ Map Active" : "🗺️ View Map"}</span>
-                </button>
-
-                {/* Ward Selector Dropdown */}
-                <div className="relative">
-                    <button
-                        onClick={() => setWardOpen(!wardOpen)}
-                        className="flex items-center gap-2 px-3 py-1.5 rounded-xl border border-slate-200 bg-slate-50 hover:bg-slate-100 text-xs font-bold text-slate-800 transition-all cursor-pointer shadow-sm"
-                    >
-                        <MapPin className="w-3.5 h-3.5 text-blue-600" />
-                        <span>{ward}</span>
-                        <ChevronDown className={`w-3.5 h-3.5 text-slate-400 transition-transform ${wardOpen ? "rotate-180" : ""}`} />
-                    </button>
-
-                    {wardOpen && (
-                        <div className="absolute right-0 mt-2 w-64 rounded-2xl border border-slate-200 bg-white shadow-2xl py-2 z-50 text-slate-900 max-h-80 overflow-y-auto">
-                            <div className="px-3.5 py-1.5 border-b border-slate-100 text-[10px] font-bold uppercase tracking-wider text-slate-400 font-mono">
-                                {selectedCity === "All Cities" ? "All Wards Across Cities" : `Wards in ${selectedCity}`}
-                            </div>
-                            {filteredWards.map((w) => (
-                                <button
-                                    key={w}
-                                    onClick={() => {
-                                        setWard(w);
-                                        setSelectedCity(WARDS_DATA[w].city);
-                                        setWardOpen(false);
-                                    }}
-                                    className={`w-full text-left px-4 py-2 text-xs flex items-center justify-between hover:bg-blue-50 cursor-pointer ${
-                                        w === ward ? "text-blue-900 font-extrabold bg-blue-50/70" : "text-slate-700"
-                                    }`}
-                                >
-                                    <div>
-                                        <span className="block font-semibold">{w}</span>
-                                        <span className="text-[10px] text-slate-400">{WARDS_DATA[w].city} · {WARDS_DATA[w].code}</span>
-                                    </div>
-                                    {w === ward && <Check className="w-3.5 h-3.5 text-blue-600" />}
-                                </button>
-                            ))}
-                        </div>
-                    )}
-                </div>
-
-                {/* Sound Alarm Toggle */}
-                <button
-                    onClick={() => {
-                        setSoundEnabled(!soundEnabled);
-                        pushToast(`Audio alert cues ${!soundEnabled ? "enabled" : "muted"}`);
-                    }}
-                    className={`p-2 rounded-xl border transition-colors cursor-pointer shadow-sm ${
-                        soundEnabled
-                            ? "border-blue-200 bg-blue-50 text-blue-700"
-                            : "border-slate-200 bg-slate-50 text-slate-400 hover:text-slate-600"
-                    }`}
-                    title={soundEnabled ? "Audio Alarms Active" : "Audio Alarms Muted"}
-                >
-                    {soundEnabled ? <Volume2 className="w-4 h-4" /> : <VolumeX className="w-4 h-4" />}
-                </button>
-            </div>
-        </header>
-    );
-}
-
-// ============================================================================
-// Emergency Warning Banner
-// ============================================================================
-
-function EmergencyBanner({ wardData, floodStats, timeStep, onInspectHotspot }) {
-    const isHighRisk = floodStats.critical > 2;
-
-    return (
-        <div
-            className={`rounded-2xl border px-4 py-3 flex flex-wrap items-center justify-between gap-3 shadow-sm ${
-                isHighRisk
-                    ? "border-red-200 bg-red-50 text-red-950"
-                    : "border-amber-200 bg-amber-50 text-amber-950"
-            }`}
-        >
-            <div className="flex items-center gap-2.5">
-                <AlertOctagon className={`w-4 h-4 shrink-0 ${isHighRisk ? "text-red-600" : "text-amber-600"}`} />
-                <span className="text-xs font-bold tracking-wide">
-                    {isHighRisk
-                        ? `🚨 PUBLIC EMERGENCY WATCH: ${wardData.riverName} approaching alert stage (${wardData.riverLevel}m). ${floodStats.critical} hotspots IMPASSABLE.`
-                        : `⚠️ MONSOON ADVISORY: Drainage pumps operating at ${wardData.activePumps} capacity. Waterlogging monitored in lowlands.`}
-                </span>
-            </div>
-
-            <div className="flex items-center gap-2">
-                <button
-                    onClick={onInspectHotspot}
-                    className="flex items-center gap-1 text-[11px] font-bold px-3 py-1.5 rounded-xl bg-blue-600 hover:bg-blue-700 text-white transition-colors cursor-pointer border border-blue-700 shadow-sm"
-                >
-                    <Eye className="w-3.5 h-3.5 text-white" />
-                    <span>🗺️ Open Interactive Map</span>
-                </button>
-            </div>
-        </div>
-    );
-}
-
-// ============================================================================
-// Interactive Vector & Geospatial Map
-// ============================================================================
-
-function InteractiveVectorMap(props) {
-    const {
-        wardData,
-        sectorDepths,
-        selectedSector,
-        onSelectSector,
-        layers,
-        activeRoute,
-        isSimulatingRoute,
-        routeProgress,
-        routeCheckResult,
-        mapStyle = "Map",
-        mapToggles = { hotspots: true, pumps: true, shelters: false, metro: true, boundaries: false },
-        timelineStep = 1,
-    } = props;
-
-    const mapRef = useRef(null);
-    const mapInstanceRef = useRef(null);
-    const markersRef = useRef([]);
-    const sectorMarkersRef = useRef({});
-    const tileLayerRef = useRef(null);
-    const prevWardRef = useRef(null);
-
-    useEffect(() => {
-        if (!mapRef.current || !window.L) return;
-
-        let tileUrl = 'https://server.arcgisonline.com/ArcGIS/rest/services/World_Street_Map/MapServer/tile/{z}/{y}/{x}';
-        if (mapStyle === 'Satellite') {
-            tileUrl = 'https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}';
-        } else if (mapStyle === 'Terrain') {
-            tileUrl = 'https://server.arcgisonline.com/ArcGIS/rest/services/World_Topo_Map/MapServer/tile/{z}/{y}/{x}';
-        }
-
-        // Initialize Leaflet map if not already created
-        if (!mapInstanceRef.current) {
-            const map = window.L.map(mapRef.current, {
-                center: [13.0827, 80.2707],
-                zoom: 13,
-                zoomControl: false,
-                attributionControl: false,
-            });
-
-            window._rainDropMap = map;
-
-            const tileLayer = window.L.tileLayer(tileUrl, {
-                attribution: '&copy; Esri, HERE, Garmin, USGS',
-                maxZoom: 19,
-            }).addTo(map);
-
-            tileLayerRef.current = tileLayer;
-            mapInstanceRef.current = map;
-        } else {
-            if (tileLayerRef.current) {
-                tileLayerRef.current.setUrl(tileUrl);
-            }
-        }
-
-        const map = mapInstanceRef.current;
-
-        // Ensure Leaflet resizes correctly within container
-        setTimeout(() => {
-            if (map) map.invalidateSize();
-        }, 150);
-
-        // Clear existing markers & overlays
-        markersRef.current.forEach(layer => map.removeLayer(layer));
-        markersRef.current = [];
-        sectorMarkersRef.current = {};
-
-        const bounds = [];
-
-        // Collect sector coordinates
-        wardData.sectors.forEach((sec) => {
-            const coords = sec.coords.split(',').map(n => parseFloat(n.trim()));
-            if (coords.length >= 2 && !isNaN(coords[0]) && !isNaN(coords[1])) {
-                bounds.push([coords[0], coords[1]]);
-            }
-        });
-
-        // 1. Render Flood Basin Water Polygon Overlay
-        if (bounds.length >= 3 && mapToggles.hotspots !== false) {
-            const basinPolygon = window.L.polygon(bounds, {
-                color: '#0284c7',
-                weight: 1.2,
-                fillColor: '#38bdf8',
-                fillOpacity: 0.22,
-                smoothFactor: 1.5,
-            }).addTo(map);
-            markersRef.current.push(basinPolygon);
-        }
-
-        // Find sector with highest water depth for primary callout
-        let maxDepthIdx = 0;
-        sectorDepths.forEach((d, i) => {
-            if (d > (sectorDepths[maxDepthIdx] || 0)) maxDepthIdx = i;
-        });
-
-        // 2. Render Sector Nodes & Hotspot Callout
-        if (mapToggles.hotspots !== false) {
-            wardData.sectors.forEach((sec, idx) => {
-                const depth = sectorDepths[idx] || 0;
-                const coords = sec.coords.split(',').map(n => parseFloat(n.trim()));
-                if (coords.length < 2 || isNaN(coords[0]) || isNaN(coords[1])) return;
-                const [lat, lon] = coords;
-
-                let nodeHtml = "";
-                let nodeSize = [28, 28];
-                let anchor = [14, 14];
-
-                if (depth >= 30) {
-                    // Critical hotspot: Red circle with white exclamation point & glowing pulse
-                    nodeHtml = `<div style="background:#ef4444; color:#ffffff; width:28px; height:28px; border-radius:50%; display:flex; align-items:center; justify-content:center; font-weight:900; font-size:14px; border:3px solid #ffffff; box-shadow:0 4px 12px rgba(239,68,68,0.6); cursor:pointer; font-family:Inter,sans-serif; transition:transform 0.2s;">!</div>`;
-                } else if (depth >= 15) {
-                    // Caution hotspot: Amber circle with warning triangle
-                    nodeHtml = `<div style="background:#f59e0b; color:#ffffff; width:26px; height:26px; border-radius:50%; display:flex; align-items:center; justify-content:center; font-weight:900; font-size:12px; border:2.5px solid #ffffff; box-shadow:0 3px 8px rgba(245,158,11,0.5); cursor:pointer; font-family:Inter,sans-serif; transition:transform 0.2s;">▲</div>`;
-                    nodeSize = [26, 26];
-                    anchor = [13, 13];
-                } else {
-                    // Clear safe corridor: Emerald circle with checkmark
-                    nodeHtml = `<div style="background:#10b981; color:#ffffff; width:24px; height:24px; border-radius:50%; display:flex; align-items:center; justify-content:center; font-weight:900; font-size:12px; border:2px solid #ffffff; box-shadow:0 3px 8px rgba(16,185,129,0.45); cursor:pointer; font-family:Inter,sans-serif; transition:transform 0.2s;">✓</div>`;
-                    nodeSize = [24, 24];
-                    anchor = [12, 12];
-                }
-
-                // Inundation radial pool
-                const circleRadius = Math.max(80, depth * 4.5 + 40);
-                const circle = window.L.circle([lat, lon], {
-                    radius: circleRadius,
-                    color: depth >= 30 ? '#f43f5e' : depth >= 15 ? '#fbbf24' : '#34d399',
-                    fillColor: depth >= 30 ? '#ef4444' : depth >= 15 ? '#3b82f6' : '#10b981',
-                    fillOpacity: 0.25,
-                    weight: 1,
-                }).addTo(map);
-
-                const icon = window.L.divIcon({
-                    className: 'custom-status-marker',
-                    html: nodeHtml,
-                    iconSize: nodeSize,
-                    iconAnchor: anchor
-                });
-
-                const marker = window.L.marker([lat, lon], { icon }).addTo(map);
-
-                // Rich Interactive Leaflet Popup with Full Telemetry
-                const riskBadge = depth >= 30 ? "CRITICAL RISK" : depth >= 15 ? "MODERATE HAZARD" : "SAFE ELEVATION";
-                const riskBg = depth >= 30 ? "#fef2f2" : depth >= 15 ? "#fffbeb" : "#ecfdf5";
-                const riskColor = depth >= 30 ? "#dc2626" : depth >= 15 ? "#d97706" : "#059669";
-                const riskBorder = depth >= 30 ? "#fca5a5" : depth >= 15 ? "#fcd34d" : "#6ee7b7";
-
-                const popupHtml = `
-                <div style="font-family:Inter,sans-serif; min-width:250px; padding:4px 2px;">
-                    <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:8px;">
-                        <span style="font-size:10px; font-weight:800; text-transform:uppercase; letter-spacing:0.04em; background:${riskBg}; color:${riskColor}; border:1px solid ${riskBorder}; padding:2.5px 8px; border-radius:9999px;">
-                            ${riskBadge}
-                        </span>
-                        <span style="font-size:10px; color:#64748b; font-family:monospace;">${sec.elevation}m MSL</span>
-                    </div>
-                    <div style="font-size:14px; font-weight:800; color:#0f172a; line-height:1.25; margin-bottom:3px;">
-                        ${sec.name}
-                    </div>
-                    <div style="font-size:11px; color:#64748b; margin-bottom:10px;">
-                        ${wardData.name} · ${wardData.city} (${wardData.riverName})
-                    </div>
-
-                    <div style="display:grid; grid-template-columns:1fr 1fr; gap:6px; margin-bottom:10px;">
-                        <div style="background:#f8fafc; border:1px solid #e2e8f0; border-radius:12px; padding:8px 10px;">
-                            <div style="font-size:9.5px; color:#64748b; font-weight:600;">Water Depth</div>
-                            <div style="font-size:15px; font-weight:800; color:${depth >= 30 ? '#dc2626' : depth >= 15 ? '#d97706' : '#2563eb'}; font-family:monospace;">
-                                ${depth.toFixed(1)} cm
-                            </div>
-                        </div>
-                        <div style="background:#f8fafc; border:1px solid #e2e8f0; border-radius:12px; padding:8px 10px;">
-                            <div style="font-size:9.5px; color:#64748b; font-weight:600;">Flow Velocity</div>
-                            <div style="font-size:15px; font-weight:800; color:#0f172a; font-family:monospace;">
-                                ${(1.1 + depth * 0.02).toFixed(1)} m/s
-                            </div>
-                        </div>
-                    </div>
-
-                    <div style="background:#f8fafc; border:1px solid #e2e8f0; border-radius:12px; padding:8px 10px; margin-bottom:10px; font-size:11px;">
-                        <div style="display:flex; justify-content:space-between; margin-bottom:4px;">
-                            <span style="color:#64748b;">Drainage Culvert:</span>
-                            <span style="font-weight:700; color:${depth >= 30 ? '#dc2626' : '#059669'};">
-                                ${depth >= 30 ? '92% Surcharged' : depth >= 15 ? '64% Flowing' : '28% Free Flow'}
-                            </span>
-                        </div>
-                        <div style="display:flex; justify-content:space-between; margin-bottom:4px;">
-                            <span style="color:#64748b;">Pedestrians:</span>
-                            <span style="font-weight:700; color:${depth >= 15 ? '#dc2626' : '#059669'};">
-                                ${depth >= 15 ? '⛔ Impassable' : '✅ Passable'}
-                            </span>
-                        </div>
-                        <div style="display:flex; justify-content:space-between;">
-                            <span style="color:#64748b;">Vehicles:</span>
-                            <span style="font-weight:700; color:${depth >= 25 ? '#dc2626' : depth >= 15 ? '#d97706' : '#059669'};">
-                                ${depth >= 25 ? '⛔ High Stall Risk' : depth >= 15 ? '⚠️ Caution' : '✅ Clear'}
-                            </span>
-                        </div>
-                    </div>
-
-                    <button type="button" onclick="window._openSectorDrawer && window._openSectorDrawer(${idx})" style="width:100%; background:#0f2942; color:#ffffff; border:none; padding:8px 12px; border-radius:12px; font-size:11.5px; font-weight:700; cursor:pointer; display:flex; align-items:center; justify-content:center; gap:6px; box-shadow:0 2px 6px rgba(15,41,66,0.2);">
-                        <span>Check Location Safety &rarr;</span>
-                    </button>
-                </div>
-                `;
-
-                marker.bindPopup(popupHtml, { maxWidth: 300, offset: [0, -10] });
-                circle.bindPopup(popupHtml, { maxWidth: 300, offset: [0, -10] });
-
-                const handleNodeClick = () => {
-                    onSelectSector(idx);
-                    try { marker.openPopup(); } catch (_) {}
-                };
-
-                marker.on('click', handleNodeClick);
-                circle.on('click', handleNodeClick);
-
-                sectorMarkersRef.current[idx] = marker;
-                markersRef.current.push(circle);
-                markersRef.current.push(marker);
-            });
-        }
-
-        // 3. Render Drainage Pumps
-        if (mapToggles.pumps && bounds.length >= 2) {
-            bounds.slice(1, 4).forEach((pt, i) => {
-                const pumpIcon = window.L.divIcon({
-                    className: 'pump-marker',
-                    html: `<div style="background:#2563eb; color:#ffffff; width:22px; height:22px; border-radius:50%; display:flex; align-items:center; justify-content:center; font-size:10px; font-weight:bold; border:2px solid #ffffff; box-shadow:0 2px 6px rgba(37,99,235,0.4);" title="Stormwater Dewatering Pump #0${i+1}">⚡</div>`,
-                    iconSize: [22, 22],
-                    iconAnchor: [11, 11]
-                });
-                const pMarker = window.L.marker([pt[0] + 0.003, pt[1] - 0.003], { icon: pumpIcon }).addTo(map);
-                pMarker.bindPopup(`<strong>⚡ Stormwater Dewatering Pump #0${i+1}</strong><br><span style="font-size:11px; color:#2563eb;">Status: 100% Active Suction</span>`);
-                markersRef.current.push(pMarker);
-            });
-        }
-
-        // 4. Render Transit & Metro
-        if (mapToggles.metro && bounds.length >= 2) {
-            bounds.slice(0, 3).forEach((pt, i) => {
-                const metroIcon = window.L.divIcon({
-                    className: 'metro-marker',
-                    html: `<div style="background:#059669; color:#ffffff; width:22px; height:22px; border-radius:50%; display:flex; align-items:center; justify-content:center; font-size:10px; font-weight:bold; border:2px solid #ffffff; box-shadow:0 2px 6px rgba(5,150,105,0.4);" title="Metro & Transit Station">🚇</div>`,
-                    iconSize: [22, 22],
-                    iconAnchor: [11, 11]
-                });
-                const mMarker = window.L.marker([pt[0] - 0.0035, pt[1] + 0.0035], { icon: metroIcon }).addTo(map);
-                mMarker.bindPopup(`<strong>🚇 Metro Station #M-${i+1}</strong><br><span style="font-size:11px; color:#059669;">Corridor: Elevated Dry Deck</span>`);
-                markersRef.current.push(mMarker);
-            });
-        }
-
-        // 5. Render Relief Shelters
-        if (mapToggles.shelters && bounds.length >= 2) {
-            bounds.slice(0, 3).forEach((pt, i) => {
-                const shelterIcon = window.L.divIcon({
-                    className: 'shelter-marker',
-                    html: `<div style="background:#7c3aed; color:#ffffff; width:22px; height:22px; border-radius:50%; display:flex; align-items:center; justify-content:center; font-size:11px; font-weight:bold; border:2px solid #ffffff; box-shadow:0 2px 6px rgba(124,58,237,0.4);" title="Emergency Relief Shelter">🏠</div>`,
-                    iconSize: [22, 22],
-                    iconAnchor: [11, 11]
-                });
-                const sMarker = window.L.marker([pt[0] + 0.004, pt[1] + 0.004], { icon: shelterIcon }).addTo(map);
-                sMarker.bindPopup(`<strong>🏠 Emergency Relief Shelter #${i+1}</strong><br><span style="font-size:11px; color:#7c3aed;">Capacity: Available</span>`);
-                markersRef.current.push(sMarker);
-            });
-        }
-
-        // 6. Render Ward Boundaries
-        if (mapToggles.boundaries && bounds.length >= 3) {
-            const boundaryLine = window.L.polygon(bounds, {
-                color: '#64748b',
-                weight: 2,
-                dashArray: '5, 6',
-                fill: false
-            }).addTo(map);
-            markersRef.current.push(boundaryLine);
-        }
-
-        // Auto Fit Map Bounds ONLY when active ward changes
-        if (bounds.length > 0 && prevWardRef.current !== wardData.name) {
-            prevWardRef.current = wardData.name;
-            try {
-                map.fitBounds(bounds, { padding: [60, 60], maxZoom: 14 });
-            } catch (_) {}
-        }
-
-        // Render Safe Corridor & Bypass Route Lines if available
-        if (routeCheckResult && routeCheckResult.standard_route && routeCheckResult.safe_corridor) {
-            const stdCoords = routeCheckResult.standard_route.coordinates || [];
-            const safeCoords = routeCheckResult.safe_corridor.coordinates || [];
-
-            if (stdCoords.length >= 2) {
-                const stdPoly = window.L.polyline(stdCoords, {
-                    color: '#dc2626',
-                    weight: 4,
-                    dashArray: '6, 8',
-                    opacity: 0.9
-                }).addTo(map);
-                markersRef.current.push(stdPoly);
-            }
-
-            if (safeCoords.length >= 2) {
-                const safePoly = window.L.polyline(safeCoords, {
-                    color: '#10b981',
-                    weight: 6,
-                    opacity: 0.95
-                }).addTo(map);
-                markersRef.current.push(safePoly);
-
-                const allRoutePoints = [...stdCoords, ...safeCoords];
-                try {
-                    map.fitBounds(allRoutePoints, { padding: [50, 50] });
-                } catch (_) {}
-            }
-        }
-
-    }, [wardData, sectorDepths, layers, mapStyle, mapToggles, timelineStep, activeRoute, isSimulatingRoute, routeProgress, routeCheckResult]);
-
-    // Dedicated pan & popup effect for selected sector (does not tear down map layers)
-    useEffect(() => {
-        if (selectedSector === null || !mapInstanceRef.current || !wardData?.sectors?.[selectedSector]) return;
-        const map = mapInstanceRef.current;
-        const sec = wardData.sectors[selectedSector];
-        const coords = sec.coords.split(',').map(n => parseFloat(n.trim()));
-        if (coords.length >= 2 && !isNaN(coords[0]) && !isNaN(coords[1])) {
-            try {
-                map.panTo([coords[0], coords[1]], { animate: true, duration: 0.4 });
-            } catch (_) {}
-        }
-        const marker = sectorMarkersRef.current?.[selectedSector];
-        if (marker) {
-            setTimeout(() => {
-                try { marker.openPopup(); } catch (_) {}
-            }, 80);
-        }
-    }, [selectedSector, wardData]);
-
-    return (
-        <div className="relative w-full h-full min-h-[500px]">
-            <div ref={mapRef} className="w-full h-full" />
-        </div>
-    );
-}
-
-// ============================================================================
-// Sector Telemetry Drawer (Click to Inspect) — Human-Friendly Spot Safety Check
-// ============================================================================
-
-function SectorDrawer({ sector, depth, wardName, onClose, pushToast }) {
-    const isHigh = depth >= 30;
-    const isMed = depth >= 15 && depth < 30;
-
-    // Interactive button states — ensures nothing goes unattended
-    const [pumpStatus, setPumpStatus] = useState(null); // null | 'dispatched'
-    const [divertStatus, setDivertStatus] = useState(null); // null | 'active'
-    const [showRouteTip, setShowRouteTip] = useState(false);
-
-    // Close on Escape key
-    useEffect(() => {
-        const handleKeyDown = (e) => {
-            if (e.key === "Escape") onClose();
-        };
-        window.addEventListener("keydown", handleKeyDown);
-        return () => window.removeEventListener("keydown", handleKeyDown);
-    }, [onClose]);
-
-    // Everyday human-friendly water level descriptions
-    const depthHuman = depth < 5
-        ? "Dry / Safe"
-        : depth < 15
-            ? "Puddle Level (Passable)"
-            : depth < 25
-                ? "Ankle to Shin Deep"
-                : depth < 40
-                    ? "Knee Deep (Hazardous)"
-                    : "Waist Deep (Severe Danger)";
-
-    const statusTitle = isHigh ? "Flooded · Hazard" : isMed ? "Waterlogged · Caution" : "Clear & Safe";
-    const statusBg = isHigh
-        ? "bg-rose-50 border-rose-200 text-rose-700"
-        : isMed
-            ? "bg-amber-50 border-amber-200 text-amber-800"
-            : "bg-emerald-50 border-emerald-200 text-emerald-800";
-    const statusDot = isHigh ? "bg-rose-500" : isMed ? "bg-amber-500" : "bg-emerald-500";
-
-    const handleDispatchPump = () => {
-        setPumpStatus("dispatched");
-        if (pushToast) pushToast(`⚡ Dewatering Pump Unit #14 dispatched to ${sector.name}`);
-    };
-
-    const handleDivertTraffic = () => {
-        setDivertStatus("active");
-        if (pushToast) pushToast(`📢 Traffic Diversion Notice issued for ${sector.name}`);
-    };
-
-    return (
-        <>
-            {/* Soft backdrop overlay */}
-            <div
-                className="fixed inset-0 bg-slate-900/30 backdrop-blur-[2px] z-[940] animate-in fade-in duration-200"
-                onClick={onClose}
-            />
-
-            {/* Clean Light-Theme Spot Safety Inspector Drawer */}
-            <div className="fixed inset-y-0 right-0 w-full sm:w-[440px] bg-white border-l border-slate-200 shadow-2xl z-[950] p-6 flex flex-col justify-between overflow-y-auto animate-in slide-in-from-right duration-250 text-slate-900 font-sans">
-                <div>
-                    {/* Header */}
-                    <div className="flex items-start justify-between pb-4 border-b border-slate-100">
-                        <div>
-                            <div className="flex items-center gap-2">
-                                <span className="text-[10px] uppercase font-bold tracking-wider px-2 py-0.5 rounded-full bg-blue-50 text-blue-700">
-                                    {wardName} · Spot Safety Check
-                                </span>
-                            </div>
-                            <h3 className="text-lg font-extrabold text-slate-900 mt-1">{sector.name}</h3>
-                            <p className="text-xs text-slate-500 mt-0.5">
-                                Critical Drainage &amp; Road Point · Low-lying Sector
-                            </p>
-                        </div>
-                        <button
-                            onClick={onClose}
-                            className="p-2 rounded-full text-slate-400 hover:text-slate-700 hover:bg-slate-100 transition-colors cursor-pointer"
-                            title="Close (Esc)"
-                        >
-                            <X className="w-5 h-5" />
-                        </button>
-                    </div>
-
-                    {/* Water Depth Hero Card */}
-                    <div className="my-5 rounded-2xl border border-slate-200/90 bg-slate-50/60 p-4">
-                        <div className="flex items-center justify-between mb-3">
-                            <span className="text-xs font-semibold text-slate-500">Live Water Depth</span>
-                            <span className={`text-[11px] font-bold px-2.5 py-0.5 rounded-full border flex items-center gap-1.5 ${statusBg}`}>
-                                <span className={`w-1.5 h-1.5 rounded-full ${statusDot}`} />
-                                {statusTitle}
-                            </span>
-                        </div>
-
-                        <div className="flex items-baseline justify-between mb-2">
-                            <div className="flex items-baseline gap-1.5">
-                                <span className="text-3xl font-extrabold text-slate-900 font-mono tracking-tight">{depth}</span>
-                                <span className="text-sm font-bold text-slate-500">cm</span>
-                            </div>
-                            <span className="text-xs font-bold text-slate-700">{depthHuman}</span>
-                        </div>
-
-                        {/* Clean Horizontal Depth Gauge with Human Milestones */}
-                        <div className="w-full h-2.5 bg-slate-200 rounded-full overflow-hidden relative">
-                            <div
-                                className={`h-full transition-all duration-500 ${
-                                    isHigh ? "bg-rose-500" : isMed ? "bg-amber-500" : "bg-emerald-500"
-                                }`}
-                                style={{ width: `${Math.min(100, Math.max(8, (depth / 50) * 100))}%` }}
-                            />
-                        </div>
-                        <div className="flex justify-between items-center text-[10px] text-slate-400 mt-1.5 font-medium">
-                            <span>0 cm (Dry)</span>
-                            <span>15 cm (Ankles)</span>
-                            <span>30 cm (Knees)</span>
-                            <span>50+ cm (Danger)</span>
-                        </div>
-                    </div>
-
-                    {/* Quick Plain-English Condition Summary */}
-                    <div className="grid grid-cols-2 gap-2.5 mb-4">
-                        <div className="p-3 rounded-2xl bg-white border border-slate-200/80 shadow-2xs">
-                            <span className="text-[10px] uppercase tracking-wider font-semibold text-slate-400">Water Movement</span>
-                            <p className="text-xs font-bold text-slate-800 mt-1 flex items-center gap-1.5">
-                                {depth >= 25 ? (
-                                    <><span>⚠️</span> Fast moving current</>
-                                ) : depth >= 15 ? (
-                                    <><span>🌊</span> Slow moving runoff</>
-                                ) : (
-                                    <><span>✅</span> Standing puddles only</>
-                                )}
-                            </p>
-                        </div>
-
-                        <div className="p-3 rounded-2xl bg-white border border-slate-200/80 shadow-2xs">
-                            <span className="text-[10px] uppercase tracking-wider font-semibold text-slate-400">Local Drains</span>
-                            <p className="text-xs font-bold text-slate-800 mt-1 flex items-center gap-1.5">
-                                {depth >= 30 ? (
-                                    <><span>⚠️</span> Drains near full capacity</>
-                                ) : (
-                                    <><span>⚡</span> Pumps actively draining</>
-                                )}
-                            </p>
-                        </div>
-                    </div>
-
-                    {/* Can I travel through here? Clear Everyday User Guide */}
-                    <div className="rounded-2xl border border-slate-200/90 bg-white p-4 mb-4 shadow-xs">
-                        <h4 className="text-xs font-bold text-slate-900 mb-3 flex items-center justify-between">
-                            <span className="flex items-center gap-2">
-                                <Car className="w-4 h-4 text-blue-600" />
-                                Can I pass through this road?
-                            </span>
-                            <span className="text-[10px] font-semibold text-slate-400">Live Commuter Guide</span>
-                        </h4>
-
-                        <div className="space-y-2 text-xs">
-                            <div className="flex items-center justify-between py-1.5 border-b border-slate-100">
-                                <span className="text-slate-600 flex items-center gap-2 font-medium">
-                                    <span>🚶</span> Walking on foot
-                                </span>
-                                <span className={`font-bold px-2 py-0.5 rounded-md ${
-                                    depth >= 15 ? "bg-rose-50 text-rose-700" : "bg-emerald-50 text-emerald-700"
-                                }`}>
-                                    {depth >= 15 ? "⛔ Avoid — Water above ankles" : "✅ Safe to walk"}
-                                </span>
-                            </div>
-
-                            <div className="flex items-center justify-between py-1.5 border-b border-slate-100">
-                                <span className="text-slate-600 flex items-center gap-2 font-medium">
-                                    <span>🛵</span> Bikes &amp; Scooters
-                                </span>
-                                <span className={`font-bold px-2 py-0.5 rounded-md ${
-                                    depth >= 18 ? "bg-rose-50 text-rose-700" : "bg-emerald-50 text-emerald-700"
-                                }`}>
-                                    {depth >= 18 ? "⛔ High stall risk" : "✅ Safe to ride"}
-                                </span>
-                            </div>
-
-                            <div className="flex items-center justify-between py-1.5 border-b border-slate-100">
-                                <span className="text-slate-600 flex items-center gap-2 font-medium">
-                                    <span>🚗</span> Cars &amp; Autos
-                                </span>
-                                <span className={`font-bold px-2 py-0.5 rounded-md ${
-                                    depth >= 25 
-                                        ? "bg-rose-50 text-rose-700" 
-                                        : depth >= 15 
-                                            ? "bg-amber-50 text-amber-800" 
-                                            : "bg-emerald-50 text-emerald-700"
-                                }`}>
-                                    {depth >= 25 ? "⛔ Impassable — Do not enter" : depth >= 15 ? "⚠️ Caution — Slow down" : "✅ Passable"}
-                                </span>
-                            </div>
-
-                            <div className="flex items-center justify-between py-1.5">
-                                <span className="text-slate-600 flex items-center gap-2 font-medium">
-                                    <span>🚑</span> Buses &amp; Emergency Trucks
-                                </span>
-                                <span className={`font-bold px-2 py-0.5 rounded-md ${
-                                    depth >= 45 ? "bg-amber-50 text-amber-800" : "bg-emerald-50 text-emerald-700"
-                                }`}>
-                                    {depth >= 45 ? "⚠️ High clearance only" : "✅ Priority Corridor Clear"}
-                                </span>
-                            </div>
-                        </div>
-                    </div>
-
-                    {/* In-place Action Confirmation Banners — ensures no click goes unattended */}
-                    {(pumpStatus || divertStatus || showRouteTip) && (
-                        <div className="space-y-2 mb-4 animate-in fade-in slide-in-from-top-2 duration-200">
-                            {pumpStatus === "dispatched" && (
-                                <div className="p-3 rounded-xl bg-blue-50 border border-blue-200 text-blue-900 text-xs flex items-start justify-between gap-2">
-                                    <div className="flex items-start gap-2">
-                                        <span className="text-blue-600 mt-0.5 font-bold">⚡</span>
-                                        <div>
-                                            <strong className="font-bold block">Dewatering Pump Unit #14 Dispatched</strong>
-                                            <span className="text-blue-700 text-[11px]">En route to {sector.name} · Estimated suction start: ~10 mins</span>
-                                        </div>
-                                    </div>
-                                    <button
-                                        onClick={() => setPumpStatus(null)}
-                                        className="text-blue-500 hover:text-blue-700 text-[11px] font-bold underline cursor-pointer"
-                                    >
-                                        Dismiss
-                                    </button>
-                                </div>
-                            )}
-
-                            {divertStatus === "active" && (
-                                <div className="p-3 rounded-xl bg-amber-50 border border-amber-200 text-amber-900 text-xs flex items-start justify-between gap-2">
-                                    <div className="flex items-start gap-2">
-                                        <span className="text-amber-600 mt-0.5 font-bold">📢</span>
-                                        <div>
-                                            <strong className="font-bold block">Traffic Diversion Active</strong>
-                                            <span className="text-amber-800 text-[11px]">Advisory broadcast to municipal feeds &amp; local ward signs.</span>
-                                        </div>
-                                    </div>
-                                    <button
-                                        onClick={() => setDivertStatus(null)}
-                                        className="text-amber-600 hover:text-amber-800 text-[11px] font-bold underline cursor-pointer"
-                                    >
-                                        Dismiss
-                                    </button>
-                                </div>
-                            )}
-
-                            {showRouteTip && (
-                                <div className="p-3 rounded-xl bg-emerald-50 border border-emerald-200 text-emerald-900 text-xs flex items-start justify-between gap-2">
-                                    <div className="flex items-start gap-2">
-                                        <span className="text-emerald-600 mt-0.5 font-bold">🛣️</span>
-                                        <div>
-                                            <strong className="font-bold block">Recommended Dry Alternate Route</strong>
-                                            <span className="text-emerald-800 text-[11px]">Take the Kalina-CST Elevated Bypass. 100% dry (0 cm water), +3 min detour.</span>
-                                        </div>
-                                    </div>
-                                    <button
-                                        onClick={() => setShowRouteTip(false)}
-                                        className="text-emerald-600 hover:text-emerald-800 text-[11px] font-bold underline cursor-pointer"
-                                    >
-                                        Close
-                                    </button>
-                                </div>
-                            )}
-                        </div>
-                    )}
-
-                    {/* Verified Sensor Telemetry & Provenance */}
-                    <div className="rounded-2xl border border-slate-200/90 bg-slate-50/70 p-3.5 mb-4 text-xs">
-                        <div className="flex items-center justify-between mb-2">
-                            <span className="font-bold text-slate-800 flex items-center gap-1.5">
-                                <ShieldCheck className="w-4 h-4 text-blue-600" />
-                                Verified Sensor Telemetry
-                            </span>
-                            <span className="font-mono text-[10px] font-bold text-emerald-700 bg-emerald-100/80 px-2 py-0.5 rounded-full">
-                                96.4% Calibrated
-                            </span>
-                        </div>
-                        <div className="space-y-1.5 text-[11px] text-slate-600">
-                            <div className="flex justify-between items-center">
-                                <span className="text-slate-400">Sensor Station:</span>
-                                <span className="font-mono font-semibold text-slate-700">{sector.stationId || `CWC-${sector.id + 101}`}</span>
-                            </div>
-                            <div className="flex justify-between items-center">
-                                <span className="text-slate-400">Primary Authority:</span>
-                                <span className="font-medium text-slate-700">Municipal Stormwater Dept + IMD</span>
-                            </div>
-                            <div className="flex justify-between items-center">
-                                <span className="text-slate-400">Gauge Sensor:</span>
-                                <span className="font-medium text-slate-700">Hydrostatic Pressure Transducer</span>
-                            </div>
-                            <div className="flex justify-between items-center">
-                                <span className="text-slate-400">Telemetry Feed:</span>
-                                <span className="font-mono text-emerald-700 font-semibold flex items-center gap-1">
-                                    <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
-                                    Live (Updated 2 mins ago)
-                                </span>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
-                {/* Bottom Action Controls */}
-                <div className="flex flex-col gap-2 pt-4 border-t border-slate-100">
-                    <button
-                        onClick={() => setShowRouteTip(!showRouteTip)}
-                        className="w-full flex items-center justify-center gap-2 py-2.5 px-4 rounded-xl bg-blue-600 hover:bg-blue-500 text-white text-xs font-bold shadow-md shadow-blue-600/20 transition-all cursor-pointer"
-                    >
-                        <Route className="w-4 h-4" />
-                        <span>{showRouteTip ? "Hide Dry Alternate Route" : "Show Dry Alternate Route"}</span>
-                    </button>
-
-                    <div className="grid grid-cols-2 gap-2">
-                        <button
-                            onClick={handleDispatchPump}
-                            className={`flex items-center justify-center gap-1.5 py-2 px-3 rounded-xl text-xs font-semibold transition-all cursor-pointer border ${
-                                pumpStatus === "dispatched"
-                                    ? "bg-emerald-50 border-emerald-200 text-emerald-700 font-bold"
-                                    : "border-slate-200 bg-slate-50 hover:bg-slate-100 text-slate-700"
-                            }`}
-                        >
-                            <Zap className="w-3.5 h-3.5 text-blue-600" />
-                            <span>{pumpStatus === "dispatched" ? "Pump Sent ✓" : "Send Pump"}</span>
-                        </button>
-
-                        <button
-                            onClick={handleDivertTraffic}
-                            className={`flex items-center justify-center gap-1.5 py-2 px-3 rounded-xl text-xs font-semibold transition-all cursor-pointer border ${
-                                divertStatus === "active"
-                                    ? "bg-amber-50 border-amber-200 text-amber-800 font-bold"
-                                    : "border-slate-200 bg-slate-50 hover:bg-slate-100 text-slate-700"
-                            }`}
-                        >
-                            <Send className="w-3.5 h-3.5 text-amber-600" />
-                            <span>{divertStatus === "active" ? "Diverted ✓" : "Divert Traffic"}</span>
-                        </button>
-                    </div>
-                </div>
-            </div>
-        </>
-    );
-}
-
-// ============================================================================
-// Time Machine & Hydrograph Controller
-// ============================================================================
-
-function TimeMachineBar(props) {
-    const { timeStep, setTimeStep, isPlaying, setIsPlaying, playSpeed, setPlaySpeed, hydrograph } = props;
-
-    const current = hydrograph[timeStep] || hydrograph[0];
-
-    return (
-        <div className="mt-2 pt-3 border-t border-slate-800/80 flex flex-col gap-2.5">
-            <div className="flex flex-wrap items-center justify-between gap-3">
-                <div className="flex items-center gap-2">
-                    <button
-                        onClick={() => setIsPlaying(!isPlaying)}
-                        className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold transition-all cursor-pointer shadow-sm ${isPlaying
-                                ? "bg-amber-500 text-slate-950 hover:bg-amber-400"
-                                : "bg-indigo-600 text-white hover:bg-indigo-500 shadow-indigo-600/25"
-                            }`}
-                    >
-                        {isPlaying ? <Pause className="w-3.5 h-3.5 fill-current" /> : <Play className="w-3.5 h-3.5 fill-current" />}
-                        <span>{isPlaying ? "Pause Forecast" : "Simulate Run"}</span>
-                    </button>
-
-                    <button
-                        onClick={() => setPlaySpeed(playSpeed === 1 ? 2 : 1)}
-                        className="px-2 py-1.5 rounded-lg border border-slate-700 bg-slate-800/80 hover:bg-slate-700 text-slate-300 text-[10px] font-mono font-bold cursor-pointer"
-                    >
-                        {playSpeed}x
-                    </button>
-
-                    <span className="text-xs text-slate-300 font-semibold ml-2 flex items-center gap-1.5">
-                        <Clock className="w-3.5 h-3.5 text-indigo-400" />
-                        <span>Horizon: <strong className="text-white font-mono">{current.t}</strong> ({current.label})</span>
-                    </span>
-                </div>
-
-                <div className="flex items-center gap-1">
-                    {hydrograph.map((step, idx) => (
-                        <button
-                            key={step.t}
-                            onClick={() => {
-                                setTimeStep(idx);
-                                setIsPlaying(false);
-                            }}
-                            className={`px-2 py-1 rounded-md text-[10px] font-mono transition-all cursor-pointer ${timeStep === idx
-                                    ? "bg-indigo-600 text-white font-bold shadow-sm"
-                                    : "bg-slate-800/60 text-slate-400 hover:text-white hover:bg-slate-700/60"
-                                }`}
-                        >
-                            {step.t}
-                        </button>
-                    ))}
-                </div>
-            </div>
-
-            <div className="relative w-full h-14 bg-[#090d16] rounded-xl border border-slate-800/80 p-1.5 flex items-end justify-between overflow-hidden">
-                <div className="absolute top-1 left-2 text-[9px] font-mono text-slate-500">
-                    Rainfall Intensity (mm/h) &amp; River Surge Projection (m)
-                </div>
-
-                {hydrograph.map((item, idx) => {
-                    const isCurrent = timeStep === idx;
-                    const barHeight = Math.min(100, Math.max(15, (item.rain / 60) * 100));
-
-                    return (
-                        <div
-                            key={item.t}
-                            onClick={() => {
-                                setTimeStep(idx);
-                                setIsPlaying(false);
-                            }}
-                            className="flex-1 flex flex-col items-center justify-end h-full group cursor-pointer relative"
-                        >
-                            <div
-                                className={`w-4/5 rounded-t transition-all duration-300 ${isCurrent
-                                        ? "bg-gradient-to-t from-indigo-600 to-sky-400 opacity-90 shadow-md shadow-indigo-500/50"
-                                        : "bg-slate-700/40 group-hover:bg-slate-600/60"
-                                    }`}
-                                style={{ height: `${barHeight}%` }}
-                            />
-
-                            {isCurrent && (
-                                <div className="absolute top-0 bottom-0 w-0.5 bg-sky-400 shadow-lg shadow-sky-400">
-                                    <div className="w-2 h-2 -ml-[3px] rounded-full bg-white border border-sky-400" />
-                                </div>
-                            )}
-                        </div>
-                    );
-                })}
-            </div>
-        </div>
-    );
-}
-
-// ============================================================================
-// ============================================================================
-// Hotspot Telemetry & Sump Status Deck
-// ============================================================================
-
-function HotspotTelemetryDeck({ wardData, sectorDepths, onSelectSector, onEnableMap }) {
-    const sortedSectors = wardData.sectors
-        .map((s, idx) => ({ ...s, originalIdx: idx, depth: sectorDepths[idx] || 0 }))
-        .sort((a, b) => b.depth - a.depth);
-
-    const totalFlooded = sortedSectors.filter(s => s.depth >= 30).length;
-    const totalCaution = sortedSectors.filter(s => s.depth >= 15 && s.depth < 30).length;
-    const totalSafe = sortedSectors.filter(s => s.depth < 15).length;
-
-    return (
-        <div className="rounded-lg border border-white/20 bg-zinc-950 p-4 sm:p-5 shadow-lg flex flex-col gap-4">
-            <div>
-                <div className="flex items-center justify-between">
-                    <h3 className="text-sm font-bold text-white flex items-center gap-2">
-                        <Activity className="w-4 h-4 text-white" />
-                        Hotspot Telemetry &amp; Sump Overview
-                    </h3>
-                    <span className="text-[10px] font-mono px-2 py-0.5 rounded bg-zinc-900 text-zinc-200 border border-white/20">
-                        {wardData.code} Live Feed
-                    </span>
-                </div>
-                <p className="text-[11px] text-zinc-400 mt-1">
-                    Real-time depth sensors, pump status, and plain-English flood situation telemetry.
-                </p>
-            </div>
-
-            {/* Plain English Summary Box */}
-            <div className="rounded-md border border-white/20 bg-zinc-900 p-3 text-xs leading-relaxed">
-                <div className="flex items-center gap-2 text-white font-bold mb-1">
-                    <AlertTriangle className="w-4 h-4 text-yellow-400" />
-                    <span>What Is Happening Right Now:</span>
-                </div>
-                <p className="text-zinc-300 text-[11px]">
-                    Heavy rainfall ({wardData.rainfallForecast}) paired with {wardData.riverName} tide ({wardData.riverLevel}m) is creating backwater surcharge.
-                    <span className="font-bold text-red-400"> {totalFlooded} low-lying hotspots are severely flooded (&gt;30cm)</span>. 
-                    {wardData.activePumps} dewatering pumps are actively discharging stormwater.
-                </p>
-            </div>
-
-            {/* Telemetry Summary Stats */}
-            <div className="grid grid-cols-3 gap-2 text-center text-xs">
-                <div className="p-2 rounded bg-zinc-900 border border-red-500/40">
-                    <span className="block text-[9px] uppercase text-zinc-400 font-mono">Flooded</span>
-                    <span className="font-bold text-red-400 font-mono text-sm">{totalFlooded} Hotspots</span>
-                </div>
-                <div className="p-2 rounded bg-zinc-900 border border-yellow-500/40">
-                    <span className="block text-[9px] uppercase text-zinc-400 font-mono">Caution</span>
-                    <span className="font-bold text-yellow-400 font-mono text-sm">{totalCaution} Hotspots</span>
-                </div>
-                <div className="p-2 rounded bg-zinc-900 border border-emerald-500/40">
-                    <span className="block text-[9px] uppercase text-zinc-400 font-mono">Clear</span>
-                    <span className="font-bold text-emerald-400 font-mono text-sm">{totalSafe} Hotspots</span>
-                </div>
-            </div>
-
-            {/* Hotspots List */}
-            <div className="space-y-2 max-h-72 overflow-y-auto pr-1">
-                <span className="text-[10px] uppercase font-bold text-zinc-400 tracking-wider">Top Critical Hotspot Telemetry</span>
-                {sortedSectors.slice(0, 6).map((sec) => (
-                    <div 
-                        key={sec.id}
-                        onClick={() => {
-                            onEnableMap();
-                            onSelectSector(sec.originalIdx !== undefined ? sec.originalIdx : sec.id);
-                        }}
-                        className="p-2.5 rounded-md border border-zinc-800 bg-zinc-900/90 hover:border-white/40 transition-all cursor-pointer flex items-center justify-between text-xs"
-                    >
-                        <div>
-                            <div className="flex items-center gap-1.5">
-                                <span className="font-bold text-white">{sec.name}</span>
-                            </div>
-                            <span className="text-[10px] text-zinc-400 font-mono">Elev: {sec.elevation}m · {sec.coords}</span>
-                        </div>
-
-                        <div className="text-right">
-                            <span className="font-mono font-bold text-sm block text-white">{sec.depth} cm</span>
-                            <span className="text-[10px] text-zinc-400 font-mono">Elev: {sec.elevation}m · {sec.coords}</span>
-                        </div>
-
-                        <div className="text-right">
-                            <span className="font-mono font-bold text-sm block text-white">{sec.depth} cm</span>
-                            <span className={`text-[9px] font-bold px-1.5 py-0.5 rounded border ${
-                                sec.depth >= 30
-                                    ? "bg-red-500/20 text-red-300 border-red-500/40"
-                                    : sec.depth >= 15
-                                    ? "bg-yellow-500/20 text-yellow-300 border-yellow-500/40"
-                                    : "bg-emerald-500/20 text-emerald-300 border-emerald-500/40"
-                            }`}>
-                                {sec.depth >= 30 ? "🛑 IMPASSABLE" : sec.depth >= 15 ? "⚠️ CAUTION" : "🟢 SAFE"}
-                            </span>
-                        </div>
-                    </div>
-                ))}
-            </div>
-        </div>
-    );
-}
-
-// ============================================================================
-// Simulate Run Engine — Real-time Event Simulation
-// ============================================================================
-
-function ScenarioSandbox({ scenario, setScenario, pushToast }) {
-    const [simStep, setSimStep] = useState(0);
-    const [isSimRunning, setIsSimRunning] = useState(false);
-
-    const SIMULATION_PHASES = [
-        { title: "Minute 00: Cloudburst Initiation", desc: "Monsoon cloudburst delivers 54 mm/hr precipitation. Runoff begins entering drainage sumps.", status: "RUNOFF START" },
-        { title: "Minute 15: Lowland Inundation", desc: "Retention basins reach 85% capacity. Water accumulates at Kurla Subway and Bail Bazar.", status: "SURCHARGE ALERT" },
-        { title: "Minute 30: Peak Inundation", desc: "Kurla Station West Subway submersed under 42cm water. Impassable for light motor vehicles.", status: "PEAK SUBMERSION" },
-        { title: "Minute 45: Dewatering Pump Engagement", desc: "All 10 stormwater dewatering pumps engaged (45,000 L/min discharge). Backwater stabilized.", status: "PUMPS ACTIVE" },
-        { title: "Minute 60: Receding Water Level", desc: "Rainfall subsides. Water level receding by 8 cm/hr across primary corridors.", status: "RECEDING FLOW" },
-    ];
-
-    const handleRunLiveSim = () => {
-        setIsSimRunning(true);
-        setSimStep(0);
-        pushToast("Starting real-time flood event simulation run...");
-
-        let current = 0;
-        const interval = setInterval(() => {
-            current++;
-            if (current >= SIMULATION_PHASES.length) {
-                clearInterval(interval);
-                setIsSimRunning(false);
-                pushToast("Flood event simulation completed!");
-            } else {
-                setSimStep(current);
-            }
-        }, 2200);
-    };
-
-    return (
-        <div className="rounded-lg border border-white/20 bg-zinc-950 p-4 sm:p-5 shadow-lg flex flex-col gap-4">
-            <div>
-                <div className="flex items-center justify-between">
-                    <h3 className="text-sm font-bold text-white flex items-center gap-2">
-                        <Play className="w-4 h-4 text-white" />
-                        Simulate Run — Real-Time Flood Timeline
-                    </h3>
-                    <span className="text-[10px] font-mono px-2 py-0.5 rounded bg-zinc-900 text-zinc-200 border border-white/20">
-                        Event Simulator
-                    </span>
-                </div>
-                <p className="text-[11px] text-zinc-400 mt-1">
-                    Simulate cloudburst downpours, high tides, or pump outages to see what is actually happening.
-                </p>
-            </div>
-
-            {/* Live Event Execution Card */}
-            <div className="rounded-md border border-white/20 bg-zinc-900 p-3.5 space-y-2">
-                <div className="flex items-center justify-between">
-                    <span className="text-xs font-bold text-white uppercase tracking-wider">What Is Actually Happening:</span>
-                    <span className="text-[10px] font-mono font-bold px-2 py-0.5 rounded bg-zinc-800 text-zinc-200 border border-zinc-700">
-                        {SIMULATION_PHASES[simStep].status}
-                    </span>
-                </div>
-
-                <div className="p-3 rounded bg-zinc-950 border border-zinc-800">
-                    <h4 className="text-xs font-bold text-white">{SIMULATION_PHASES[simStep].title}</h4>
-                    <p className="text-[11px] text-zinc-300 mt-1 leading-relaxed">
-                        {SIMULATION_PHASES[simStep].desc}
-                    </p>
-                </div>
-
-                {/* Timeline Progress */}
-                <div className="grid grid-cols-5 gap-1 pt-1">
-                    {SIMULATION_PHASES.map((ph, idx) => (
-                        <div 
-                            key={idx}
-                            onClick={() => setSimStep(idx)}
-                            className={`h-2 rounded-sm cursor-pointer transition-all ${
-                                idx === simStep ? "bg-white" : idx < simStep ? "bg-zinc-500" : "bg-zinc-800"
-                            }`}
-                            title={ph.title}
-                        />
-                    ))}
-                </div>
-            </div>
-
-            {/* Action Button */}
-            <button
-                onClick={handleRunLiveSim}
-                disabled={isSimRunning}
-                className="w-full flex items-center justify-center gap-2 py-2.5 px-4 rounded-md bg-white hover:bg-zinc-200 text-zinc-950 text-xs font-bold border border-white shadow transition-all cursor-pointer disabled:opacity-50"
-            >
-                <Play className="w-4 h-4 fill-current text-zinc-950" />
-                <span>{isSimRunning ? `Simulating Phase ${simStep + 1} of 5…` : "▶️ Start Live Flood Event Simulation"}</span>
-            </button>
-
-            {/* What-If Sliders */}
-            <div className="pt-3 border-t border-zinc-800 space-y-3">
-                <span className="text-[10px] uppercase font-bold text-zinc-400 tracking-wider block">Environmental Stress-Test Parameters</span>
-
-                <div>
-                    <div className="flex justify-between text-xs mb-1">
-                        <span className="text-zinc-300 font-medium">Rainfall Intensity</span>
-                        <span className="font-mono text-white font-bold">
-                            {Math.round(scenario.rainfallMultiplier * 45)} mm/h ({scenario.rainfallMultiplier.toFixed(1)}x)
-                        </span>
-                    </div>
-                    <input
-                        type="range"
-                        min="0.5"
-                        max="3.0"
-                        step="0.1"
-                        value={scenario.rainfallMultiplier}
-                        onChange={(e) =>
-                            setScenario((s) => ({ ...s, rainfallMultiplier: parseFloat(e.target.value) }))
-                        }
-                        className="w-full accent-white cursor-pointer"
-                    />
-                </div>
-
-                <div>
-                    <div className="flex justify-between text-xs mb-1">
-                        <span className="text-zinc-300 font-medium">Mithi Creek Tidal Offset</span>
-                        <span className="font-mono text-white font-bold">
-                            {scenario.tideOffset >= 0 ? `+${scenario.tideOffset.toFixed(1)}m` : `${scenario.tideOffset.toFixed(1)}m`}
-                        </span>
-                    </div>
-                    <input
-                        type="range"
-                        min="-1.0"
-                        max="2.0"
-                        step="0.2"
-                        value={scenario.tideOffset}
-                        onChange={(e) =>
-                            setScenario((s) => ({ ...s, tideOffset: parseFloat(e.target.value) }))
-                        }
-                        className="w-full accent-white cursor-pointer"
-                    />
-                </div>
-            </div>
-        </div>
-    );
-}
-
-// ============================================================================
-// Smart Safe Route App — Flooded Regions & Safe Corridors
-// ============================================================================
-
-function SafeRoutingPanel(props) {
-    const {
-        routes,
-        activeRouteIndex,
-        setActiveRouteIndex,
-        isSimulatingRoute,
-        onStartSimulation,
-        routeProgress,
-        wardData,
-        sectorDepths,
-    } = props;
-
-    const currentRoute = routes[activeRouteIndex];
-
-    // Identify flooded sectors
-    const floodedSectors = wardData ? wardData.sectors
-        .map((s, idx) => ({ ...s, depth: sectorDepths[idx] || 0 }))
-        .filter(s => s.depth >= 25) : [];
-
-    return (
-        <div className="rounded-lg border border-white/20 bg-zinc-950 p-4 sm:p-5 shadow-lg flex flex-col gap-4">
-            <div>
-                <div className="flex items-center justify-between">
-                    <h3 className="text-sm font-bold text-white flex items-center gap-2">
-                        <Navigation className="w-4 h-4 text-white" />
-                        Smart Safe Route App
-                    </h3>
-                    <span className="text-[10px] font-mono px-2 py-0.5 rounded bg-zinc-900 text-zinc-200 border border-white/20">
-                        Flood-Aware Routing
-                    </span>
-                </div>
-                <p className="text-[11px] text-zinc-400 mt-1">
-                    Detects flooded road regions and computes 100% safe elevation corridors for transit.
-                </p>
-            </div>
-
-            {/* Currently Flooded Regions Box */}
-            <div className="rounded-md border border-red-500/40 bg-red-950/20 p-3">
-                <span className="text-xs font-bold text-red-300 flex items-center gap-1.5 mb-1.5">
-                    <AlertTriangle className="w-3.5 h-3.5 text-red-400" />
-                    ⛔ Currently Flooded Regions to Avoid ({floodedSectors.length} Active Hazards)
-                </span>
-                <div className="flex flex-wrap gap-1.5">
-                    {floodedSectors.slice(0, 4).map(s => (
-                        <span key={s.id} className="text-[10px] font-bold px-2 py-0.5 rounded border bg-red-500/20 border-red-500/50 text-red-300 font-mono">
-                            🛑 {s.name} ({s.depth}cm)
-                        </span>
-                    ))}
-                    {floodedSectors.length === 0 && (
-                        <span className="text-[11px] text-emerald-400">All primary road sectors clear.</span>
-                    )}
-                </div>
-            </div>
-
-            {/* Route Selection */}
-            <div className="flex gap-2">
-                {routes.map((r, idx) => (
-                    <button
-                        key={r.id}
-                        onClick={() => setActiveRouteIndex(idx)}
-                        className={`flex-1 py-2 px-2.5 rounded-md border text-xs font-semibold transition-all cursor-pointer text-left ${
-                            activeRouteIndex === idx
-                                ? "border-white bg-white text-zinc-950 font-bold shadow"
-                                : "border-zinc-800 bg-zinc-900 text-zinc-400 hover:text-white"
-                        }`}
-                    >
-                        <span className="block text-[9px] uppercase font-mono text-zinc-400">Corridor {idx + 1}</span>
-                        <span className="truncate block font-bold">{r.origin} → {r.destination}</span>
-                    </button>
-                ))}
-            </div>
-
-            {/* Route Comparison */}
-            <div className="space-y-3">
-                <div className="rounded-md border border-red-500/40 bg-zinc-900 p-3">
-                    <div className="flex items-center justify-between mb-1">
-                        <span className="text-xs font-bold text-red-400 flex items-center gap-1">
-                            ❌ Standard Direct Route
-                        </span>
-                        <span className="text-[10px] font-mono font-bold text-red-300 bg-red-500/20 px-1.5 py-0.5 rounded border border-red-500/30">
-                            BLOCKED BY FLOOD
-                        </span>
-                    </div>
-                    <p className="text-[11px] text-zinc-300 font-mono">
-                        {currentRoute.standard.dist} · {currentRoute.standard.time}
-                    </p>
-                    <p className="text-[10.5px] text-red-300 mt-1 font-sans">
-                        ⚠️ {currentRoute.standard.blockReason}
-                    </p>
-                </div>
-
-                <div className="rounded-md border border-emerald-500/50 bg-zinc-900 p-3">
-                    <div className="flex items-center justify-between mb-1">
-                        <span className="text-xs font-bold text-emerald-400 flex items-center gap-1">
-                            🟢 Smart Safe Elevation Route
-                        </span>
-                        <span className="text-[10px] font-mono font-bold text-emerald-300 bg-emerald-500/20 px-1.5 py-0.5 rounded border border-emerald-500/30">
-                            100% CLEAR &amp; SAFE
-                        </span>
-                    </div>
-                    <p className="text-[11px] text-zinc-200 font-mono">
-                        {currentRoute.safeRoute.dist} · {currentRoute.safeRoute.time} · {currentRoute.safeRoute.elevation}
-                    </p>
-                    <p className="text-[10.5px] text-emerald-300 mt-1 font-sans">
-                        ✅ {currentRoute.safeRoute.corridor}
-                    </p>
-                </div>
-            </div>
-
-            <button
-                onClick={onStartSimulation}
-                disabled={isSimulatingRoute}
-                className="w-full flex items-center justify-center gap-2 py-3 px-4 rounded-md bg-white hover:bg-zinc-200 text-zinc-950 text-xs font-bold border border-white shadow transition-all cursor-pointer"
-            >
-                <Play className="w-4 h-4 fill-current text-zinc-950" />
-                <span>{isSimulatingRoute ? `Simulating Safe Transit (${routeProgress}%)…` : "🗺️ Open Map &amp; Simulate Safe Navigation"}</span>
-            </button>
-        </div>
-    );
-}
-
-// ============================================================================
-// Tactical Map Layer Controls
-// ============================================================================
-
-function TacticalMapControls({ layers, setLayers, floodStats, wardData, selectedSector, onSelectSector, isMapEnabled, onEnableMap, onDisableMap, pushToast }) {
-    const toggleLayer = (key, label) => {
-        setLayers((prev) => {
-            const next = { ...prev, [key]: !prev[key] };
-            pushToast(`${label} layer ${next[key] ? "visible" : "hidden"}`);
-            return next;
-        });
-    };
-
-    return (
-        <div className="rounded-2xl border border-slate-800/90 bg-slate-900/85 backdrop-blur-xl p-4 sm:p-5 shadow-xl flex flex-col gap-4">
-            <div className="flex items-center justify-between">
-                <div>
-                    <h3 className="text-sm font-bold text-white flex items-center gap-2">
-                        <Layers className="w-4 h-4 text-indigo-400" />
-                        Map Controls &amp; GIS Layers
-                    </h3>
-                    <p className="text-[11px] text-slate-400 mt-0.5">
-                        Toggle spatial layers and map visibility state.
-                    </p>
-                </div>
-
-                {/* Map Enable/Disable Toggle Button */}
-                <button
-                    onClick={() => (isMapEnabled ? onDisableMap() : onEnableMap())}
-                    className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl border text-xs font-bold transition-all cursor-pointer ${isMapEnabled
-                            ? "border-emerald-500/40 bg-emerald-500/10 text-emerald-300 hover:bg-emerald-500/20"
-                            : "border-indigo-500/40 bg-indigo-600 text-white hover:bg-indigo-500"
-                        }`}
-                >
-                    <Power className="w-3.5 h-3.5" />
-                    <span>{isMapEnabled ? "Map: Active" : "Enable Map"}</span>
-                </button>
-            </div>
-
-            <div className="space-y-1 divide-y divide-slate-800/60">
-                <ToggleRow
-                    label="🌊 Flood Inundation Heatmap"
-                    checked={layers.heatmap}
-                    onChange={() => toggleLayer("heatmap", "Flood Inundation")}
-                />
-                <ToggleRow
-                    label="⚡ Drainage Pumps & Sluice Gates"
-                    checked={layers.pumps}
-                    onChange={() => toggleLayer("pumps", "Drainage Pumps")}
-                />
-                <ToggleRow
-                    label="🏥 Evacuation Shelters & Relief Camps"
-                    checked={layers.shelters}
-                    onChange={() => toggleLayer("shelters", "Emergency Shelters")}
-                />
-                <ToggleRow
-                    label="🚗 Dynamic Safe Navigation Path"
-                    checked={layers.safeCorridor}
-                    onChange={() => toggleLayer("safeCorridor", "Safe Route Corridor")}
-                />
-                <ToggleRow
-                    label="📐 Topographical Elevation Contours"
-                    checked={layers.elevationContours}
-                    onChange={() => toggleLayer("elevationContours", "Elevation Contours")}
-                />
-            </div>
-        </div>
-    );
-}
-
-// ============================================================================
-// Backend Services Deck
-// ============================================================================
-
-function BackendServicesDeck(props) {
-    const {
-        radarBusy,
-        setRadarBusy,
-        terrainBusy,
-        setTerrainBusy,
-        simBusy,
-        setSimBusy,
-        statusBusy,
-        setStatusBusy,
-        radarTime,
-        setRadarTime,
-        latency,
-        setLatency,
-        runAction,
-        pushToast,
-    } = props;
-
-    const handleRefreshRadar = async () => {
-        setRadarBusy(true);
-        try {
-            const res = await fetch("/api/run_pipeline", { method: "POST" });
-            const data = await res.json();
-            const now = new Date();
-            setRadarTime(now.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }));
-            pushToast(data.message || "Optical flow nowcast updated via pySTEPS pipeline");
-        } catch (err) {
-            pushToast("Radar telemetry refreshed (offline fallback)");
-        } finally {
-            setRadarBusy(false);
-        }
-    };
-
-    const handlePingFeeds = async () => {
-        setStatusBusy(true);
-        const startTime = performance.now();
-        try {
-            const res = await fetch("/api/telemetry_status");
-            const data = await res.json();
-            const calcLatency = Math.round(performance.now() - startTime);
-            setLatency(data.latency_ms || calcLatency || 11);
-            pushToast(`API Gateway: status 200 OK (${data.latency_ms || calcLatency}ms)`);
-        } catch (err) {
-            pushToast("API Gateway probe completed");
-        } finally {
-            setStatusBusy(false);
-        }
-    };
-
-    return (
-        <div className="rounded-2xl border border-slate-800/90 bg-slate-900/85 backdrop-blur-xl p-4 sm:p-5 shadow-xl flex flex-col gap-3">
-            <div className="flex items-center justify-between">
-                <h3 className="text-sm font-bold text-white flex items-center gap-2">
-                    <Server className="w-4 h-4 text-indigo-400" />
-                    Integrated Service Engines
-                </h3>
-                <StatusPill busy={radarBusy || terrainBusy || simBusy || statusBusy} label="All Online" />
-            </div>
-
-            <div className="grid grid-cols-2 gap-2.5">
-                <div className="p-3 rounded-xl bg-slate-900 border border-slate-800 flex flex-col justify-between">
-                    <div>
-                        <span className="text-xs font-semibold text-slate-200">IMD Radar Feed</span>
-                        <p className="text-[10px] text-slate-400 mt-0.5">Last Sync: {radarTime}</p>
-                    </div>
-                    <button
-                        onClick={handleRefreshRadar}
-                        disabled={radarBusy}
-                        className="mt-2 text-[10px] font-bold py-1 px-2 rounded bg-indigo-600/20 hover:bg-indigo-600/30 text-indigo-300 border border-indigo-500/30 transition-colors cursor-pointer text-center"
-                    >
-                        {radarBusy ? "Syncing…" : "Refresh Radar"}
-                    </button>
-                </div>
-
-                <div className="p-3 rounded-xl bg-slate-900 border border-slate-800 flex flex-col justify-between">
-                    <div>
-                        <span className="text-xs font-semibold text-slate-200">1D-2D Hydraulics</span>
-                        <p className="text-[10px] text-slate-400 mt-0.5">SWMM-HEC Coupled</p>
-                    </div>
-                    <button
-                        onClick={() => runAction(setSimBusy, "1D pipe & 2D overland mesh recalculated")}
-                        disabled={simBusy}
-                        className="mt-2 text-[10px] font-bold py-1 px-2 rounded bg-amber-600/20 hover:bg-amber-600/30 text-amber-300 border border-amber-500/30 transition-colors cursor-pointer text-center"
-                    >
-                        {simBusy ? "Calculating…" : "Run Simulation"}
-                    </button>
-                </div>
-
-                <div className="p-3 rounded-xl bg-slate-900 border border-slate-800 flex flex-col justify-between">
-                    <div>
-                        <span className="text-xs font-semibold text-slate-200">DEM Topography</span>
-                        <p className="text-[10px] text-slate-400 mt-0.5">Infiltration: 32%</p>
-                    </div>
-                    <button
-                        onClick={() => runAction(setTerrainBusy, "DEM high-resolution elevation surface updated")}
-                        disabled={terrainBusy}
-                        className="mt-2 text-[10px] font-bold py-1 px-2 rounded bg-emerald-600/20 hover:bg-emerald-600/30 text-emerald-300 border border-emerald-500/30 transition-colors cursor-pointer text-center"
-                    >
-                        {terrainBusy ? "Mapping…" : "Assess DEM"}
-                    </button>
-                </div>
-
-                <div className="p-3 rounded-xl bg-slate-900 border border-slate-800 flex flex-col justify-between">
-                    <div>
-                        <span className="text-xs font-semibold text-slate-200">API Gateway</span>
-                        <p className="text-[10px] text-slate-400 mt-0.5">Latency: {latency} ms</p>
-                    </div>
-                    <button
-                        onClick={handlePingFeeds}
-                        disabled={statusBusy}
-                        className="mt-2 text-[10px] font-bold py-1 px-2 rounded bg-slate-800 hover:bg-slate-700 text-slate-300 border border-slate-700 transition-colors cursor-pointer text-center"
-                    >
-                        {statusBusy ? "Probing…" : "Ping Feeds"}
-                    </button>
-                </div>
-            </div>
-        </div>
-    );
-}
-
-// ============================================================================
-// Ward River & Drainage Vital Card
-// ============================================================================
-
-function WardVitalMetrics({ wardData, timeStep, scenario, onOpenSitRep }) {
-    const dynamicRiverLevel = (
-        wardData.riverLevel * (0.85 + (timeStep * 0.15)) * scenario.rainfallMultiplier +
-        (scenario.tideOffset * 0.3)
-    ).toFixed(2);
-
-    const isRiverOver = dynamicRiverLevel >= wardData.dangerLevel;
-
-    return (
-        <div className="rounded-2xl border border-slate-800/90 bg-slate-900/85 backdrop-blur-xl p-4 sm:p-5 shadow-xl flex flex-col gap-3">
-            <div className="flex items-center justify-between">
-                <span className="text-xs font-bold text-slate-200 flex items-center gap-1.5">
-                    <Droplets className="w-3.5 h-3.5 text-sky-400" />
-                    {wardData.riverName}
-                </span>
-                <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full border ${isRiverOver
-                        ? "border-rose-500/40 bg-rose-500/10 text-rose-300"
-                        : "border-sky-500/40 bg-sky-500/10 text-sky-300"
-                    }`}>
-                    {isRiverOver ? "OVERFLOW STAGE" : "BANK-FULL ACTIVE"}
-                </span>
-            </div>
-
-            <div className="flex items-baseline justify-between border-b border-slate-800 pb-2.5">
-                <div>
-                    <span className="text-2xl font-bold font-mono text-white">{dynamicRiverLevel}</span>
-                    <span className="text-xs text-slate-400 ml-1 font-mono">/ {wardData.dangerLevel}m max</span>
-                </div>
-                <span className="text-[11px] text-slate-400">
-                    Drainage Pumps: <strong className="text-white font-mono">{wardData.activePumps}</strong>
-                </span>
-            </div>
-
-            <div className="flex items-center justify-between text-xs text-slate-400">
-                <span>Relief Shelters:</span>
-                <span className="font-semibold text-slate-200">{wardData.evacShelters}</span>
-            </div>
-        </div>
-    );
-}
-
-// ============================================================================
-// Data Layers & Telemetry Provenance Modal
-// ============================================================================
-
-function DataLayersModal({ isOpen, onClose, mapToggles, setMapToggles, pushToast }) {
-    if (!isOpen) return null;
-
-    const layersConfig = [
-        {
-            id: "hotspots",
-            name: "Critical Flood Hotspots",
-            badge: "CartoDEM 30m Grid",
-            badgeColor: "bg-rose-50 text-rose-700 border-rose-200",
-            source: "ISRO CartoDEM Elevation + Municipal Sump Gauges",
-            frequency: "Continuous (60s cycle)",
-            description: "Real-time surface water depth computed from rainfall accumulation and elevation runoff.",
-        },
-        {
-            id: "pumps",
-            name: "Stormwater Dewatering Pumps",
-            badge: "SCADA Telemetry",
-            badgeColor: "bg-blue-50 text-blue-700 border-blue-200",
-            source: "Municipal Stormwater Drainage Operations (BMC / GCC)",
-            frequency: "Live telemetry (active suction & diesel standby)",
-            description: "High-capacity submersible dewatering pump locations and active capacity percentages.",
-        },
-        {
-            id: "shelters",
-            name: "Relief & Evacuation Shelters",
-            badge: "Disaster Authority",
-            badgeColor: "bg-indigo-50 text-indigo-700 border-indigo-200",
-            source: "State Disaster Management Authority (SDMA / NDRF)",
-            frequency: "Updated per flood shift",
-            description: "Verified community schools and disaster halls with dry rations, medical kits, and boat staging.",
-        },
-        {
-            id: "metro",
-            name: "Transit & Metro Corridors",
-            badge: "Road Network",
-            badgeColor: "bg-emerald-50 text-emerald-700 border-emerald-200",
-            source: "Metropolitan Transit Police & Rail GIS Feeds",
-            frequency: "Real-time incident updates",
-            description: "Subway gate closure advisories and elevated highway safe-elevation corridors.",
-        },
-        {
-            id: "boundaries",
-            name: "Municipal Ward Catchments",
-            badge: "Survey of India",
-            badgeColor: "bg-slate-100 text-slate-700 border-slate-200",
-            source: "Municipal Administrative GIS Polygons",
-            frequency: "Static hydro-basin boundaries",
-            description: "Natural drainage basins and administrative municipal ward boundary borders.",
-        }
-    ];
-
-    const toggleLayer = (id) => {
-        const nextState = !mapToggles[id];
-        setMapToggles((prev) => ({ ...prev, [id]: nextState }));
-        if (pushToast) {
-            pushToast(`Layer "${layersConfig.find(l => l.id === id)?.name}" ${nextState ? "enabled" : "hidden"}`);
-        }
-    };
-
-    return (
-        <div className="fixed inset-0 z-[960] flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-xs animate-in fade-in duration-200 font-sans">
-            <div className="w-full max-w-xl bg-white rounded-3xl border border-slate-200 shadow-2xl p-6 flex flex-col max-h-[90vh] overflow-hidden text-slate-900">
-                <div className="flex items-start justify-between pb-4 border-b border-slate-100">
-                    <div>
-                        <div className="flex items-center gap-2">
-                            <span className="text-[10.5px] uppercase font-bold tracking-wider px-2 py-0.5 rounded-full bg-blue-50 text-blue-700">
-                                GIS Telemetry Overlays
-                            </span>
-                        </div>
-                        <h2 className="text-lg font-extrabold text-slate-900 mt-1">Data Layers &amp; Sensor Sources</h2>
-                        <p className="text-xs text-slate-500 mt-0.5">
-                            Toggle live spatial data layers and inspect their verification authorities.
-                        </p>
-                    </div>
-                    <button
-                        onClick={onClose}
-                        className="p-2 rounded-full text-slate-400 hover:text-slate-700 hover:bg-slate-100 transition-colors cursor-pointer"
-                        title="Close"
-                    >
-                        <X className="w-5 h-5" />
-                    </button>
-                </div>
-
-                <div className="flex-1 overflow-y-auto py-4 space-y-3">
-                    {layersConfig.map((layer) => {
-                        const active = !!mapToggles[layer.id];
-                        return (
-                            <div
-                                key={layer.id}
-                                className={`p-4 rounded-2xl border transition-all ${
-                                    active
-                                        ? "bg-slate-50/80 border-slate-200 shadow-2xs"
-                                        : "bg-white border-slate-100 opacity-60 hover:opacity-100"
-                                }`}
-                            >
-                                <div className="flex items-center justify-between gap-3">
-                                    <div className="flex-1">
-                                        <div className="flex items-center gap-2">
-                                            <span className="text-xs font-bold text-slate-900">{layer.name}</span>
-                                            <span className={`text-[9.5px] font-bold px-2 py-0.5 rounded-full border ${layer.badgeColor}`}>
-                                                {layer.badge}
-                                            </span>
-                                        </div>
-                                        <p className="text-xs text-slate-600 mt-1 leading-relaxed">
-                                            {layer.description}
-                                        </p>
-                                        <div className="flex flex-wrap items-center gap-x-4 gap-y-1 mt-2 text-[10.5px] text-slate-400">
-                                            <span>Authority: <strong className="text-slate-600">{layer.source}</strong></span>
-                                            <span>Frequency: <strong className="text-slate-600">{layer.frequency}</strong></span>
-                                        </div>
-                                    </div>
-                                    <button
-                                        type="button"
-                                        onClick={() => toggleLayer(layer.id)}
-                                        className={`w-11 h-6 rounded-full transition-colors relative cursor-pointer shrink-0 ${
-                                            active ? "bg-blue-600" : "bg-slate-200"
-                                        }`}
-                                    >
-                                        <span
-                                            className={`block w-4 h-4 rounded-full bg-white shadow-xs transition-transform absolute top-1 ${
-                                                active ? "right-1" : "left-1"
-                                            }`}
-                                        />
-                                    </button>
-                                </div>
-                            </div>
-                        );
-                    })}
-                </div>
-
-                <div className="pt-4 border-t border-slate-100 flex items-center justify-between">
-                    <span className="text-xs font-semibold text-slate-500">
-                        Active Overlays: <strong className="text-slate-900 font-bold">{Object.values(mapToggles).filter(Boolean).length} / 5</strong>
-                    </span>
-                    <button
-                        type="button"
-                        onClick={onClose}
-                        className="px-5 py-2 rounded-xl bg-blue-600 hover:bg-blue-500 text-white text-xs font-bold shadow-md shadow-blue-600/20 cursor-pointer transition-all"
-                    >
-                        Done
-                    </button>
-                </div>
-            </div>
-        </div>
-    );
-}
-
-// ============================================================================
-// Situation Report (SitRep) Modal
-// ============================================================================
-
-function SitRepModal({ ward, wardData, floodStats, sectorDepths, timeStep, scenario, onClose, pushToast }) {
-    const currentForecast = HYDROGRAPH_DATA[timeStep] || HYDROGRAPH_DATA[0];
-    const wardName = ward || "Kurla";
-    const data = wardData || {
-        code: "KW-10",
-        riskLevel: "High Risk",
-        activePumps: 12,
-        riverName: "Mithi River",
-        riverLevel: "3.42",
-        dangerLevel: "3.00",
-        evacShelters: "4 Nodal Centers",
-    };
-    const stats = floodStats || { critical: 6, caution: 4, clear: 14 };
-
-    const handlePrint = () => {
-        window.print();
-    };
-
-    const handleCopyMarkdown = () => {
-        const text = `# RAINDROP MUNICIPAL SITUATION REPORT (SITREP)
-**Ward:** ${wardName} (${data.code})
-**Timestamp:** ${new Date().toLocaleString()} | Horizon: ${currentForecast.t} (${currentForecast.label})
-**Overall Risk Status:** ${data.riskLevel}
-
-## Flood Impact Metrics
-- Critical / Inundated Sectors (>30cm): ${stats.critical}
-- Caution / Waterlogged Sectors (15-30cm): ${stats.caution}
-- Clear / Passable Corridors: ${stats.clear}
-- Active Drainage Pumps: ${data.activePumps}
-- River Stage: ${data.riverName} at ${data.riverLevel}m (Danger Level: ${data.dangerLevel}m)
-- Emergency Shelters: ${data.evacShelters}
-
-## Incident Commander Directives
-1. Deploy mobile dewatering units to lowest elevation sectors in ${wardName}.
-2. Divert commuter transit along designated Safe Elevation Corridors via Kalina CST Flyover Upper Deck.
-3. Lower subway and underpass gates at critical waterlogged bottlenecks (Bail Bazar & Station West).
-4. Keep all ${data.activePumps} stormwater dewatering stations on continuous suction with auxiliary diesel backup.
-`;
-        navigator.clipboard.writeText(text).then(() => {
-            if (pushToast) {
-                pushToast("SitRep Copied", "Markdown format ready for municipal dispatch.", "success");
-            }
-        });
-    };
-
-    return (
-        <div
-            className="fixed inset-0 z-[1000] flex items-center justify-center p-4"
-            style={{ background: "rgba(15,23,42,0.65)", backdropFilter: "blur(8px)" }}
-        >
-            <div className="relative w-full max-w-2xl rounded-3xl border border-slate-200 bg-white shadow-2xl p-7 text-slate-900 font-sans animate-in fade-in zoom-in-95 duration-200 max-h-[90vh] overflow-y-auto flex flex-col gap-5">
-                {/* Header */}
-                <div className="flex items-start justify-between border-b border-slate-100 pb-4">
-                    <div className="flex items-center gap-3.5">
-                        <div className="w-10 h-10 rounded-2xl bg-blue-50 text-blue-600 flex items-center justify-center shadow-xs">
-                            <FileText className="w-5 h-5" />
-                        </div>
-                        <div>
-                            <div className="flex items-center gap-2">
-                                <span className="text-[10px] uppercase font-bold tracking-wider px-2 py-0.5 rounded-full bg-blue-100/80 text-blue-800">
-                                    Official Incident Dispatch · BMC / NDRF
-                                </span>
-                            </div>
-                            <h2 className="text-lg font-bold text-slate-900 mt-0.5">
-                                RainDrop Municipal Situation Report (SitRep)
-                            </h2>
-                            <p className="text-xs text-slate-500 font-medium">
-                                {wardName} · {data.code} · Generated {new Date().toLocaleTimeString()} · Horizon: {currentForecast.t} ({currentForecast.label})
-                            </p>
-                        </div>
-                    </div>
-                    <button
-                        type="button"
-                        onClick={onClose}
-                        className="p-2 rounded-full text-slate-400 hover:text-slate-700 hover:bg-slate-100 cursor-pointer transition-colors"
-                        title="Close SitRep"
-                    >
-                        <X className="w-5 h-5" />
-                    </button>
-                </div>
-
-                {/* KPI Cards */}
-                <div className="grid grid-cols-3 gap-3">
-                    <div className="p-3.5 rounded-2xl bg-rose-50/70 border border-rose-100">
-                        <span className="text-[10.5px] font-bold text-rose-700 uppercase tracking-wider block">Flooded Sectors</span>
-                        <p className="text-2xl font-bold text-rose-900 mt-1">{stats.critical}</p>
-                        <span className="text-[10px] text-rose-600 font-medium block mt-0.5">Roads submerged &gt;30cm</span>
-                    </div>
-
-                    <div className="p-3.5 rounded-2xl bg-emerald-50/70 border border-emerald-100">
-                        <span className="text-[10.5px] font-bold text-emerald-700 uppercase tracking-wider block">Passable Corridors</span>
-                        <p className="text-2xl font-bold text-emerald-900 mt-1">{stats.clear}</p>
-                        <span className="text-[10px] text-emerald-600 font-medium block mt-0.5">Dry elevation routes</span>
-                    </div>
-
-                    <div className="p-3.5 rounded-2xl bg-sky-50/70 border border-sky-100">
-                        <span className="text-[10.5px] font-bold text-sky-700 uppercase tracking-wider block">River Spillway</span>
-                        <p className="text-2xl font-bold text-sky-900 mt-1">{data.riverLevel}m</p>
-                        <span className="text-[10px] text-sky-600 font-medium block mt-0.5">Alert limit: {data.dangerLevel}m ({data.riverName})</span>
-                    </div>
-                </div>
-
-                {/* Directives Section */}
-                <div className="p-4.5 rounded-2xl bg-slate-50 border border-slate-200/80 space-y-2.5">
-                    <div className="flex items-center justify-between">
-                        <h4 className="text-xs font-bold text-slate-800 uppercase tracking-wider flex items-center gap-2">
-                            <Activity className="w-3.5 h-3.5 text-blue-600" />
-                            Incident Commander Directives
-                        </h4>
-                        <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-amber-100 text-amber-800">
-                            High Priority
-                        </span>
-                    </div>
-                    <ul className="text-xs text-slate-700 space-y-2 list-disc pl-4 leading-relaxed">
-                        <li>Subway and underpass gates closed at <strong>Bail Bazar</strong> and <strong>Kurla Station West</strong> to prevent entrapment.</li>
-                        <li>Direct civilian and emergency transit along designated <strong>Safe Elevation Corridors</strong> via CST Flyover Upper Deck.</li>
-                        <li>All <strong>{data.activePumps}</strong> high-capacity stormwater pumps energized on continuous suction with auxiliary diesel standby.</li>
-                        <li>Disaster management rescue teams and NDRF personnel staged at <strong>{data.evacShelters}</strong> with dry rations and inflatable boats.</li>
-                    </ul>
-                </div>
-
-                {/* Footer Controls */}
-                <div className="flex items-center justify-between pt-3 border-t border-slate-100">
-                    <div className="flex items-center gap-2.5">
-                        <button
-                            type="button"
-                            onClick={handlePrint}
-                            className="flex items-center gap-2 px-4 py-2 rounded-2xl border border-slate-200 bg-white hover:bg-slate-50 text-xs font-semibold text-slate-700 shadow-2xs cursor-pointer transition-colors"
-                        >
-                            <Printer className="w-4 h-4 text-slate-500" />
-                            Print SitRep
-                        </button>
-                        <button
-                            type="button"
-                            onClick={handleCopyMarkdown}
-                            className="flex items-center gap-2 px-4 py-2 rounded-2xl border border-slate-200 bg-white hover:bg-slate-50 text-xs font-semibold text-slate-700 shadow-2xs cursor-pointer transition-colors"
-                        >
-                            <Copy className="w-4 h-4 text-slate-500" />
-                            Copy Markdown
-                        </button>
-                    </div>
-
-                    <button
-                        type="button"
-                        onClick={onClose}
-                        className="px-5 py-2 rounded-2xl bg-blue-600 hover:bg-blue-700 text-white text-xs font-bold shadow-md shadow-blue-500/20 cursor-pointer transition-colors"
-                    >
-                        Close SitRep
-                    </button>
-                </div>
-            </div>
-        </div>
-    );
-}
-
-
-if (typeof window !== "undefined") {
-    window.RainDrop = RainDrop;
-    window.AquaSight = RainDrop; // Backward compatibility alias
-    const mountReactApp = () => {
-        const container = document.getElementById("root");
-        if (container && typeof ReactDOM !== "undefined") {
-            try {
-                if (!container._reactRoot) {
-                    container._reactRoot = ReactDOM.createRoot(container);
-                    container._reactRoot.render(React.createElement(RainDrop));
-                    console.log("RainDrop GIS app mounted successfully.");
-                }
-            } catch (e) {
-                console.error("RainDrop React mount error:", e);
-            }
-        }
-    };
-
-    if (document.readyState === "loading") {
-        document.addEventListener("DOMContentLoaded", mountReactApp);
-    } else {
-        mountReactApp();
-    }
-}
 

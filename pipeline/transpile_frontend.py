@@ -5,7 +5,7 @@ import urllib.request
 import subprocess
 from pathlib import Path
 
-def transpile_jsx():
+def build_frontend():
     root = Path(__file__).parent.parent
     cache_dir = root / "data"
     cache_dir.mkdir(exist_ok=True)
@@ -19,11 +19,34 @@ def transpile_jsx():
             babel_file.write_bytes(resp.read())
         print(f"Cached Babel Standalone to {babel_file}")
 
+    src_dir = root / "client" / "src"
     jsx_file = root / "client" / "frontend.jsx"
     js_file = root / "client" / "frontend.js"
 
-    if not jsx_file.exists():
-        print(f"Error: {jsx_file} not found.")
+    # If modular client/src exists, bundle files in dependency order
+    if src_dir.exists() and (src_dir / "App.jsx").exists():
+        module_order = [
+            src_dir / "icons" / "IconSvgRegistry.js",
+            src_dir / "data" / "mockData.js",
+            src_dir / "components" / "common" / "CommonUI.jsx",
+            src_dir / "components" / "dashboard" / "CityWardOverview.jsx",
+            src_dir / "components" / "dashboard" / "TopNavbar.jsx",
+            src_dir / "components" / "hero" / "HeroView.jsx",
+            src_dir / "components" / "map" / "InteractiveVectorMap.jsx",
+            src_dir / "components" / "modals" / "ModalsAndFooter.jsx",
+            src_dir / "App.jsx",
+        ]
+        
+        bundle_parts = []
+        for mod in module_order:
+            if mod.exists():
+                bundle_parts.append(f"// --- MODULE: {mod.relative_to(root).as_posix()} ---\n" + mod.read_text(encoding="utf-8"))
+        
+        full_jsx = "\n\n".join(bundle_parts)
+        jsx_file.write_text(full_jsx, encoding="utf-8")
+        print(f"Assembled {len(module_order)} modular components from client/src/ -> client/frontend.jsx")
+    elif not jsx_file.exists():
+        print(f"Error: Neither {src_dir} nor {jsx_file} found.")
         sys.exit(1)
 
     node_script = f"""
@@ -32,7 +55,7 @@ def transpile_jsx():
     const jsx = fs.readFileSync('{jsx_file.as_posix()}', 'utf8');
     const js = babel.transform(jsx, {{ presets: [['react', {{ runtime: 'classic' }}]] }}).code;
     fs.writeFileSync('{js_file.as_posix()}', js, 'utf8');
-    console.log('Successfully transpiled client/frontend.jsx -> client/frontend.js (' + js.length + ' bytes)');
+    console.log('Successfully transpiled to client/frontend.js (' + js.length + ' bytes)');
     """
 
     scratch_file = root / "data" / "temp_transpile.js"
@@ -50,4 +73,4 @@ def transpile_jsx():
             scratch_file.unlink()
 
 if __name__ == "__main__":
-    transpile_jsx()
+    build_frontend()
