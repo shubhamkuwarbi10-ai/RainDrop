@@ -2,6 +2,11 @@
 @tailwind components;
 @tailwind utilities;
 
+.font-bebas {
+    font-family: 'Bebas Neue', sans-serif;
+    letter-spacing: 0.03em;
+}
+
 .font-editorial {
     font-family: 'Cormorant Garamond', Georgia, serif;
     font-weight: 600;

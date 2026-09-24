@@ -3295,10 +3295,14 @@ function HeroView({ ward, wardData, onEnter, onSelectCity, onOpenMap, pushToast 
     const [routeSimProgress, setRouteSimProgress] = useState(0);
     const [isSimulatingRoute, setIsSimulatingRoute] = useState(false);
 
-    // CreativaX Studio State & 4 Provided Photography Artworks (NO Video)
+    // CreativaX Studio State & Filmstrip Slideshow Track State
+    const [slideIndex, setSlideIndex] = useState(4); // Starts at index 4 (Real 01 in middle set)
     const [activeArtworkIdx, setActiveArtworkIdx] = useState(0);
+    const [isTransitioning, setIsTransitioning] = useState(true);
+    const [isCarouselHovered, setIsCarouselHovered] = useState(false);
     const [showreelModalOpen, setShowreelModalOpen] = useState(false);
     const [mobileDrawerOpen, setMobileDrawerOpen] = useState(false);
+    const [modalArtworkIdx, setModalArtworkIdx] = useState(0);
 
     const ARTWORKS = [
         {
@@ -3338,6 +3342,65 @@ function HeroView({ ward, wardData, onEnter, onSelectCity, onOpenMap, pushToast 
             stats: "22.6200° N, 88.4200° E"
         }
     ];
+
+    // 3 complete sets of ARTWORKS (indices 0..3, 4..7, 8..11) for true infinite forward/backward track sliding
+    const EXTENDED_SLIDES = [
+        ...ARTWORKS, // Set 0: buffer on the left
+        ...ARTWORKS, // Set 1: active home set (starts at index 4)
+        ...ARTWORKS  // Set 2: buffer on the right
+    ];
+
+    // Automatic slide progression every 1 second
+    useEffect(() => {
+        if (isCarouselHovered) return;
+        const timer = setInterval(() => {
+            setIsTransitioning(true);
+            setSlideIndex((prev) => prev + 1);
+        }, 1000);
+        return () => clearInterval(timer);
+    }, [isCarouselHovered]);
+
+    // Handle seamless infinite loop normalization when sliding past boundaries
+    const handleSlideTransitionEnd = (e) => {
+        // ONLY trigger on transform transition of the track container itself
+        if (e.target !== e.currentTarget || e.propertyName !== 'transform') return;
+        if (slideIndex >= 8) {
+            setIsTransitioning(false);
+            setSlideIndex((prev) => prev - 4);
+            requestAnimationFrame(() => {
+                requestAnimationFrame(() => {
+                    setIsTransitioning(true);
+                });
+            });
+        } else if (slideIndex < 4) {
+            setIsTransitioning(false);
+            setSlideIndex((prev) => prev + 4);
+            requestAnimationFrame(() => {
+                requestAnimationFrame(() => {
+                    setIsTransitioning(true);
+                });
+            });
+        }
+    };
+
+    // Calculate active project index (0, 1, 2, 3) and sync activeArtworkIdx
+    const activeProjectIdx = ((slideIndex % 4) + 4) % 4;
+
+    useEffect(() => {
+        setActiveArtworkIdx(activeProjectIdx);
+    }, [activeProjectIdx]);
+
+    const handleDotClick = (targetIdx) => {
+        const currentArtIdx = ((slideIndex % 4) + 4) % 4;
+        let diff = targetIdx - currentArtIdx;
+        if (diff === 3) diff = -1;
+        if (diff === -3) diff = 1;
+        if (diff === 0) return;
+        setIsTransitioning(true);
+        setSlideIndex((prev) => prev + diff);
+    };
+
+
 
     // Dynamic calculation for the What-If sandbox
     const computedDepthCm = Math.max(0, Math.round((scenarioRain * 0.45) + (scenarioTide * 12) - ((scenarioPumps / 100) * 16)));
@@ -3494,7 +3557,7 @@ function HeroView({ ward, wardData, onEnter, onSelectCity, onOpenMap, pushToast 
         }
     ];
 
-    const currentArt = ARTWORKS[activeArtworkIdx];
+    const currentArt = ARTWORKS[activeArtworkIdx] || ARTWORKS[0];
 
     return (
         <div className="min-h-screen bg-white text-slate-900 flex flex-col items-center justify-start p-0 m-0 font-sans antialiased w-full overflow-x-hidden selection:bg-emerald-600 selection:text-white">
@@ -3689,31 +3752,375 @@ function HeroView({ ward, wardData, onEnter, onSelectCity, onOpenMap, pushToast 
             </section>
 
             {/* ========================================================================= */}
-            {/* PROJECT PHOTOGRAPHY GALLERY STRIP (Using Client Directory Images)        */}
+            {/* EDITORIAL GIS CAROUSEL SECTION — Dark Card Filmstrip                      */}
             {/* ========================================================================= */}
-            <div className="w-full max-w-7xl mx-auto px-6 sm:px-10 lg:px-14 py-8 sm:py-12 grid grid-cols-2 md:grid-cols-4 gap-4 sm:gap-6">
-                {ARTWORKS.map((art, idx) => (
-                    <div
-                        key={art.num}
-                        onClick={() => {
-                            setActiveArtworkIdx(idx);
-                            setShowreelModalOpen(true);
-                        }}
-                        className="group relative rounded-2xl overflow-hidden border border-slate-200 shadow-md hover:shadow-xl transition-all duration-300 cursor-pointer aspect-4/3 bg-slate-900"
-                    >
-                        <img 
-                            src={art.img} 
-                            alt={art.title} 
-                            className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105" 
-                        />
-                        <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent p-3.5 flex flex-col justify-end text-white">
-                            <span className="text-[10px] font-mono uppercase tracking-widest text-emerald-400 font-bold">{art.tag}</span>
-                            <h4 className="text-xs sm:text-sm font-bold truncate">{art.title}</h4>
-                            <p className="text-[11px] text-white/70 truncate">{art.subtitle}</p>
-                        </div>
+            <section
+                className="w-full bg-white border-t border-neutral-200 text-neutral-900 font-sans"
+                style={{ paddingTop: '64px', paddingBottom: '0' }}
+            >
+                {/* ── Header (constrained) ── */}
+                <div className="relative w-full max-w-7xl mx-auto px-6 sm:px-10 lg:px-14 mb-10">
+                    {/* "OUR FOCUS AREAS" label with flanking lines */}
+                    <div className="flex items-center justify-center gap-4 mb-4">
+                        <span style={{ flex: '0 0 60px', height: '1px', background: '#93c5fd' }} />
+                        <span
+                            className="font-bebas uppercase tracking-[0.35em] text-sky-500"
+                            style={{ fontSize: '13px', letterSpacing: '0.3em' }}
+                        >
+                            OUR FOCUS AREAS
+                        </span>
+                        <span style={{ flex: '0 0 60px', height: '1px', background: '#93c5fd' }} />
                     </div>
-                ))}
-            </div>
+
+                    {/* Main title — centred */}
+                    <h2
+                        className="font-bebas text-center text-neutral-950 uppercase leading-[0.9] tracking-wide"
+                        style={{ fontSize: 'clamp(28px, 5.5vw, 80px)', marginBottom: '12px', letterSpacing: '0.02em' }}
+                    >
+                        DATA-DRIVEN SOLUTIONS FOR SAFER CITIES
+                    </h2>
+
+                    {/* Subtitle — centred */}
+                    <p
+                        className="font-bebas text-center text-neutral-500 uppercase tracking-[0.18em]"
+                        style={{ fontSize: '12px', marginBottom: '0' }}
+                    >
+                        EXPLORE KEY USE CASES WHERE REAL-TIME GEOSPATIAL DATA AND FORECASTING CREATE MEASURABLE IMPACT.
+                    </p>
+
+                    {/* VIEW ALL PROJECTS — absolute top-right */}
+                    <button
+                        type="button"
+                        onClick={() => {
+                            const el = document.getElementById('cities');
+                            if (el) el.scrollIntoView({ behavior: 'smooth' });
+                        }}
+                        className="font-bebas uppercase tracking-widest text-neutral-900 hover:bg-neutral-100 transition-colors cursor-pointer"
+                        style={{
+                            position: 'absolute',
+                            top: '0',
+                            right: '56px',
+                            fontSize: '12px',
+                            letterSpacing: '0.12em',
+                            border: '1.5px solid #737373',
+                            borderRadius: '999px',
+                            padding: '8px 20px',
+                        }}
+                    >
+                        VIEW ALL PROJECTS
+                    </button>
+                </div>
+
+                {/* ── Full-bleed Filmstrip Stage ── */}
+                {/*
+                  Math for centering active slide (index K in EXTENDED_SLIDES[6]):
+                    All slides 0..K-1 are INACTIVE (23vw each) → offset = K * (23vw + 20px)
+                    Active slide K is 48vw wide → its center = K*(23vw+20px) + 24vw
+                    We want center at 50vw → translateX = 50vw - [K*(23vw+20px) + 24vw]
+                                                        = 26vw - K*(23vw+20px)
+                */}
+                <div
+                    className="w-full select-none"
+                    style={{ overflow: 'hidden', paddingTop: '16px', paddingBottom: '8px' }}
+                    onMouseEnter={() => setIsCarouselHovered(true)}
+                    onMouseLeave={() => setIsCarouselHovered(false)}
+                >
+                    <div
+                        onTransitionEnd={handleSlideTransitionEnd}
+                        style={{
+                            display: 'flex',
+                            alignItems: 'flex-end',
+                            gap: '20px',
+                            transform: `translate3d(calc(26vw - ${slideIndex} * (23vw + 20px)), 0, 0)`,
+                            transition: isTransitioning
+                                ? 'transform 600ms cubic-bezier(0.25, 0.8, 0.25, 1)'
+                                : 'none',
+                            willChange: 'transform',
+                        }}
+                    >
+                        {EXTENDED_SLIDES.map((art, idx) => {
+                            const isCurrent = idx === slideIndex;
+                            return (
+                                <div
+                                    key={`${art.num}-${idx}`}
+                                    onClick={() => {
+                                        setIsTransitioning(true);
+                                        setSlideIndex(idx);
+                                    }}
+                                    style={{
+                                        position: 'relative',
+                                        flexShrink: '0',
+                                        cursor: 'pointer',
+                                        borderRadius: '16px',
+                                        overflow: 'hidden',
+                                        boxShadow: isCurrent
+                                            ? '0 24px 64px rgba(0,0,0,0.35)'
+                                            : '0 8px 24px rgba(0,0,0,0.18)',
+                                        width: isCurrent ? '48vw' : '23vw',
+                                        maxWidth: isCurrent ? '780px' : '370px',
+                                        height: isCurrent ? '420px' : '340px',
+                                        opacity: isCurrent ? 1 : 0.78,
+                                        transition: isTransitioning ? [
+                                            'width 600ms cubic-bezier(0.25,0.8,0.25,1)',
+                                            'max-width 600ms cubic-bezier(0.25,0.8,0.25,1)',
+                                            'height 600ms cubic-bezier(0.25,0.8,0.25,1)',
+                                            'opacity 600ms ease',
+                                            'box-shadow 600ms ease',
+                                        ].join(', ') : 'none',
+                                    }}
+                                >
+                                    {/* Full-card background image */}
+                                    <img
+                                        src={art.img}
+                                        alt={art.title}
+                                        style={{
+                                            position: 'absolute',
+                                            inset: '0',
+                                            width: '100%',
+                                            height: '100%',
+                                            objectFit: 'cover',
+                                            objectPosition: 'center',
+                                            display: 'block',
+                                        }}
+                                    />
+
+                                    {/* Dark gradient overlay — stronger at bottom */}
+                                    <div
+                                        style={{
+                                            position: 'absolute',
+                                            inset: '0',
+                                            background: isCurrent
+                                                ? 'linear-gradient(to top, rgba(0,0,0,0.85) 0%, rgba(0,0,0,0.25) 55%, rgba(0,0,0,0.15) 100%)'
+                                                : 'linear-gradient(to top, rgba(0,0,0,0.75) 0%, rgba(0,0,0,0.35) 50%, rgba(0,0,0,0.2) 100%)',
+                                        }}
+                                    />
+
+                                    {/* Top label row: "02 — COASTAL DYNAMICS" */}
+                                    <div
+                                        style={{
+                                            position: 'absolute',
+                                            top: '18px',
+                                            left: '18px',
+                                            right: '18px',
+                                            display: 'flex',
+                                            alignItems: 'center',
+                                            gap: '10px',
+                                        }}
+                                    >
+                                        <span
+                                            className="font-bebas text-white"
+                                            style={{ fontSize: '14px', letterSpacing: '0.12em', opacity: 0.9 }}
+                                        >
+                                            {art.num}
+                                        </span>
+                                        <span
+                                            style={{
+                                                width: '24px',
+                                                height: '1px',
+                                                background: 'rgba(255,255,255,0.5)',
+                                                flexShrink: '0',
+                                            }}
+                                        />
+                                        <span
+                                            className="font-bebas text-white uppercase"
+                                            style={{ fontSize: '11px', letterSpacing: '0.22em', opacity: 0.75 }}
+                                        >
+                                            {art.tag}
+                                        </span>
+                                    </div>
+
+                                    {/* Bottom content area */}
+                                    <div
+                                        style={{
+                                            position: 'absolute',
+                                            bottom: '0',
+                                            left: '0',
+                                            right: '0',
+                                            padding: isCurrent ? '28px' : '16px 18px',
+                                        }}
+                                    >
+                                        {/* Category label (inactive only — shown in small) */}
+                                        {!isCurrent && (
+                                            <span
+                                                className="font-bebas text-white uppercase block"
+                                                style={{
+                                                    fontSize: '9px',
+                                                    letterSpacing: '0.2em',
+                                                    opacity: 0.6,
+                                                    marginBottom: '4px',
+                                                }}
+                                            >
+                                                {art.tag}
+                                            </span>
+                                        )}
+
+                                        {/* Title */}
+                                        <h3
+                                            className="font-bebas text-white uppercase leading-[0.95]"
+                                            style={{
+                                                fontSize: isCurrent
+                                                    ? 'clamp(24px, 3vw, 44px)'
+                                                    : 'clamp(13px, 1.5vw, 20px)',
+                                                marginBottom: isCurrent ? '6px' : '0',
+                                            }}
+                                        >
+                                            {art.title}
+                                        </h3>
+
+                                        {/* Active-only: subtitle + progress + button */}
+                                        {isCurrent && (
+                                            <>
+                                                <p
+                                                    className="font-bebas text-white uppercase"
+                                                    style={{
+                                                        fontSize: '11px',
+                                                        letterSpacing: '0.15em',
+                                                        opacity: 0.65,
+                                                        marginBottom: '20px',
+                                                    }}
+                                                >
+                                                    {art.subtitle}
+                                                </p>
+                                                <div
+                                                    style={{
+                                                        display: 'flex',
+                                                        alignItems: 'center',
+                                                        justifyContent: 'space-between',
+                                                    }}
+                                                >
+                                                    <button
+                                                        type="button"
+                                                        onClick={(e) => {
+                                                            e.stopPropagation();
+                                                            setModalArtworkIdx(
+                                                                art.num === '01' ? 0 :
+                                                                art.num === '02' ? 1 :
+                                                                art.num === '03' ? 2 : 3
+                                                            );
+                                                            setShowreelModalOpen(true);
+                                                        }}
+                                                        className="font-bebas text-white uppercase hover:bg-white hover:text-black transition-all cursor-pointer"
+                                                        style={{
+                                                            fontSize: '12px',
+                                                            letterSpacing: '0.15em',
+                                                            border: '1.5px solid rgba(255,255,255,0.7)',
+                                                            borderRadius: '999px',
+                                                            padding: '7px 20px',
+                                                        }}
+                                                    >
+                                                        EXPLORE PROJECT
+                                                    </button>
+                                                    <span
+                                                        className="font-bebas text-white"
+                                                        style={{
+                                                            fontSize: '13px',
+                                                            letterSpacing: '0.1em',
+                                                            opacity: 0.45,
+                                                        }}
+                                                    >
+                                                        {art.num} / 04
+                                                    </span>
+                                                </div>
+                                            </>
+                                        )}
+
+                                        {/* Inactive slide: slide number / 04 */}
+                                        {!isCurrent && (
+                                            <span
+                                                className="font-bebas text-white block"
+                                                style={{
+                                                    fontSize: '10px',
+                                                    letterSpacing: '0.12em',
+                                                    opacity: 0.4,
+                                                    marginTop: '4px',
+                                                }}
+                                            >
+                                                {art.num} / 04
+                                            </span>
+                                        )}
+                                    </div>
+                                </div>
+                            );
+                        })}
+                    </div>
+                </div>
+
+                {/* ── Dot Pagination ── */}
+                <div
+                    style={{
+                        display: 'flex',
+                        justifyContent: 'center',
+                        alignItems: 'center',
+                        gap: '8px',
+                        marginTop: '20px',
+                        marginBottom: '20px',
+                    }}
+                >
+                    {ARTWORKS.map((art, idx) => {
+                        const isActive = idx === activeProjectIdx;
+                        return (
+                            <button
+                                key={art.num}
+                                type="button"
+                                onClick={() => handleDotClick(idx)}
+                                aria-label={`Go to slide ${art.num}`}
+                                style={{
+                                    width: isActive ? '28px' : '8px',
+                                    height: '8px',
+                                    borderRadius: '999px',
+                                    background: isActive ? '#2563eb' : '#d1d5db',
+                                    border: 'none',
+                                    padding: '0',
+                                    cursor: 'pointer',
+                                    transition: 'width 300ms ease, background 300ms ease',
+                                }}
+                            />
+                        );
+                    })}
+                </div>
+
+                {/* ── Bottom Tagline Strip ── */}
+                <div
+                    className="w-full max-w-7xl mx-auto"
+                    style={{
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'space-between',
+                        border: '1px solid #e5e7eb',
+                        borderRadius: '999px',
+                        padding: '14px 32px',
+                        marginLeft: 'auto',
+                        marginRight: 'auto',
+                        marginBottom: '0',
+                        background: '#fafafa',
+                        maxWidth: '1280px',
+                        width: 'calc(100% - 48px)',
+                    }}
+                >
+                    <p
+                        className="font-bebas text-neutral-500 uppercase"
+                        style={{ fontSize: '11px', letterSpacing: '0.18em' }}
+                    >
+                        FROM RIVERS TO COASTLINES TO URBAN STREETS — TURNING REAL-TIME DATA INTO SAFER, MORE RESILIENT CITIES.
+                    </p>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '20px', flexShrink: '0' }}>
+                        <span style={{ width: '1px', height: '18px', background: '#d1d5db' }} />
+                        <button
+                            type="button"
+                            onClick={() => {
+                                const el = document.getElementById('cities');
+                                if (el) el.scrollIntoView({ behavior: 'smooth' });
+                            }}
+                            className="font-bebas text-sky-600 uppercase hover:text-sky-800 transition-colors cursor-pointer"
+                            style={{ fontSize: '11px', letterSpacing: '0.18em', background: 'none', border: 'none', padding: '0' }}
+                        >
+                            LEARN MORE
+                        </button>
+                    </div>
+                </div>
+                <div style={{ height: '32px' }} />
+            </section>
+
 
             {/* ========================================================================= */}
             {/* FULLSCREEN NATURE VIDEO MODAL POPUP                                       */}
@@ -3724,17 +4131,15 @@ function HeroView({ ward, wardData, onEnter, onSelectCity, onOpenMap, pushToast 
                     onClick={() => setShowreelModalOpen(false)}
                 >
                     <div 
-                        className="relative w-full max-w-4xl aspect-video bg-black rounded-2xl overflow-hidden shadow-2xl border border-white/20"
+                        className="relative w-full max-w-4xl aspect-video bg-black rounded-xl overflow-hidden shadow-2xl border border-white/20"
                         onClick={(e) => e.stopPropagation()}
                     >
                         <button 
                             onClick={() => setShowreelModalOpen(false)}
                             aria-label="Close modal" 
-                            className="absolute top-4 right-4 z-10 p-3 rounded-full bg-black/60 text-white hover:bg-white hover:text-black transition-all cursor-pointer"
+                            className="absolute top-4 right-4 z-10 px-4 py-2 rounded bg-black/80 text-white font-bebas text-sm tracking-widest hover:bg-white hover:text-black transition-all cursor-pointer"
                         >
-                            <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12"></path>
-                            </svg>
+                            CLOSE
                         </button>
                         <video 
                             id="modal-video" 
@@ -3742,7 +4147,7 @@ function HeroView({ ward, wardData, onEnter, onSelectCity, onOpenMap, pushToast 
                             autoPlay 
                             playsInline 
                             className="w-full h-full object-cover"
-                            poster={ARTWORKS[activeArtworkIdx].img}
+                            poster={ARTWORKS[modalArtworkIdx ?? activeProjectIdx]?.img}
                         >
                             <source src="/static/VEDIO/RAIN.mp4" type="video/mp4" />
                             <source src="https://strvid.nyc3.cdn.digitaloceanspaces.com/motionsite/nature-sunset.mp4" type="video/mp4" />

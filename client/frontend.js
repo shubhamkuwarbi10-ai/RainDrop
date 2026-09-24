@@ -2260,9 +2260,13 @@ function HeroView({ ward, wardData, onEnter, onSelectCity, onOpenMap, pushToast 
   const [scenarioPumps, setScenarioPumps] = useState(90);
   const [routeSimProgress, setRouteSimProgress] = useState(0);
   const [isSimulatingRoute, setIsSimulatingRoute] = useState(false);
+  const [slideIndex, setSlideIndex] = useState(4);
   const [activeArtworkIdx, setActiveArtworkIdx] = useState(0);
+  const [isTransitioning, setIsTransitioning] = useState(true);
+  const [isCarouselHovered, setIsCarouselHovered] = useState(false);
   const [showreelModalOpen, setShowreelModalOpen] = useState(false);
   const [mobileDrawerOpen, setMobileDrawerOpen] = useState(false);
+  const [modalArtworkIdx, setModalArtworkIdx] = useState(0);
   const ARTWORKS = [
     {
       num: "01",
@@ -2301,6 +2305,55 @@ function HeroView({ ward, wardData, onEnter, onSelectCity, onOpenMap, pushToast 
       stats: "22.6200\xB0 N, 88.4200\xB0 E"
     }
   ];
+  const EXTENDED_SLIDES = [
+    ...ARTWORKS,
+    // Set 0: buffer on the left
+    ...ARTWORKS,
+    // Set 1: active home set (starts at index 4)
+    ...ARTWORKS
+    // Set 2: buffer on the right
+  ];
+  useEffect(() => {
+    if (isCarouselHovered) return;
+    const timer = setInterval(() => {
+      setIsTransitioning(true);
+      setSlideIndex((prev) => prev + 1);
+    }, 1e3);
+    return () => clearInterval(timer);
+  }, [isCarouselHovered]);
+  const handleSlideTransitionEnd = (e) => {
+    if (e.target !== e.currentTarget || e.propertyName !== "transform") return;
+    if (slideIndex >= 8) {
+      setIsTransitioning(false);
+      setSlideIndex((prev) => prev - 4);
+      requestAnimationFrame(() => {
+        requestAnimationFrame(() => {
+          setIsTransitioning(true);
+        });
+      });
+    } else if (slideIndex < 4) {
+      setIsTransitioning(false);
+      setSlideIndex((prev) => prev + 4);
+      requestAnimationFrame(() => {
+        requestAnimationFrame(() => {
+          setIsTransitioning(true);
+        });
+      });
+    }
+  };
+  const activeProjectIdx = (slideIndex % 4 + 4) % 4;
+  useEffect(() => {
+    setActiveArtworkIdx(activeProjectIdx);
+  }, [activeProjectIdx]);
+  const handleDotClick = (targetIdx) => {
+    const currentArtIdx = (slideIndex % 4 + 4) % 4;
+    let diff = targetIdx - currentArtIdx;
+    if (diff === 3) diff = -1;
+    if (diff === -3) diff = 1;
+    if (diff === 0) return;
+    setIsTransitioning(true);
+    setSlideIndex((prev) => prev + diff);
+  };
   const computedDepthCm = Math.max(0, Math.round(scenarioRain * 0.45 + scenarioTide * 12 - scenarioPumps / 100 * 16));
   const computedClearanceHours = Math.max(0.5, Number((computedDepthCm * 0.12 / (scenarioPumps / 100)).toFixed(1)));
   const scrollTo = (id) => {
@@ -2450,7 +2503,7 @@ function HeroView({ ward, wardData, onEnter, onSelectCity, onOpenMap, pushToast 
       borderAccent: "border-emerald-300"
     }
   ];
-  const currentArt = ARTWORKS[activeArtworkIdx];
+  const currentArt = ARTWORKS[activeArtworkIdx] || ARTWORKS[0];
   return /* @__PURE__ */ React.createElement("div", { className: "min-h-screen bg-white text-slate-900 flex flex-col items-center justify-start p-0 m-0 font-sans antialiased w-full overflow-x-hidden selection:bg-emerald-600 selection:text-white" }, /* @__PURE__ */ React.createElement("section", { className: "relative w-full h-screen min-h-screen overflow-hidden flex flex-col justify-between" }, /* @__PURE__ */ React.createElement("div", { className: "absolute inset-0 w-full h-full z-0 overflow-hidden pointer-events-none" }, /* @__PURE__ */ React.createElement(
     "video",
     {
@@ -2584,26 +2637,362 @@ function HeroView({ ward, wardData, onEnter, onSelectCity, onOpenMap, pushToast 
       className: "inline-flex items-center justify-center px-8 py-4 bg-white text-black font-semibold text-xs sm:text-sm tracking-[0.18em] uppercase rounded-md shadow-xl transition-all duration-300 hover:bg-white/90 hover:scale-105 hover:shadow-2xl hover:shadow-white/20 active:scale-95 cursor-pointer"
     },
     "EXPLORE LIVE NOWCAST"
-  )))), /* @__PURE__ */ React.createElement("div", { className: "absolute bottom-0 right-0 z-30 bg-white text-black px-6 sm:px-10 py-4 sm:py-5 rounded-tl-[24px] flex items-center gap-3 shadow-2xl" }, /* @__PURE__ */ React.createElement("svg", { width: "24", height: "24", style: { width: "24px", height: "24px" }, className: "absolute bottom-0 -left-[24px] w-6 h-6 text-white pointer-events-none", viewBox: "0 0 24 24", fill: "none" }, /* @__PURE__ */ React.createElement("path", { d: "M0,24 A24,24 0 0,0 24,0 L24,24 Z", fill: "currentColor" })), /* @__PURE__ */ React.createElement("svg", { width: "20", height: "20", style: { width: "20px", height: "20px", minWidth: "20px" }, className: "w-4 h-4 sm:w-5 sm:h-5 text-emerald-700 shrink-0", viewBox: "0 0 24 24", fill: "none", stroke: "currentColor", strokeWidth: "2", strokeLinecap: "round", strokeLinejoin: "round" }, /* @__PURE__ */ React.createElement("path", { d: "M12 22V12" }), /* @__PURE__ */ React.createElement("path", { d: "M12 12C12 7.58172 8.41828 4 4 4C4 8.41828 7.58172 12 12 12Z" }), /* @__PURE__ */ React.createElement("path", { d: "M12 15C12 11.134 15.134 8 19 8C19 11.866 15.866 15 12 15Z" })), /* @__PURE__ */ React.createElement("div", { className: "flex items-center gap-2 sm:gap-3 text-[10px] sm:text-xs font-semibold tracking-[0.2em] uppercase text-black" }, /* @__PURE__ */ React.createElement("span", { className: "hover:text-emerald-700 transition-colors" }, "REAL-TIME RADAR"), /* @__PURE__ */ React.createElement("span", { className: "text-black/40" }, "\u2022"), /* @__PURE__ */ React.createElement("span", { className: "hover:text-emerald-700 transition-colors" }, "ZERO FLOOD DELAYS"), /* @__PURE__ */ React.createElement("span", { className: "text-black/40" }, "\u2022"), /* @__PURE__ */ React.createElement("span", { className: "hover:text-emerald-700 transition-colors" }, "6 INDIAN BASINS")))), /* @__PURE__ */ React.createElement("div", { className: "w-full max-w-7xl mx-auto px-6 sm:px-10 lg:px-14 py-8 sm:py-12 grid grid-cols-2 md:grid-cols-4 gap-4 sm:gap-6" }, ARTWORKS.map((art, idx) => /* @__PURE__ */ React.createElement(
-    "div",
+  )))), /* @__PURE__ */ React.createElement("div", { className: "absolute bottom-0 right-0 z-30 bg-white text-black px-6 sm:px-10 py-4 sm:py-5 rounded-tl-[24px] flex items-center gap-3 shadow-2xl" }, /* @__PURE__ */ React.createElement("svg", { width: "24", height: "24", style: { width: "24px", height: "24px" }, className: "absolute bottom-0 -left-[24px] w-6 h-6 text-white pointer-events-none", viewBox: "0 0 24 24", fill: "none" }, /* @__PURE__ */ React.createElement("path", { d: "M0,24 A24,24 0 0,0 24,0 L24,24 Z", fill: "currentColor" })), /* @__PURE__ */ React.createElement("svg", { width: "20", height: "20", style: { width: "20px", height: "20px", minWidth: "20px" }, className: "w-4 h-4 sm:w-5 sm:h-5 text-emerald-700 shrink-0", viewBox: "0 0 24 24", fill: "none", stroke: "currentColor", strokeWidth: "2", strokeLinecap: "round", strokeLinejoin: "round" }, /* @__PURE__ */ React.createElement("path", { d: "M12 22V12" }), /* @__PURE__ */ React.createElement("path", { d: "M12 12C12 7.58172 8.41828 4 4 4C4 8.41828 7.58172 12 12 12Z" }), /* @__PURE__ */ React.createElement("path", { d: "M12 15C12 11.134 15.134 8 19 8C19 11.866 15.866 15 12 15Z" })), /* @__PURE__ */ React.createElement("div", { className: "flex items-center gap-2 sm:gap-3 text-[10px] sm:text-xs font-semibold tracking-[0.2em] uppercase text-black" }, /* @__PURE__ */ React.createElement("span", { className: "hover:text-emerald-700 transition-colors" }, "REAL-TIME RADAR"), /* @__PURE__ */ React.createElement("span", { className: "text-black/40" }, "\u2022"), /* @__PURE__ */ React.createElement("span", { className: "hover:text-emerald-700 transition-colors" }, "ZERO FLOOD DELAYS"), /* @__PURE__ */ React.createElement("span", { className: "text-black/40" }, "\u2022"), /* @__PURE__ */ React.createElement("span", { className: "hover:text-emerald-700 transition-colors" }, "6 INDIAN BASINS")))), /* @__PURE__ */ React.createElement(
+    "section",
     {
-      key: art.num,
-      onClick: () => {
-        setActiveArtworkIdx(idx);
-        setShowreelModalOpen(true);
-      },
-      className: "group relative rounded-2xl overflow-hidden border border-slate-200 shadow-md hover:shadow-xl transition-all duration-300 cursor-pointer aspect-4/3 bg-slate-900"
+      className: "w-full bg-white border-t border-neutral-200 text-neutral-900 font-sans",
+      style: { paddingTop: "64px", paddingBottom: "0" }
     },
-    /* @__PURE__ */ React.createElement(
-      "img",
+    /* @__PURE__ */ React.createElement("div", { className: "relative w-full max-w-7xl mx-auto px-6 sm:px-10 lg:px-14 mb-10" }, /* @__PURE__ */ React.createElement("div", { className: "flex items-center justify-center gap-4 mb-4" }, /* @__PURE__ */ React.createElement("span", { style: { flex: "0 0 60px", height: "1px", background: "#93c5fd" } }), /* @__PURE__ */ React.createElement(
+      "span",
       {
-        src: art.img,
-        alt: art.title,
-        className: "w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
-      }
+        className: "font-bebas uppercase tracking-[0.35em] text-sky-500",
+        style: { fontSize: "13px", letterSpacing: "0.3em" }
+      },
+      "OUR FOCUS AREAS"
+    ), /* @__PURE__ */ React.createElement("span", { style: { flex: "0 0 60px", height: "1px", background: "#93c5fd" } })), /* @__PURE__ */ React.createElement(
+      "h2",
+      {
+        className: "font-bebas text-center text-neutral-950 uppercase leading-[0.9] tracking-wide",
+        style: { fontSize: "clamp(28px, 5.5vw, 80px)", marginBottom: "12px", letterSpacing: "0.02em" }
+      },
+      "DATA-DRIVEN SOLUTIONS FOR SAFER CITIES"
+    ), /* @__PURE__ */ React.createElement(
+      "p",
+      {
+        className: "font-bebas text-center text-neutral-500 uppercase tracking-[0.18em]",
+        style: { fontSize: "12px", marginBottom: "0" }
+      },
+      "EXPLORE KEY USE CASES WHERE REAL-TIME GEOSPATIAL DATA AND FORECASTING CREATE MEASURABLE IMPACT."
+    ), /* @__PURE__ */ React.createElement(
+      "button",
+      {
+        type: "button",
+        onClick: () => {
+          const el = document.getElementById("cities");
+          if (el) el.scrollIntoView({ behavior: "smooth" });
+        },
+        className: "font-bebas uppercase tracking-widest text-neutral-900 hover:bg-neutral-100 transition-colors cursor-pointer",
+        style: {
+          position: "absolute",
+          top: "0",
+          right: "56px",
+          fontSize: "12px",
+          letterSpacing: "0.12em",
+          border: "1.5px solid #737373",
+          borderRadius: "999px",
+          padding: "8px 20px"
+        }
+      },
+      "VIEW ALL PROJECTS"
+    )),
+    /* @__PURE__ */ React.createElement(
+      "div",
+      {
+        className: "w-full select-none",
+        style: { overflow: "hidden", paddingTop: "16px", paddingBottom: "8px" },
+        onMouseEnter: () => setIsCarouselHovered(true),
+        onMouseLeave: () => setIsCarouselHovered(false)
+      },
+      /* @__PURE__ */ React.createElement(
+        "div",
+        {
+          onTransitionEnd: handleSlideTransitionEnd,
+          style: {
+            display: "flex",
+            alignItems: "flex-end",
+            gap: "20px",
+            transform: `translate3d(calc(26vw - ${slideIndex} * (23vw + 20px)), 0, 0)`,
+            transition: isTransitioning ? "transform 600ms cubic-bezier(0.25, 0.8, 0.25, 1)" : "none",
+            willChange: "transform"
+          }
+        },
+        EXTENDED_SLIDES.map((art, idx) => {
+          const isCurrent = idx === slideIndex;
+          return /* @__PURE__ */ React.createElement(
+            "div",
+            {
+              key: `${art.num}-${idx}`,
+              onClick: () => {
+                setIsTransitioning(true);
+                setSlideIndex(idx);
+              },
+              style: {
+                position: "relative",
+                flexShrink: "0",
+                cursor: "pointer",
+                borderRadius: "16px",
+                overflow: "hidden",
+                boxShadow: isCurrent ? "0 24px 64px rgba(0,0,0,0.35)" : "0 8px 24px rgba(0,0,0,0.18)",
+                width: isCurrent ? "48vw" : "23vw",
+                maxWidth: isCurrent ? "780px" : "370px",
+                height: isCurrent ? "420px" : "340px",
+                opacity: isCurrent ? 1 : 0.78,
+                transition: isTransitioning ? [
+                  "width 600ms cubic-bezier(0.25,0.8,0.25,1)",
+                  "max-width 600ms cubic-bezier(0.25,0.8,0.25,1)",
+                  "height 600ms cubic-bezier(0.25,0.8,0.25,1)",
+                  "opacity 600ms ease",
+                  "box-shadow 600ms ease"
+                ].join(", ") : "none"
+              }
+            },
+            /* @__PURE__ */ React.createElement(
+              "img",
+              {
+                src: art.img,
+                alt: art.title,
+                style: {
+                  position: "absolute",
+                  inset: "0",
+                  width: "100%",
+                  height: "100%",
+                  objectFit: "cover",
+                  objectPosition: "center",
+                  display: "block"
+                }
+              }
+            ),
+            /* @__PURE__ */ React.createElement(
+              "div",
+              {
+                style: {
+                  position: "absolute",
+                  inset: "0",
+                  background: isCurrent ? "linear-gradient(to top, rgba(0,0,0,0.85) 0%, rgba(0,0,0,0.25) 55%, rgba(0,0,0,0.15) 100%)" : "linear-gradient(to top, rgba(0,0,0,0.75) 0%, rgba(0,0,0,0.35) 50%, rgba(0,0,0,0.2) 100%)"
+                }
+              }
+            ),
+            /* @__PURE__ */ React.createElement(
+              "div",
+              {
+                style: {
+                  position: "absolute",
+                  top: "18px",
+                  left: "18px",
+                  right: "18px",
+                  display: "flex",
+                  alignItems: "center",
+                  gap: "10px"
+                }
+              },
+              /* @__PURE__ */ React.createElement(
+                "span",
+                {
+                  className: "font-bebas text-white",
+                  style: { fontSize: "14px", letterSpacing: "0.12em", opacity: 0.9 }
+                },
+                art.num
+              ),
+              /* @__PURE__ */ React.createElement(
+                "span",
+                {
+                  style: {
+                    width: "24px",
+                    height: "1px",
+                    background: "rgba(255,255,255,0.5)",
+                    flexShrink: "0"
+                  }
+                }
+              ),
+              /* @__PURE__ */ React.createElement(
+                "span",
+                {
+                  className: "font-bebas text-white uppercase",
+                  style: { fontSize: "11px", letterSpacing: "0.22em", opacity: 0.75 }
+                },
+                art.tag
+              )
+            ),
+            /* @__PURE__ */ React.createElement(
+              "div",
+              {
+                style: {
+                  position: "absolute",
+                  bottom: "0",
+                  left: "0",
+                  right: "0",
+                  padding: isCurrent ? "28px" : "16px 18px"
+                }
+              },
+              !isCurrent && /* @__PURE__ */ React.createElement(
+                "span",
+                {
+                  className: "font-bebas text-white uppercase block",
+                  style: {
+                    fontSize: "9px",
+                    letterSpacing: "0.2em",
+                    opacity: 0.6,
+                    marginBottom: "4px"
+                  }
+                },
+                art.tag
+              ),
+              /* @__PURE__ */ React.createElement(
+                "h3",
+                {
+                  className: "font-bebas text-white uppercase leading-[0.95]",
+                  style: {
+                    fontSize: isCurrent ? "clamp(24px, 3vw, 44px)" : "clamp(13px, 1.5vw, 20px)",
+                    marginBottom: isCurrent ? "6px" : "0"
+                  }
+                },
+                art.title
+              ),
+              isCurrent && /* @__PURE__ */ React.createElement(React.Fragment, null, /* @__PURE__ */ React.createElement(
+                "p",
+                {
+                  className: "font-bebas text-white uppercase",
+                  style: {
+                    fontSize: "11px",
+                    letterSpacing: "0.15em",
+                    opacity: 0.65,
+                    marginBottom: "20px"
+                  }
+                },
+                art.subtitle
+              ), /* @__PURE__ */ React.createElement(
+                "div",
+                {
+                  style: {
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "space-between"
+                  }
+                },
+                /* @__PURE__ */ React.createElement(
+                  "button",
+                  {
+                    type: "button",
+                    onClick: (e) => {
+                      e.stopPropagation();
+                      setModalArtworkIdx(
+                        art.num === "01" ? 0 : art.num === "02" ? 1 : art.num === "03" ? 2 : 3
+                      );
+                      setShowreelModalOpen(true);
+                    },
+                    className: "font-bebas text-white uppercase hover:bg-white hover:text-black transition-all cursor-pointer",
+                    style: {
+                      fontSize: "12px",
+                      letterSpacing: "0.15em",
+                      border: "1.5px solid rgba(255,255,255,0.7)",
+                      borderRadius: "999px",
+                      padding: "7px 20px"
+                    }
+                  },
+                  "EXPLORE PROJECT"
+                ),
+                /* @__PURE__ */ React.createElement(
+                  "span",
+                  {
+                    className: "font-bebas text-white",
+                    style: {
+                      fontSize: "13px",
+                      letterSpacing: "0.1em",
+                      opacity: 0.45
+                    }
+                  },
+                  art.num,
+                  " / 04"
+                )
+              )),
+              !isCurrent && /* @__PURE__ */ React.createElement(
+                "span",
+                {
+                  className: "font-bebas text-white block",
+                  style: {
+                    fontSize: "10px",
+                    letterSpacing: "0.12em",
+                    opacity: 0.4,
+                    marginTop: "4px"
+                  }
+                },
+                art.num,
+                " / 04"
+              )
+            )
+          );
+        })
+      )
     ),
-    /* @__PURE__ */ React.createElement("div", { className: "absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent p-3.5 flex flex-col justify-end text-white" }, /* @__PURE__ */ React.createElement("span", { className: "text-[10px] font-mono uppercase tracking-widest text-emerald-400 font-bold" }, art.tag), /* @__PURE__ */ React.createElement("h4", { className: "text-xs sm:text-sm font-bold truncate" }, art.title), /* @__PURE__ */ React.createElement("p", { className: "text-[11px] text-white/70 truncate" }, art.subtitle))
-  ))), showreelModalOpen && /* @__PURE__ */ React.createElement(
+    /* @__PURE__ */ React.createElement(
+      "div",
+      {
+        style: {
+          display: "flex",
+          justifyContent: "center",
+          alignItems: "center",
+          gap: "8px",
+          marginTop: "20px",
+          marginBottom: "20px"
+        }
+      },
+      ARTWORKS.map((art, idx) => {
+        const isActive = idx === activeProjectIdx;
+        return /* @__PURE__ */ React.createElement(
+          "button",
+          {
+            key: art.num,
+            type: "button",
+            onClick: () => handleDotClick(idx),
+            "aria-label": `Go to slide ${art.num}`,
+            style: {
+              width: isActive ? "28px" : "8px",
+              height: "8px",
+              borderRadius: "999px",
+              background: isActive ? "#2563eb" : "#d1d5db",
+              border: "none",
+              padding: "0",
+              cursor: "pointer",
+              transition: "width 300ms ease, background 300ms ease"
+            }
+          }
+        );
+      })
+    ),
+    /* @__PURE__ */ React.createElement(
+      "div",
+      {
+        className: "w-full max-w-7xl mx-auto",
+        style: {
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "space-between",
+          border: "1px solid #e5e7eb",
+          borderRadius: "999px",
+          padding: "14px 32px",
+          marginLeft: "auto",
+          marginRight: "auto",
+          marginBottom: "0",
+          background: "#fafafa",
+          maxWidth: "1280px",
+          width: "calc(100% - 48px)"
+        }
+      },
+      /* @__PURE__ */ React.createElement(
+        "p",
+        {
+          className: "font-bebas text-neutral-500 uppercase",
+          style: { fontSize: "11px", letterSpacing: "0.18em" }
+        },
+        "FROM RIVERS TO COASTLINES TO URBAN STREETS \u2014 TURNING REAL-TIME DATA INTO SAFER, MORE RESILIENT CITIES."
+      ),
+      /* @__PURE__ */ React.createElement("div", { style: { display: "flex", alignItems: "center", gap: "20px", flexShrink: "0" } }, /* @__PURE__ */ React.createElement("span", { style: { width: "1px", height: "18px", background: "#d1d5db" } }), /* @__PURE__ */ React.createElement(
+        "button",
+        {
+          type: "button",
+          onClick: () => {
+            const el = document.getElementById("cities");
+            if (el) el.scrollIntoView({ behavior: "smooth" });
+          },
+          className: "font-bebas text-sky-600 uppercase hover:text-sky-800 transition-colors cursor-pointer",
+          style: { fontSize: "11px", letterSpacing: "0.18em", background: "none", border: "none", padding: "0" }
+        },
+        "LEARN MORE"
+      ))
+    ),
+    /* @__PURE__ */ React.createElement("div", { style: { height: "32px" } })
+  ), showreelModalOpen && /* @__PURE__ */ React.createElement(
     "div",
     {
       className: "fixed inset-0 bg-black/90 z-50 flex items-center justify-center p-4 sm:p-10 transition-opacity duration-500",
@@ -2612,7 +3001,7 @@ function HeroView({ ward, wardData, onEnter, onSelectCity, onOpenMap, pushToast 
     /* @__PURE__ */ React.createElement(
       "div",
       {
-        className: "relative w-full max-w-4xl aspect-video bg-black rounded-2xl overflow-hidden shadow-2xl border border-white/20",
+        className: "relative w-full max-w-4xl aspect-video bg-black rounded-xl overflow-hidden shadow-2xl border border-white/20",
         onClick: (e) => e.stopPropagation()
       },
       /* @__PURE__ */ React.createElement(
@@ -2620,9 +3009,9 @@ function HeroView({ ward, wardData, onEnter, onSelectCity, onOpenMap, pushToast 
         {
           onClick: () => setShowreelModalOpen(false),
           "aria-label": "Close modal",
-          className: "absolute top-4 right-4 z-10 p-3 rounded-full bg-black/60 text-white hover:bg-white hover:text-black transition-all cursor-pointer"
+          className: "absolute top-4 right-4 z-10 px-4 py-2 rounded bg-black/80 text-white font-bebas text-sm tracking-widest hover:bg-white hover:text-black transition-all cursor-pointer"
         },
-        /* @__PURE__ */ React.createElement("svg", { className: "w-6 h-6", fill: "none", stroke: "currentColor", viewBox: "0 0 24 24" }, /* @__PURE__ */ React.createElement("path", { strokeLinecap: "round", strokeLinejoin: "round", strokeWidth: "2", d: "M6 18L18 6M6 6l12 12" }))
+        "CLOSE"
       ),
       /* @__PURE__ */ React.createElement(
         "video",
@@ -2632,7 +3021,7 @@ function HeroView({ ward, wardData, onEnter, onSelectCity, onOpenMap, pushToast 
           autoPlay: true,
           playsInline: true,
           className: "w-full h-full object-cover",
-          poster: ARTWORKS[activeArtworkIdx].img
+          poster: ARTWORKS[modalArtworkIdx ?? activeProjectIdx]?.img
         },
         /* @__PURE__ */ React.createElement("source", { src: "/static/VEDIO/RAIN.mp4", type: "video/mp4" }),
         /* @__PURE__ */ React.createElement("source", { src: "https://strvid.nyc3.cdn.digitaloceanspaces.com/motionsite/nature-sunset.mp4", type: "video/mp4" })
