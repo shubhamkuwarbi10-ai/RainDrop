@@ -1,4 +1,32 @@
-# Dependencies & build outputs
+# Environment Variables & Secrets (CRITICAL: Never commit active credentials)
+.env
+.env.*
+!.env.example
+*.env.local
+*.pem
+*.key
+*.cert
+*.crt
+
+# Local Startup & Machine Scripts
+start.bat
+stop.bat
+
+# Python & Virtual Environments
+__pycache__/
+*.py[cod]
+*$py.class
+*.pyc
+**/__pycache__/
+.pytest_cache/
+.venv/
+venv/
+ENV/
+*.egg-info/
+dist/
+build/
+
+# Node.js & Frontend Build Outputs
 node_modules/
 **/node_modules/
 .next/
@@ -7,39 +35,38 @@ frontend/screenshot-*.png
 *.log
 *.tmp
 
-# Local startup scripts (machine-specific, not for version control)
-start.bat
-stop.bat
-
-__pycache__/
-*.py[cod]
-.pytest_cache/
-.venv/
-venv/
-.env
-*.env.local
-
-# Large GeoTIFF / raster data files — mount at runtime, don't commit
-data/processed/*.tif
-data/processed/*.json
-data/raw/
+# Large Geospatial Datasets & Raw Satellite Files (Mount via volume/cloud storage)
+data/
 dataset/
+*.HDF5
+*.hdf5
+*.h5
+*.tif
+*.tiff
+*.zip
+*.tar.gz
+*.shp
+*.shx
+*.dbf
+*.prj
 
-# ML models (large binaries)
+# Machine Learning Models (Large Binaries)
 models/*.pkl
 models/*.joblib
 models/*.model
+models/artifacts/
 
-# Scratch and generated outputs
+# Scratch & Temporary Analysis Files
 scratch/
 graphify-out/
 client/hero_found.json
 client/hero_view_extracted.jsx
-data/babel.min.js
-*.pyc
-**/__pycache__/
+client/Landing Page images/
 
-# OS
+# Local Agent & IDE Skill Caches
+.agents/skills/
+
+# OS Specific
 .DS_Store
 Thumbs.db
-
+Desktop.ini

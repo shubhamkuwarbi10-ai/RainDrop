@@ -36,7 +36,9 @@ const ICON_SVGS = {
     Users: <g><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></g>,
     Menu: <g><line x1="4" y1="12" x2="20" y2="12"/><line x1="4" y1="6" x2="20" y2="6"/><line x1="4" y1="18" x2="20" y2="18"/></g>,
     ArrowUpRight: <g><path d="M7 17 17 7"/><path d="M7 7h10v10"/></g>,
-    Star: <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2" fill="currentColor"/>
+    Star: <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2" fill="currentColor"/>,
+    Home: <g><path d="m3 9 9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></g>,
+    ChevronRight: <polyline points="9 18 15 12 9 6"/>,
 };
 
 // Safe Lucide icon accessor helper to guarantee no icon is ever undefined
@@ -131,6 +133,8 @@ const Users = getIcon("Users");
 const Calendar = getIcon("Calendar");
 const Plus = getIcon("Plus");
 const Minus = getIcon("Minus");
+const Home = getIcon("Home");
+const ChevronRight = getIcon("ChevronRight");
 
 
 // ============================================================================
@@ -1070,7 +1074,97 @@ const CITY_PROFILES = {
 
 // ============================================================================
 // 3:7 Split City & Ward Intelligence Matrix Overview Component
+// Reference Design Implementation (Minimalist Editorial Civic Layout)
 // ============================================================================
+
+const CITY_HERO_BACKDROPS = {
+    "Chennai": "/static/Landing Page images/zoshua-colah-1fradOPdjBM-unsplash.jpg",
+    "Mumbai": "/static/Landing Page images/hero-mumbai-harbor-boats.jpg",
+    "Delhi": "/static/Landing Page images/pexels-dibakar-roy-2432543-18192646.jpg",
+    "Bengaluru": "/static/Landing Page images/pexels-wanderinglenses-13670217.jpg",
+    "Kolkata": "/static/Landing Page images/hero-kolkata-taxi-reflection.jpg",
+    "Hyderabad": "/static/Landing Page images/hero-river-ghats-aerial-hd.jpg",
+};
+
+// Line-art Monument Sketches for the 6 Metros
+function CityMonumentIcon({ city, className = "w-6 h-6" }) {
+    if (city === "Chennai") {
+        // Temple Gopuram / Central Station Silhouette
+        return (
+            <svg className={className} viewBox="0 0 32 32" fill="none" stroke="currentColor" strokeWidth="1.2" strokeLinecap="round" strokeLinejoin="round">
+                <path d="M16 3l3 4h-6l3-4z" />
+                <path d="M12 7l-2 5h12l-2-5" />
+                <path d="M9 12l-2 6h18l-2-6" />
+                <path d="M6 18l-2 8h24l-2-8" />
+                <path d="M13 26v-4a3 3 0 0 1 6 0v4" />
+                <line x1="3" y1="29" x2="29" y2="29" />
+                <line x1="16" y1="2" x2="16" y2="3" />
+            </svg>
+        );
+    }
+    if (city === "Mumbai") {
+        // Gateway of India
+        return (
+            <svg className={className} viewBox="0 0 32 32" fill="none" stroke="currentColor" strokeWidth="1.2" strokeLinecap="round" strokeLinejoin="round">
+                <rect x="5" y="10" width="22" height="18" rx="1" />
+                <path d="M12 28v-9a4 4 0 0 1 8 0v9" />
+                <path d="M5 10l3-5h16l3 5" />
+                <circle cx="9" cy="7.5" r="1.5" />
+                <circle cx="23" cy="7.5" r="1.5" />
+                <line x1="3" y1="29" x2="29" y2="29" />
+                <line x1="12" y1="14" x2="20" y2="14" />
+            </svg>
+        );
+    }
+    if (city === "Delhi") {
+        // India Gate
+        return (
+            <svg className={className} viewBox="0 0 32 32" fill="none" stroke="currentColor" strokeWidth="1.2" strokeLinecap="round" strokeLinejoin="round">
+                <path d="M7 6h18v4H7z" />
+                <path d="M9 10v18M23 10v18" />
+                <path d="M12 28v-10a4 4 0 0 1 8 0v10" />
+                <line x1="5" y1="29" x2="27" y2="29" />
+                <path d="M11 6l1-2h8l1 2" />
+            </svg>
+        );
+    }
+    if (city === "Bengaluru") {
+        // Vidhana Soudha
+        return (
+            <svg className={className} viewBox="0 0 32 32" fill="none" stroke="currentColor" strokeWidth="1.2" strokeLinecap="round" strokeLinejoin="round">
+                <path d="M16 4a4 4 0 0 0-4 4h8a4 4 0 0 0-4-4z" />
+                <rect x="6" y="11" width="20" height="16" />
+                <path d="M13 27v-7a3 3 0 0 1 6 0v7" />
+                <line x1="10" y1="15" x2="10" y2="23" />
+                <line x1="22" y1="15" x2="22" y2="23" />
+                <line x1="3" y1="29" x2="29" y2="29" />
+            </svg>
+        );
+    }
+    if (city === "Kolkata") {
+        // Howrah Bridge
+        return (
+            <svg className={className} viewBox="0 0 32 32" fill="none" stroke="currentColor" strokeWidth="1.2" strokeLinecap="round" strokeLinejoin="round">
+                <path d="M4 25l6-16 6 6 6-6 6 16" />
+                <line x1="10" y1="9" x2="10" y2="25" />
+                <line x1="22" y1="9" x2="22" y2="25" />
+                <line x1="2" y1="25" x2="30" y2="25" />
+                <line x1="2" y1="28" x2="30" y2="28" strokeDasharray="2 2" />
+            </svg>
+        );
+    }
+    // Hyderabad - Charminar
+    return (
+        <svg className={className} viewBox="0 0 32 32" fill="none" stroke="currentColor" strokeWidth="1.2" strokeLinecap="round" strokeLinejoin="round">
+            <rect x="8" y="12" width="16" height="15" />
+            <path d="M12 27v-8a4 4 0 0 1 8 0v8" />
+            <path d="M7 6v21M25 6v21" />
+            <circle cx="7" cy="5" r="1.5" />
+            <circle cx="25" cy="5" r="1.5" />
+            <line x1="4" y1="29" x2="28" y2="29" />
+        </svg>
+    );
+}
 
 function CityWardOverview(props) {
     const {
@@ -1089,12 +1183,18 @@ function CityWardOverview(props) {
     } = props;
 
     const [riskFilter, setRiskFilter] = useState("ALL"); // 'ALL' | 'HIGH' | 'MODERATE' | 'LOW'
-    const [searchQuery, setSearchQuery] = useState("");
-    const [searchOpen, setSearchOpen] = useState(false);
-    const searchRef = useRef(null);
 
-    const cityList = ["Chennai", "Mumbai", "Delhi", "Bengaluru", "Kolkata", "Hyderabad"];
+    const cityList = [
+        { name: "Chennai", sub: "Adyar & Cooum" },
+        { name: "Mumbai", sub: "Mithi River" },
+        { name: "Delhi", sub: "Yamuna Floodplain" },
+        { name: "Bengaluru", sub: "Vrishabhavathi" },
+        { name: "Kolkata", sub: "Hooghly Basin" },
+        { name: "Hyderabad", sub: "Musi River" },
+    ];
+
     const activeCityProfile = CITY_PROFILES[selectedCity] || CITY_PROFILES["Chennai"];
+    const activeBackdrop = CITY_HERO_BACKDROPS[selectedCity] || CITY_HERO_BACKDROPS["Chennai"];
 
     // Filter wards for selected city
     const cityWards = useMemo(() => {
@@ -1105,7 +1205,7 @@ function CityWardOverview(props) {
     const filteredWards = useMemo(() => {
         if (riskFilter === "ALL") return cityWards;
         return cityWards.filter(([_, data]) => {
-            const r = data.riskLevel.toUpperCase();
+            const r = (data.riskLevel || "").toUpperCase();
             if (riskFilter === "HIGH") return r.includes("HIGH") || r.includes("CRITICAL");
             if (riskFilter === "MODERATE") return r.includes("MODERATE");
             if (riskFilter === "LOW") return r.includes("LOW");
@@ -1113,464 +1213,516 @@ function CityWardOverview(props) {
         });
     }, [cityWards, riskFilter]);
 
-    // Instant multi-city search index
-    const searchResults = useMemo(() => {
-        const q = searchQuery.trim().toLowerCase();
-        if (!q) return [];
-        const results = [];
-
-        cityList.forEach((c) => {
-            if (c.toLowerCase().includes(q)) {
-                results.push({
-                    type: "city",
-                    title: `${c} Metropole`,
-                    subtitle: `6-Metro Zone · ${CITY_PROFILES[c]?.basin || "Basin Area"}`,
-                    city: c,
-                    wardKey: Object.keys(WARDS_DATA).find((w) => WARDS_DATA[w].city === c),
-                });
-            }
-        });
-
-        Object.entries(WARDS_DATA).forEach(([wKey, data]) => {
-            if (data.name.toLowerCase().includes(q) || data.code.toLowerCase().includes(q) || data.riverName.toLowerCase().includes(q)) {
-                results.push({
-                    type: "ward",
-                    title: `${data.name} (${data.code})`,
-                    subtitle: `${data.city} · ${data.riverName}`,
-                    city: data.city,
-                    wardKey: wKey,
-                });
-            }
-        });
-
-        return results.slice(0, 8);
-    }, [searchQuery]);
-
-    const handleSelectSearchResult = (res) => {
-        if (res.city) setSelectedCity(res.city);
-        if (res.wardKey) setWard(res.wardKey);
-        setSearchQuery("");
-        setSearchOpen(false);
-        pushToast(`Navigated to ${res.title}`);
-    };
-
-    // Close search dropdown on click outside
-    useEffect(() => {
-        const handleClickOutside = (e) => {
-            if (searchRef.current && !searchRef.current.contains(e.target)) {
-                setSearchOpen(false);
-            }
-        };
-        document.addEventListener("mousedown", handleClickOutside);
-        return () => document.removeEventListener("mousedown", handleClickOutside);
-    }, []);
+    // Summary calculations for the city top metrics strip
+    const cityTotalRain = activeCityProfile.rainfall || "62 mm/h";
+    const cityActivePumps = activeCityProfile.activePumps || "49 / 54";
+    const cityWardsCount = cityWards.length || 6;
+    const cityHighRiskCount = cityWards.filter(([_, d]) => (d.riskLevel || "").includes("HIGH") || (d.riskLevel || "").includes("CRITICAL")).length || 4;
 
     return (
-        <div className="min-h-screen w-full bg-[#F8FAFC] text-slate-900 flex flex-col font-sans selection:bg-blue-600 selection:text-white antialiased overflow-hidden">
-            {/* TOP NAVIGATION BAR */}
-            <header className="h-16 bg-white border-b border-slate-200/90 px-5 sm:px-8 flex items-center justify-between gap-4 z-40 shrink-0 shadow-xs">
-                {/* Brand Logo & Subtitle */}
-                <div className="flex items-center gap-3">
+        <div className="min-h-screen w-full bg-[#EAE7DF] text-stone-800 flex flex-col font-sans selection:bg-stone-800 selection:text-white antialiased overflow-hidden">
+            {/* MAIN 3-PANEL VIEWPORT (Left Sidebar, Center Dashboard, Right Context Map) */}
+            <div className="flex-1 flex flex-col lg:flex-row w-full h-screen overflow-hidden">
+                
+                {/* ========================================================================= */}
+                {/* PANEL 1: LEFT SIDEBAR (Metropolitan Basins List)                          */}
+                {/* ========================================================================= */}
+                <aside className="w-full lg:w-[240px] bg-[#F7F5F0] border-r border-stone-300/70 flex flex-col h-full overflow-y-auto px-5 py-6 shrink-0 select-none">
+                    {/* Brand Logo -> Click to Return Home */}
                     <button
                         type="button"
                         onClick={onSwitchToHero}
-                        className="flex items-center gap-2.5 text-left group cursor-pointer"
-                        title="Return to Hero Landing Page"
+                        className="flex items-center gap-2.5 text-left group cursor-pointer mb-8"
+                        title="Return to Welcome Landing Page"
                     >
-                        <div className="w-9 h-9 rounded-xl bg-blue-600 flex items-center justify-center text-white shadow-sm group-hover:scale-105 transition-transform">
-                            <Droplets className="w-5 h-5 text-white fill-current" />
+                        <div className="w-7 h-7 flex items-center justify-center text-stone-900">
+                            <Droplets className="w-6 h-6 fill-stone-900 text-stone-900" />
                         </div>
-                        <div>
-                            <div className="flex items-center gap-2">
-                                <span className="text-[17px] font-extrabold text-slate-900 tracking-tight leading-tight group-hover:text-blue-600 transition-colors">
-                                    RainDrop GIS
-                                </span>
-                                <span className="px-2 py-0.5 rounded-full text-[9.5px] font-bold bg-blue-50 text-blue-700 border border-blue-200 uppercase tracking-wider">
-                                    Operations
-                                </span>
-                            </div>
-                            <p className="text-[10px] text-slate-400 font-medium tracking-wide">
-                                Metropolitan Flood Intelligence &amp; Real-Time Nowcast
-                            </p>
-                        </div>
-                    </button>
-                </div>
-
-                {/* Instant Search Bar */}
-                <div ref={searchRef} className="relative flex-1 max-w-md hidden md:block">
-                    <div className="relative">
-                        <input
-                            type="text"
-                            value={searchQuery}
-                            onChange={(e) => {
-                                setSearchQuery(e.target.value);
-                                setSearchOpen(true);
-                            }}
-                            onFocus={() => setSearchOpen(true)}
-                            placeholder="🔍 Search City, Ward, River basin, or Locality..."
-                            className="w-full pl-9 pr-8 py-2 rounded-full border border-slate-200 bg-slate-50 text-xs font-medium text-slate-800 placeholder-slate-400 focus:bg-white focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/20 shadow-inner transition-all"
-                        />
-                        <Search className="w-4 h-4 text-slate-400 absolute left-3 top-2.5 pointer-events-none" />
-                        {searchQuery && (
-                            <button
-                                onClick={() => {
-                                    setSearchQuery("");
-                                    setSearchOpen(false);
-                                }}
-                                className="absolute right-2.5 top-2.5 text-slate-400 hover:text-slate-600 cursor-pointer"
-                            >
-                                <X className="w-3.5 h-3.5" />
-                            </button>
-                        )}
-                    </div>
-
-                    {/* Search Dropdown */}
-                    {searchOpen && searchResults.length > 0 && (
-                        <div className="absolute left-0 right-0 mt-2 rounded-2xl border border-slate-200 bg-white shadow-2xl overflow-hidden z-50 divide-y divide-slate-100 max-h-80 overflow-y-auto animate-in fade-in zoom-in-95 duration-150">
-                            <div className="px-3.5 py-1.5 bg-slate-50 text-[10px] font-bold uppercase tracking-wider text-slate-400 font-mono flex items-center justify-between">
-                                <span>Matching Metros &amp; Wards</span>
-                                <span>{searchResults.length} results</span>
-                            </div>
-                            {searchResults.map((res, i) => (
-                                <div
-                                    key={i}
-                                    onClick={() => handleSelectSearchResult(res)}
-                                    className="p-3 hover:bg-blue-50/70 transition-colors cursor-pointer flex items-center justify-between gap-3 group"
-                                >
-                                    <div>
-                                        <span className="text-xs font-bold text-slate-900 group-hover:text-blue-700 block">
-                                            {res.title}
-                                        </span>
-                                        <span className="text-[11px] text-slate-500 block">{res.subtitle}</span>
-                                    </div>
-                                    <ArrowRight className="w-3.5 h-3.5 text-slate-400 group-hover:text-blue-600 transition-transform group-hover:translate-x-0.5" />
-                                </div>
-                            ))}
-                        </div>
-                    )}
-                </div>
-
-                {/* Right Telemetry Details & CTA Buttons */}
-                <div className="flex items-center gap-3">
-                    {/* Live Telemetry Radar Sync Pill */}
-                    <div
-                        className="hidden sm:flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-emerald-50 border border-emerald-200/80 text-emerald-700 text-xs font-semibold shadow-2xs"
-                        title="Open-Meteo & IMD Doppler Radar Synchronized"
-                    >
-                        <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
-                        <span className="font-mono text-[11px]">IMD Radar Live</span>
-                    </div>
-
-                    {/* Real-Time Clock */}
-                    <div className="hidden lg:flex items-center gap-1.5 text-xs text-slate-600 bg-slate-50 px-3 py-1.5 rounded-full border border-slate-200 shadow-2xs font-mono">
-                        <Clock className="w-3.5 h-3.5 text-blue-600" />
-                        <span>{currentTime.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' })}</span>
-                    </div>
-
-                    {/* PRIMARY ACTION: Open Full GIS Map View Button */}
-                    <button
-                        type="button"
-                        onClick={() => onOpenMap(ward, selectedCity)}
-                        className="flex items-center gap-2 px-5 py-2 rounded-full bg-[#0F172A] hover:bg-[#1E293B] text-white text-xs font-bold transition-all shadow-md shadow-slate-900/10 hover:shadow-lg cursor-pointer group"
-                    >
-                        <span>🗺️ Open GIS Map View</span>
-                        <ArrowRight className="w-3.5 h-3.5 group-hover:translate-x-0.5 transition-transform" />
-                    </button>
-                </div>
-            </header>
-
-            {/* MAIN 3:7 SPLIT SCREEN CONTAINER */}
-            <div className="flex-1 flex flex-col lg:flex-row w-full h-[calc(100vh-64px)] overflow-hidden">
-                {/* ========================================================================= */}
-                {/* LEFT 30% SCREEN: METROPOLITAN CITY LIST PANEL                              */}
-                {/* ========================================================================= */}
-                <aside className="w-full lg:w-[28%] min-w-[300px] max-w-[380px] bg-slate-50/70 border-r border-slate-200/90 flex flex-col h-full overflow-hidden shrink-0 select-none">
-                    {/* Left Header */}
-                    <div className="p-4 border-b border-slate-200/80 bg-white flex items-center justify-between">
-                        <div>
-                            <span className="text-[10px] uppercase font-bold text-slate-400 tracking-wider block">
-                                METROPOLITAN HUBS
-                            </span>
-                            <h2 className="text-sm font-extrabold text-slate-900 mt-0.5">
-                                Select City
-                            </h2>
-                        </div>
-                        <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-blue-50 text-blue-700 border border-blue-200/80">
-                            6 Metros Live
+                        <span className="text-xl font-bold font-serif tracking-tight text-stone-900">
+                            RainDrop
                         </span>
+                    </button>
+
+                    {/* Section Header */}
+                    <div className="mb-4">
+                        <h2 className="text-sm font-semibold text-stone-900">
+                            Metropolitan Basins
+                        </h2>
+                        <p className="text-xs text-stone-500 mt-0.5">
+                            Select a city to view analysis
+                        </p>
                     </div>
 
-                    {/* Scrollable City Cards List */}
-                    <div className="flex-1 overflow-y-auto p-3.5 space-y-2.5">
-                        {cityList.map((cityName) => {
-                            const prof = CITY_PROFILES[cityName] || {};
-                            const isSelected = selectedCity.toLowerCase() === cityName.toLowerCase();
-                            const wardCount = Object.values(WARDS_DATA).filter((w) => w.city.toLowerCase() === cityName.toLowerCase()).length;
-
+                    {/* City List Items */}
+                    <div className="space-y-1.5 flex-1">
+                        {cityList.map((cityObj) => {
+                            const isSelected = selectedCity.toLowerCase() === cityObj.name.toLowerCase();
                             return (
                                 <div
-                                    key={cityName}
+                                    key={cityObj.name}
                                     onClick={() => {
-                                        setSelectedCity(cityName);
-                                        const cityWards = Object.keys(WARDS_DATA).filter((w) => WARDS_DATA[w].city.toLowerCase() === cityName.toLowerCase());
-                                        const firstWard = cityWards[0] || Object.keys(WARDS_DATA)[0];
+                                        setSelectedCity(cityObj.name);
+                                        const cityWardsList = Object.keys(WARDS_DATA).filter((w) => WARDS_DATA[w].city.toLowerCase() === cityObj.name.toLowerCase());
+                                        const firstWard = cityWardsList[0] || Object.keys(WARDS_DATA)[0];
                                         setWard(firstWard);
-                                        loadWardForecast(firstWard, cityName);
-                                        pushToast(`Switched active metro to ${cityName}`);
+                                        loadWardForecast(firstWard, cityObj.name);
+                                        pushToast(`Active basin: ${cityObj.name}`);
                                     }}
-                                    className={`p-3.5 rounded-xl border transition-all duration-150 cursor-pointer relative ${
+                                    className={`p-3 rounded-xl transition-all duration-150 cursor-pointer flex items-center justify-between gap-3 ${
                                         isSelected
-                                            ? "city-item-active bg-white border-blue-500 ring-2 ring-blue-500/20 text-slate-900"
-                                            : "bg-white/90 border-slate-200/80 hover:border-slate-300 hover:bg-white text-slate-700 shadow-2xs"
+                                            ? "bg-[#EEF5F1] text-stone-900 border-l-[3px] border-[#2D7A58] shadow-2xs"
+                                            : "hover:bg-stone-200/60 text-stone-700"
                                     }`}
                                 >
-                                    {/* Top Row: Name & Risk Badge */}
-                                    <div className="flex items-center justify-between gap-2">
-                                        <div className="flex items-center gap-2">
-                                            <h3 className={`text-sm font-bold tracking-tight ${isSelected ? "text-blue-950 font-extrabold" : "text-slate-900"}`}>
-                                                {cityName}
+                                    <div className="flex items-center gap-3 min-w-0">
+                                        <div className={`p-1 rounded-lg shrink-0 ${isSelected ? "text-[#2D7A58]" : "text-stone-400"}`}>
+                                            <CityMonumentIcon city={cityObj.name} className="w-5 h-5" />
+                                        </div>
+                                        <div className="truncate">
+                                            <h3 className={`text-xs font-semibold leading-snug truncate ${isSelected ? "text-stone-900" : "text-stone-800"}`}>
+                                                {cityObj.name}
                                             </h3>
-                                            <span className="text-[10px] font-medium text-slate-400">
-                                                {prof.state}
+                                            <span className="text-[11px] text-stone-500 block truncate">
+                                                {cityObj.sub}
                                             </span>
                                         </div>
-
-                                        <span className={`text-[9px] font-bold px-2 py-0.5 rounded-full border shrink-0 ${prof.riskColor}`}>
-                                            {prof.risk}
-                                        </span>
                                     </div>
 
-                                    {/* Basin Subtitle */}
-                                    <p className="text-[11px] text-slate-500 mt-1 truncate">
-                                        {prof.basin}
-                                    </p>
-
-                                    {/* Vital Stats Strip */}
-                                    <div className="grid grid-cols-3 gap-1.5 mt-2.5 pt-2 border-t border-slate-100 text-xs">
-                                        <div>
-                                            <span className="text-[9px] text-slate-400 uppercase font-semibold block">Rainfall</span>
-                                            <span className="font-mono font-bold text-[11.5px] text-slate-800">{prof.rainfall}</span>
-                                        </div>
-                                        <div>
-                                            <span className="text-[9px] text-slate-400 uppercase font-semibold block">Pumps</span>
-                                            <span className="font-mono font-bold text-[11.5px] text-slate-800">{prof.activePumps}</span>
-                                        </div>
-                                        <div>
-                                            <span className="text-[9px] text-slate-400 uppercase font-semibold block">Wards</span>
-                                            <span className="font-mono font-bold text-[11.5px] text-slate-800">{wardCount} Zones</span>
-                                        </div>
-                                    </div>
+                                    {isSelected && (
+                                        <ArrowRight className="w-4 h-4 text-[#2D7A58] shrink-0 mr-0.5" />
+                                    )}
                                 </div>
                             );
                         })}
-                    </div>
-
-                    {/* Left Bottom Summary Badge */}
-                    <div className="p-3 border-t border-slate-200/80 bg-white flex items-center justify-between text-[11px] text-slate-500">
-                        <span className="font-medium">Total Monitoring Grid:</span>
-                        <strong className="text-slate-800 font-mono">12 Wards · 60 Hotspots</strong>
                     </div>
                 </aside>
 
                 {/* ========================================================================= */}
-                {/* RIGHT 70% SCREEN: WARD TILES GRID & DETAIL SUMMARY DECK                    */}
+                {/* PANEL 2: CENTER MAIN DASHBOARD (Hero Card, KPIs, Ward Cards)              */}
                 {/* ========================================================================= */}
-                <main className="w-full lg:w-[72%] flex-1 bg-[#F8FAFC] flex flex-col h-full overflow-y-auto p-5 sm:p-6 space-y-5">
-                    {/* Selected City Header Banner */}
-                    <div className="bg-white rounded-2xl border border-slate-200/90 p-4.5 shadow-2xs flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3.5">
-                        <div>
-                            <div className="flex items-center gap-2">
-                                <h1 className="text-lg font-bold text-slate-900 tracking-tight">
-                                    {selectedCity} Municipal Wards Overview
-                                </h1>
-                                <span className={`text-[9.5px] font-bold px-2 py-0.5 rounded-full border ${activeCityProfile.riskColor}`}>
-                                    {activeCityProfile.risk}
-                                </span>
+                <main className="flex-1 bg-[#EAE7DF] flex flex-col h-full overflow-y-auto px-6 py-5 space-y-5">
+                    {/* Top Navigation Bar Header */}
+                    <div className="flex items-center justify-between gap-4 pb-2 border-b border-stone-300/70 shrink-0">
+                        {/* Nav Links */}
+                        <nav className="flex items-center gap-6 text-xs">
+                            <button
+                                type="button"
+                                className="font-semibold text-stone-900 border-b-2 border-stone-900 pb-1 cursor-pointer"
+                            >
+                                Overview
+                            </button>
+                            <button
+                                type="button"
+                                onClick={() => onOpenMap(ward, selectedCity)}
+                                className="text-stone-600 hover:text-stone-900 pb-1 transition-colors cursor-pointer"
+                            >
+                                Live Map
+                            </button>
+                            <button
+                                type="button"
+                                onClick={() => onOpenMap(ward, selectedCity)}
+                                className="text-stone-600 hover:text-stone-900 pb-1 transition-colors cursor-pointer"
+                            >
+                                Data Layers
+                            </button>
+                            <button
+                                type="button"
+                                onClick={() => onOpenSitRep(ward)}
+                                className="text-stone-600 hover:text-stone-900 pb-1 transition-colors cursor-pointer"
+                            >
+                                Insights
+                            </button>
+                        </nav>
+
+                        {/* Right: Radar Live, Clock & Dedicated Home Button */}
+                        <div className="flex items-center gap-4">
+                            {/* Radar Live Status Pill */}
+                            <div className="flex items-center gap-1.5 text-xs text-[#166534] font-medium font-mono">
+                                <span className="w-2 h-2 rounded-full bg-[#15803D] animate-pulse" />
+                                <span>Radar Live</span>
                             </div>
-                            <p className="text-xs text-slate-500 mt-0.5 leading-relaxed">
+
+                            {/* Clock */}
+                            <div className="hidden sm:flex items-center gap-1 text-xs text-stone-600 font-mono">
+                                <Clock className="w-3.5 h-3.5 text-stone-500" />
+                                <span>{currentTime.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' })}</span>
+                            </div>
+
+                            {/* DEDICATED HOME BUTTON -> Leads directly to Landing Page */}
+                            <button
+                                type="button"
+                                onClick={onSwitchToHero}
+                                className="flex items-center gap-1.5 px-3.5 py-1.5 rounded-lg bg-stone-900 hover:bg-stone-800 text-white text-xs font-medium transition-all shadow-2xs cursor-pointer"
+                                title="Return to Landing Page"
+                            >
+                                <Home className="w-3.5 h-3.5 text-white" />
+                                <span>Home</span>
+                            </button>
+                        </div>
+                    </div>
+
+                    {/* HERO CITY BANNER CARD (Properly Fitted Image with Crystal-Clear Contrast) */}
+                    <div className="rounded-2xl overflow-hidden relative shadow-md border border-stone-300/80 min-h-[200px] h-[200px] w-full flex items-center justify-between p-7 text-white select-none shrink-0">
+                        {/* Background Backdrop Image with Exact Cover Fit */}
+                        <img
+                            src={activeBackdrop}
+                            alt={`${selectedCity} Coastal Basin`}
+                            className="absolute inset-0 w-full h-full object-cover object-center transform scale-100 filter brightness-90 contrast-105"
+                        />
+                        {/* Dark Gradient Vignette Overlay for High Readability */}
+                        <div className="absolute inset-0 bg-gradient-to-r from-stone-950/90 via-stone-950/65 to-stone-950/35" />
+
+                        {/* Left Banner Copy */}
+                        <div className="relative z-10 max-w-xl">
+                            <span className="text-[10px] uppercase font-mono tracking-[0.25em] text-stone-300 font-medium block">
+                                {selectedCity.toUpperCase()}
+                            </span>
+                            <h1 className="text-3xl sm:text-4xl font-serif font-normal text-white mt-1 leading-tight tracking-tight">
+                                {activeCityProfile.basin || `${selectedCity} River Basins`}
+                            </h1>
+                            <p className="text-xs text-stone-200/90 mt-2 font-light leading-relaxed max-w-md">
                                 {activeCityProfile.description}
                             </p>
                         </div>
 
-                        {/* Quick Risk Filters */}
-                        <div className="flex items-center gap-1 bg-slate-100/90 p-1 rounded-xl border border-slate-200/80 shrink-0">
-                            {["ALL", "HIGH", "MODERATE", "LOW"].map((flt) => {
-                                const label = flt === "ALL" ? "All Wards" : `${flt.charAt(0) + flt.slice(1).toLowerCase()}`;
+                        {/* Right Weather Overlay */}
+                        <div className="relative z-10 hidden sm:flex items-center gap-3.5 pl-6 border-l border-white/20">
+                            <CloudRain className="w-8 h-8 text-white stroke-[1.5]" />
+                            <div className="text-left">
+                                <span className="text-2xl font-bold font-mono text-white block tracking-tight">
+                                    {cityTotalRain}
+                                </span>
+                                <span className="text-[11px] text-stone-300 font-light block">
+                                    Current Rainfall
+                                </span>
+                                <span className="text-[10px] text-stone-400 font-light block">
+                                    (IMD Doppler Radar)
+                                </span>
+                            </div>
+                        </div>
+                    </div>
+
+                    {/* 4 KPI METRIC TILES */}
+                    <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+                        {/* KPI 1: Rainfall Rate */}
+                        <div className="bg-white p-4 rounded-xl border border-stone-200/90 shadow-[0_1px_3px_rgba(0,0,0,0.03)] flex items-center justify-between gap-3">
+                            <div className="flex items-center gap-3">
+                                <div className="p-2 rounded-lg bg-stone-50 text-stone-700">
+                                    <CloudRain className="w-5 h-5 text-stone-700 stroke-[1.5]" />
+                                </div>
+                                <div>
+                                    <span className="text-base font-bold font-mono text-stone-900 block leading-tight">
+                                        {cityTotalRain}
+                                    </span>
+                                    <span className="text-[11px] text-stone-500 block mt-0.5">
+                                        Rainfall Rate
+                                    </span>
+                                </div>
+                            </div>
+                            {/* Mini sparkline bar graphic */}
+                            <div className="flex items-end gap-0.5 h-6 opacity-60">
+                                <div className="w-1 bg-stone-300 h-2 rounded-t" />
+                                <div className="w-1 bg-stone-300 h-3 rounded-t" />
+                                <div className="w-1 bg-stone-400 h-4 rounded-t" />
+                                <div className="w-1 bg-stone-500 h-5 rounded-t" />
+                                <div className="w-1 bg-stone-700 h-6 rounded-t" />
+                            </div>
+                        </div>
+
+                        {/* KPI 2: Drainage Pumps */}
+                        <div className="bg-white p-4 rounded-xl border border-stone-200/90 shadow-[0_1px_3px_rgba(0,0,0,0.03)] flex items-center justify-between gap-3">
+                            <div className="flex items-center gap-3">
+                                <div className="p-2 rounded-lg bg-stone-50 text-stone-700">
+                                    <Activity className="w-5 h-5 text-stone-700 stroke-[1.5]" />
+                                </div>
+                                <div>
+                                    <span className="text-base font-bold font-mono text-stone-900 block leading-tight">
+                                        {cityActivePumps}
+                                    </span>
+                                    <span className="text-[11px] text-stone-500 block mt-0.5">
+                                        Drainage Pumps
+                                    </span>
+                                </div>
+                            </div>
+                            <span className="text-[10px] font-medium text-[#166534] bg-emerald-50 px-2 py-0.5 rounded-full flex items-center gap-1 border border-emerald-200/60">
+                                <span className="w-1.5 h-1.5 rounded-full bg-[#15803D]" />
+                                Active
+                            </span>
+                        </div>
+
+                        {/* KPI 3: High Risk Zones */}
+                        <div className="bg-white p-4 rounded-xl border border-stone-200/90 shadow-[0_1px_3px_rgba(0,0,0,0.03)] flex items-center justify-between gap-3">
+                            <div className="flex items-center gap-3">
+                                <div className="p-2 rounded-lg bg-stone-50 text-stone-700">
+                                    <Waves className="w-5 h-5 text-stone-700 stroke-[1.5]" />
+                                </div>
+                                <div>
+                                    <span className="text-base font-bold font-mono text-stone-900 block leading-tight">
+                                        {cityHighRiskCount} of {cityWardsCount}
+                                    </span>
+                                    <span className="text-[11px] text-stone-500 block mt-0.5">
+                                        High Risk Zones
+                                    </span>
+                                </div>
+                            </div>
+                            {/* Mini wave stroke */}
+                            <svg className="w-8 h-4 text-stone-400" viewBox="0 0 32 16" fill="none" stroke="currentColor" strokeWidth="1.5">
+                                <path d="M0 8 Q8 2, 16 8 T32 8" />
+                            </svg>
+                        </div>
+
+                        {/* KPI 4: Terrain Resolution */}
+                        <div className="bg-white p-4 rounded-xl border border-stone-200/90 shadow-[0_1px_3px_rgba(0,0,0,0.03)] flex items-center justify-between gap-3">
+                            <div className="flex items-center gap-3">
+                                <div className="p-2 rounded-lg bg-stone-50 text-stone-700">
+                                    <MapPin className="w-5 h-5 text-stone-700 stroke-[1.5]" />
+                                </div>
+                                <div>
+                                    <span className="text-base font-bold font-mono text-stone-900 block leading-tight">
+                                        30 m
+                                    </span>
+                                    <span className="text-[11px] text-stone-500 block mt-0.5">
+                                        Terrain Resolution
+                                    </span>
+                                </div>
+                            </div>
+                            <span className="text-[10px] text-stone-500 font-mono">
+                                CartoDEM (Sub-meter)
+                            </span>
+                        </div>
+                    </div>
+
+                    {/* WARD LEVEL RISK SECTION */}
+                    <div className="space-y-4">
+                        {/* Section Header with Risk Filter Tabs */}
+                        <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
+                            <div>
+                                <h2 className="text-2xl font-serif font-normal text-stone-900">
+                                    Ward Level Risk
+                                </h2>
+                                <p className="text-xs text-stone-500 mt-0.5">
+                                    Projected flood depth across {selectedCity}'s {cityWardsCount} zones
+                                </p>
+                            </div>
+
+                            {/* Pill Filters */}
+                            <div className="flex items-center gap-1 bg-stone-300/50 p-1 rounded-full border border-stone-300/70 text-xs">
+                                {["ALL", "HIGH", "MODERATE", "LOW"].map((flt) => {
+                                    const label = flt === "ALL" ? "All Wards" : flt.charAt(0) + flt.slice(1).toLowerCase();
+                                    const isFltActive = riskFilter === flt;
+                                    return (
+                                        <button
+                                            key={flt}
+                                            type="button"
+                                            onClick={() => setRiskFilter(flt)}
+                                            className={`px-3 py-1 rounded-full text-xs transition-all cursor-pointer ${
+                                                isFltActive
+                                                    ? "bg-white text-stone-900 shadow-2xs font-semibold"
+                                                    : "text-stone-600 hover:text-stone-900"
+                                            }`}
+                                        >
+                                            {label}
+                                        </button>
+                                    );
+                                })}
+                            </div>
+                        </div>
+
+                        {/* 3-Column Responsive Ward Cards Grid */}
+                        <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
+                            {filteredWards.map(([wKey, data]) => {
+                                const isCurrentWard = ward === wKey;
+                                const maxDepth = data.sectors ? Math.max(...data.sectors.map(s => s.baseDepth || 0)) : 48;
+                                const isCritical = maxDepth >= 40 || (data.riskLevel || "").includes("HIGH") || (data.riskLevel || "").includes("CRITICAL");
+                                const isModerate = maxDepth >= 25 && maxDepth < 40;
+
                                 return (
-                                    <button
-                                        key={flt}
-                                        type="button"
-                                        onClick={() => setRiskFilter(flt)}
-                                        className={`px-3 py-1 rounded-lg text-xs font-semibold transition-all cursor-pointer ${
-                                            riskFilter === flt
-                                                ? "bg-white text-blue-700 shadow-2xs font-bold"
-                                                : "text-slate-600 hover:text-slate-900 hover:bg-white/50"
+                                    <div
+                                        key={wKey}
+                                        onClick={() => {
+                                            setWard(wKey);
+                                            loadWardForecast(wKey, selectedCity);
+                                        }}
+                                        className={`bg-white rounded-2xl border p-5 flex flex-col justify-between gap-4 transition-all duration-200 cursor-pointer shadow-[0_1px_3px_rgba(0,0,0,0.03)] hover:shadow-md ${
+                                            isCurrentWard
+                                                ? "border-stone-800 ring-2 ring-stone-900/10"
+                                                : "border-stone-200/90 hover:border-stone-400"
                                         }`}
                                     >
-                                        {label}
-                                    </button>
+                                        {/* Top Row: Ward Name & Pill Badge */}
+                                        <div className="flex items-start justify-between gap-3">
+                                            <div>
+                                                <h3 className="text-sm font-semibold text-stone-900 leading-snug">
+                                                    {data.name}
+                                                </h3>
+                                                <span className="text-xs text-stone-500 block mt-0.5">
+                                                    {data.code} · {data.sectors?.length || 5} Sectors
+                                                </span>
+                                            </div>
+
+                                            <span className={`text-[11px] font-medium px-2.5 py-0.5 rounded-full shrink-0 border ${
+                                                isCritical
+                                                    ? "bg-[#FDF2E9] text-[#B95D1E] border-[#FCE3CF]"
+                                                    : isModerate
+                                                    ? "bg-[#FDF6ED] text-[#C07E38] border-[#FBECD9]"
+                                                    : "bg-[#EEF7EE] text-[#3D7A46] border-[#DCF2DC]"
+                                            }`}>
+                                                {isCritical ? "High" : isModerate ? "Moderate" : "Low"}
+                                            </span>
+                                        </div>
+
+                                        {/* Middle Gauge: Depth Metric & Progress Bar */}
+                                        <div className="space-y-2">
+                                            <div className="flex items-center justify-between text-xs">
+                                                <span className="text-stone-500 font-normal">Projected Flood Depth</span>
+                                                <span className="font-bold font-mono text-sm text-stone-900">
+                                                    ~{maxDepth} cm
+                                                </span>
+                                            </div>
+
+                                            <div className="w-full h-2 rounded-full bg-stone-100 overflow-hidden border border-stone-200/50">
+                                                <div
+                                                    className={`h-full rounded-full transition-all duration-300 ${
+                                                        isCritical ? "bg-[#B95D1E]" : isModerate ? "bg-[#C07E38]" : "bg-[#3D7A46]"
+                                                    }`}
+                                                    style={{ width: `${Math.min(100, (maxDepth / 60) * 100)}%` }}
+                                                />
+                                            </div>
+                                        </div>
+
+                                        {/* Bottom Telemetry & Navigation Row */}
+                                        <div className="flex items-center justify-between gap-3 pt-2 border-t border-stone-100 text-xs">
+                                            {/* River Basin */}
+                                            <div className="flex items-center gap-2 min-w-0">
+                                                <Waves className="w-4 h-4 text-stone-500 shrink-0 stroke-[1.5]" />
+                                                <div className="truncate">
+                                                    <span className="font-medium text-stone-800 truncate block text-[11px]">
+                                                        {data.riverName}
+                                                    </span>
+                                                    <span className="text-[10px] text-stone-500 font-mono block">
+                                                        {data.riverLevel}m / {data.dangerLevel}m
+                                                    </span>
+                                                </div>
+                                            </div>
+
+                                            {/* Pumps & Shelters */}
+                                            <div className="flex items-center gap-2 min-w-0">
+                                                <Home className="w-4 h-4 text-stone-500 shrink-0 stroke-[1.5]" />
+                                                <div className="truncate">
+                                                    <span className="font-medium text-stone-800 block text-[11px]">
+                                                        Pumps &amp; Shelters
+                                                    </span>
+                                                    <span className="text-[10px] text-stone-500 block truncate">
+                                                        {data.activePumps} Active
+                                                    </span>
+                                                </div>
+                                            </div>
+
+                                            {/* Right Circular Arrow Button -> Opens GIS Map for this ward */}
+                                            <button
+                                                type="button"
+                                                onClick={(e) => {
+                                                    e.stopPropagation();
+                                                    setWard(wKey);
+                                                    onOpenMap(wKey, selectedCity);
+                                                }}
+                                                className="w-7 h-7 rounded-full bg-stone-100 hover:bg-stone-900 hover:text-white text-stone-700 flex items-center justify-center transition-colors cursor-pointer shrink-0 shadow-2xs"
+                                                title={`View ${data.name} on GIS Map`}
+                                            >
+                                                <ChevronRight className="w-4 h-4" />
+                                            </button>
+                                        </div>
+                                    </div>
                                 );
                             })}
                         </div>
                     </div>
+                </main>
 
-                    {/* RESPONSIVE WARD TILES GRID */}
-                    <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4 lg:gap-5">
-                        {filteredWards.map(([wKey, data]) => {
-                            const isCurrentWard = ward === wKey;
-                            const maxDepth = data.sectors ? Math.max(...data.sectors.map(s => s.baseDepth || 0)) : 30;
-                            const isCritical = maxDepth >= 30 || data.riskLevel.includes("HIGH") || data.riskLevel.includes("CRITICAL");
-                            const isModerate = maxDepth >= 15 && maxDepth < 30;
-
-                            return (
-                                <div
-                                    key={wKey}
-                                    className={`ward-tile-card p-4 flex flex-col justify-between gap-3.5 group cursor-pointer ${
-                                        isCurrentWard ? "ring-2 ring-blue-500/30 border-blue-400 shadow-sm" : ""
-                                    }`}
-                                >
-                                    {/* Ward Header */}
-                                    <div className="flex items-start justify-between gap-2 border-b border-slate-100 pb-2.5">
-                                        <div>
-                                            <div className="flex items-center gap-1.5">
-                                                <h3 className="text-sm font-bold text-slate-900 group-hover:text-blue-600 transition-colors">
-                                                    {data.name}
-                                                </h3>
-                                                {isCurrentWard && (
-                                                    <span className="w-2 h-2 rounded-full bg-blue-600" title="Active Focus Ward" />
-                                                )}
-                                            </div>
-                                            <span className="text-[10px] font-mono text-slate-400 block mt-0.5">
-                                                {data.code} · {data.sectors?.length || 0} Sectors
-                                            </span>
-                                        </div>
-
-                                        <span className={`text-[9px] font-extrabold px-2 py-0.5 rounded-full border shrink-0 ${
-                                            isCritical
-                                                ? "bg-rose-50 text-rose-700 border-rose-200"
-                                                : isModerate
-                                                ? "bg-amber-50 text-amber-700 border-amber-200"
-                                                : "bg-emerald-50 text-emerald-700 border-emerald-200"
-                                        }`}>
-                                            {data.riskLevel.replace(" RISK", "")} RISK
-                                        </span>
-                                    </div>
-
-                                    {/* Flood Depth Metric Gauge */}
-                                    <div className="space-y-1">
-                                        <div className="flex items-center justify-between text-xs">
-                                            <span className="text-[11px] font-medium text-slate-500">Projected Flood Depth</span>
-                                            <span className={`font-mono font-extrabold text-sm ${
-                                                isCritical ? "text-rose-600" : isModerate ? "text-amber-600" : "text-emerald-600"
-                                            }`}>
-                                                ~{maxDepth} cm
-                                            </span>
-                                        </div>
-
-                                        {/* Slim Progress Depth Bar */}
-                                        <div className="w-full h-1.5 rounded-full bg-slate-100 overflow-hidden">
-                                            <div
-                                                className={`h-full rounded-full transition-all duration-300 ${
-                                                    maxDepth >= 30 ? "bg-rose-500" : maxDepth >= 15 ? "bg-amber-500" : "bg-emerald-500"
-                                                }`}
-                                                style={{ width: `${Math.min(100, (maxDepth / 60) * 100)}%` }}
-                                            />
-                                        </div>
-
-                                        <div className="flex items-center justify-between text-[10px] text-slate-400">
-                                            <span className={isCritical ? "text-rose-600 font-semibold" : isModerate ? "text-amber-600 font-semibold" : "text-emerald-600 font-semibold"}>
-                                                {maxDepth >= 30 ? "⚠️ Impassable Roadways" : maxDepth >= 15 ? "Caution (15-30cm)" : "Passable (<15cm)"}
-                                            </span>
-                                            <span>Max 60cm</span>
-                                        </div>
-                                    </div>
-
-                                    {/* Hydro Vital Metrics Strip */}
-                                    <div className="grid grid-cols-2 gap-2 bg-slate-50 p-2.5 rounded-xl border border-slate-100/90 text-xs">
-                                        <div>
-                                            <span className="text-[9px] text-slate-400 uppercase font-bold tracking-wider block">
-                                                River / Basin
-                                            </span>
-                                            <span className="font-semibold text-slate-800 truncate block text-[11px] mt-0.5" title={data.riverName}>
-                                                {data.riverName}
-                                            </span>
-                                            <span className="text-[9.5px] text-slate-500 font-mono">
-                                                {data.riverLevel}m / {data.dangerLevel}m
-                                            </span>
-                                        </div>
-
-                                        <div>
-                                            <span className="text-[9px] text-slate-400 uppercase font-bold tracking-wider block">
-                                                Pumps &amp; Shelters
-                                            </span>
-                                            <span className="font-semibold text-slate-800 block text-[11px] mt-0.5">
-                                                ⚡ {data.activePumps} Active
-                                            </span>
-                                            <span className="text-[9.5px] text-slate-500">
-                                                🏥 {data.evacShelters}
-                                            </span>
-                                        </div>
-                                    </div>
-
-                                    {/* Action Buttons */}
-                                    <div className="flex items-center gap-2 pt-1">
-                                        <button
-                                            type="button"
-                                            onClick={(e) => {
-                                                e.stopPropagation();
-                                                setWard(wKey);
-                                                onOpenMap(wKey, selectedCity);
-                                            }}
-                                            className="flex-1 flex items-center justify-center gap-1 py-1.5 px-3 rounded-lg bg-blue-600 hover:bg-blue-700 text-white text-xs font-bold transition-colors shadow-2xs cursor-pointer"
-                                        >
-                                            <span>View on Map</span>
-                                            <ArrowRight className="w-3 h-3" />
-                                        </button>
-
-                                        <button
-                                            type="button"
-                                            onClick={(e) => {
-                                                e.stopPropagation();
-                                                onOpenSitRep(wKey);
-                                            }}
-                                            className="flex items-center justify-center gap-1 py-1.5 px-2.5 rounded-lg border border-slate-200 bg-white hover:bg-slate-50 text-slate-600 text-xs font-semibold transition-colors cursor-pointer shadow-2xs"
-                                            title="View Situation Report"
-                                        >
-                                            <FileText className="w-3 h-3 text-slate-400" />
-                                            <span>SitRep</span>
-                                        </button>
-                                    </div>
-                                </div>
-                            );
-                        })}
+                {/* ========================================================================= */}
+                {/* PANEL 3: RIGHT HIGH-CONTRAST WATERSHED TOPOGRAPHY RADAR (230px)           */}
+                {/* ========================================================================= */}
+                <aside className="w-full lg:w-[230px] bg-[#F7F5F0] border-l border-stone-300/70 hidden xl:flex flex-col justify-between p-5 shrink-0 select-none">
+                    {/* Top Panel Header */}
+                    <div>
+                        <div className="flex items-center justify-between mb-1">
+                            <span className="text-[10px] font-mono uppercase font-semibold text-stone-500 tracking-wider">
+                                BASIN WATERSHED GIS
+                            </span>
+                            <div className="w-5 h-5 rounded-full bg-emerald-50 text-[#15803D] flex items-center justify-center border border-emerald-200">
+                                <Navigation className="w-3 h-3 rotate-45" />
+                            </div>
+                        </div>
+                        <h3 className="text-sm font-semibold text-stone-900">
+                            {selectedCity} Hydro-Grid
+                        </h3>
+                        <p className="text-[11px] text-stone-500 mt-0.5">
+                            Real-time 30m CartoDEM elevation
+                        </p>
                     </div>
 
-                    {/* BOTTOM INTEGRATED SUMMARY INFO DECK */}
-                    <div className="rounded-2xl p-4 bg-slate-900 text-white border border-slate-800 shadow-md flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 mt-auto">
-                        <div className="flex items-center gap-2.5">
-                            <div className="w-7 h-7 rounded-lg bg-blue-600/30 text-blue-400 border border-blue-500/40 flex items-center justify-center shrink-0">
-                                <Activity className="w-3.5 h-3.5 text-blue-400" />
+                    {/* High-Contrast Interactive Vector Terrain & River Matrix */}
+                    <div className="my-4 bg-white rounded-xl border border-stone-300/80 p-3 shadow-2xs relative overflow-hidden flex flex-col items-center">
+                        <svg className="w-full h-48" viewBox="0 0 160 200" fill="none" xmlns="http://www.w3.org/2000/svg">
+                            {/* Background Terrain Elevation Contour Rings */}
+                            <path d="M20 30 C50 15, 110 20, 140 45 C155 70, 130 110, 145 150 C155 175, 130 190, 90 195 C40 200, 15 170, 10 130 C5 80, 5 40, 20 30 Z" fill="#F4F8F5" stroke="#CBD5E1" strokeWidth="1" />
+                            <path d="M35 50 C60 40, 100 45, 120 65 C135 85, 115 115, 125 140 C130 155, 110 170, 80 175 C45 180, 25 155, 20 120 C15 80, 20 55, 35 50 Z" fill="#E8F1EC" stroke="#94A3B8" strokeWidth="1" strokeDasharray="2 2" />
+                            
+                            {/* Main River Arteries (High-Contrast Teal & Sky) */}
+                            <path d="M10 70 Q50 85, 85 95 T150 100" stroke="#0284C7" strokeWidth="2.5" strokeLinecap="round" />
+                            <path d="M25 130 Q60 135, 95 145 T145 155" stroke="#059669" strokeWidth="2" strokeLinecap="round" />
+                            <path d="M85 95 Q90 120, 95 145" stroke="#0284C7" strokeWidth="1.5" strokeDasharray="3 2" />
+
+                            {/* Active Sector Hotspot Pin Highlights */}
+                            <circle cx="85" cy="95" r="4" fill="#E11D48" />
+                            <circle cx="85" cy="95" r="8" stroke="#E11D48" strokeWidth="1" opacity="0.6" className="animate-ping" />
+                            <circle cx="50" cy="85" r="3.5" fill="#D97706" />
+                            <circle cx="120" cy="65" r="3" fill="#15803D" />
+                            <circle cx="95" cy="145" r="3.5" fill="#E11D48" />
+
+                            {/* Geographical Labels */}
+                            <text x="14" y="24" fill="#64748B" fontSize="8" fontFamily="sans-serif" fontWeight="bold">Bay of Bengal Coast</text>
+                            <text x="92" y="90" fill="#0F172A" fontSize="7" fontFamily="sans-serif" fontWeight="bold">Central (Adyar)</text>
+                            <text x="55" y="142" fill="#0F172A" fontSize="7" fontFamily="sans-serif">Marshland</text>
+                        </svg>
+
+                        {/* Mini Legend Strip */}
+                        <div className="w-full grid grid-cols-2 gap-1.5 pt-2 border-t border-stone-100 text-[10px] text-stone-500">
+                            <div className="flex items-center gap-1">
+                                <span className="w-2 h-0.5 bg-[#0284C7]" />
+                                <span>River Basin</span>
                             </div>
-                            <div className="text-xs">
-                                <span className="font-bold text-white block">
-                                    {selectedCity} Urban Hydraulics Telemetry Feed
-                                </span>
-                                <span className="text-[10.5px] text-slate-400">
-                                    30m CartoDEM Topography · IMD Doppler Radar · Latency: 11ms (200 OK)
-                                </span>
+                            <div className="flex items-center gap-1">
+                                <span className="w-2 h-0.5 bg-[#059669]" />
+                                <span>Surplus Canal</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    {/* Bottom Basin Metrics Summary & Launch Action */}
+                    <div className="space-y-3">
+                        <div className="bg-white p-3 rounded-xl border border-stone-300/70 text-xs">
+                            <div className="flex items-center justify-between text-stone-500 text-[11px]">
+                                <span>Monitored Sectors</span>
+                                <span className="font-semibold text-stone-900">{cityWardsCount} Zones</span>
+                            </div>
+                            <div className="flex items-center justify-between text-stone-500 text-[11px] mt-1.5">
+                                <span>Basin Elevation</span>
+                                <span className="font-mono text-stone-900">{activeCityProfile.elevationAvg || "6.2m MSL"}</span>
                             </div>
                         </div>
 
                         <button
                             type="button"
                             onClick={() => onOpenMap(ward, selectedCity)}
-                            className="flex items-center gap-1.5 px-4 py-1.5 rounded-xl bg-blue-600 hover:bg-blue-500 text-white text-xs font-bold transition-all shadow-xs cursor-pointer shrink-0"
+                            className="w-full py-2.5 px-3 rounded-xl bg-stone-900 hover:bg-stone-800 text-white text-xs font-semibold flex items-center justify-center gap-1.5 transition-colors shadow-xs cursor-pointer"
                         >
-                            <span>Launch {selectedCity} GIS Map</span>
+                            <span>Open Full GIS Map</span>
                             <ArrowRight className="w-3.5 h-3.5" />
                         </button>
                     </div>
-                </main>
+                </aside>
+
             </div>
         </div>
     );
@@ -3450,79 +3602,67 @@ function HeroView({ ward, wardData, onEnter, onSelectCity, onOpenMap, pushToast 
         {
             city: "Chennai",
             state: "Tamil Nadu",
-            river: "Adyar & Cooum River Basin",
-            drainage: "Buckingham Canal Trunk",
-            risk: "HIGH RISK",
+            river: "Adyar & Cooum Basin",
+            focus: "Coastal Storm Canals",
+            risk: "High Watch",
             riskType: "high",
-            pumps: "49 / 54",
-            hotspots: 14,
-            elevationMin: "2.1m",
-            criticalSump: "Velachery Lake Sump",
-            img: "/static/images/dibakar-roy-FbOchRlXaPs-unsplash.jpg"
+            pumps: "49 / 54 Active",
+            elevation: "Sea Level Basin",
+            img: "/static/images/pexels-wanderinglenses-13670217.jpg"
         },
         {
             city: "Mumbai",
             state: "Maharashtra",
-            river: "Mithi River & Mahim Creek",
-            drainage: "Bail Bazar & BKC Sump",
-            risk: "HIGH RISK",
+            river: "Mithi River & Mahim Bay",
+            focus: "Tidal Creek Outfalls",
+            risk: "High Watch",
             riskType: "high",
-            pumps: "51 / 58",
-            hotspots: 18,
-            elevationMin: "1.8m",
-            criticalSump: "Kurla Station Subway",
-            img: "/static/images/hero-mumbai-harbor-boats.jpg"
+            pumps: "51 / 58 Active",
+            elevation: "Coastal Lowland",
+            img: "/static/images/zoshua-colah-1fradOPdjBM-unsplash.jpg"
         },
         {
             city: "Delhi",
             state: "NCR",
             river: "Yamuna River Basin",
-            drainage: "Barapullah & Najafgarh Drain",
-            risk: "HIGH RISK",
+            focus: "Ring Road Underpasses",
+            risk: "High Watch",
             riskType: "high",
-            pumps: "62 / 69",
-            hotspots: 16,
-            elevationMin: "208m",
-            criticalSump: "ITO Ring Road Underpass",
+            pumps: "62 / 69 Active",
+            elevation: "River Floodplain",
             img: "/static/images/dibakar-roy-KbG3OsDKkCM-unsplash.jpg"
         },
         {
             city: "Kolkata",
             state: "West Bengal",
-            river: "Hooghly River & Circular Canal",
-            drainage: "Palmer Bridge Pumping Sump",
-            risk: "HIGH RISK",
+            river: "Hooghly River & Canals",
+            focus: "Historic Sump Stations",
+            risk: "High Watch",
             riskType: "high",
-            pumps: "44 / 50",
-            hotspots: 12,
-            elevationMin: "3.4m",
-            criticalSump: "Park Street Underpass",
+            pumps: "44 / 50 Active",
+            elevation: "Delta Lowland",
             img: "/static/images/hero-kolkata-taxi-reflection.jpg"
         },
         {
             city: "Bengaluru",
             state: "Karnataka",
-            river: "Vrishabhavathi & Bellandur Lake",
-            drainage: "K&C Valley Storm Trunk",
-            risk: "MODERATE",
+            river: "Bellandur & Vrishabhavathi",
+            focus: "Valley Storm Drains",
+            risk: "Moderate",
             riskType: "mod",
-            pumps: "38 / 42",
-            hotspots: 10,
-            elevationMin: "895m",
-            criticalSump: "Silk Board Jn Subway",
+            pumps: "38 / 42 Active",
+            elevation: "Elevated Plateau",
             img: "/static/images/hero-aerial-drone.jpg"
         },
         {
             city: "Hyderabad",
             state: "Telangana",
-            river: "Musi Riverfront & Hussain Sagar",
-            drainage: "Begumpet Storm Culvert",
-            risk: "MODERATE",
+            river: "Musi River & Hussain Sagar",
+            focus: "Storm Culvert Runoff",
+            risk: "Moderate",
             riskType: "mod",
-            pumps: "34 / 38",
-            hotspots: 9,
-            elevationMin: "510m",
-            criticalSump: "Begumpet Railway Underpass",
+            pumps: "34 / 38 Active",
+            elevation: "Deccan Basin",
             img: "/static/images/dibakar-roy-aby-GGLtD-A-unsplash.jpg"
         }
     ];
@@ -3530,47 +3670,43 @@ function HeroView({ ward, wardData, onEnter, onSelectCity, onOpenMap, pushToast 
     const GIS_PILLARS = [
         {
             num: "01",
-            title: "30m CartoDEM Topography",
-            badge: "ISRO CartoDEM Raster",
-            tagline: "Sub-meter elevation precision to identify natural runoff catchments and depression storage.",
-            desc: "Ingests 30-meter high-resolution Digital Elevation Models (DEM) for Indian metropolitan basins. Calculates surface flow accumulation vectors, micro-catchment slopes, and natural depression sinks that cause street ponding.",
+            title: "3D Street Elevation Mapping",
+            badge: "Terrain Heights",
+            tagline: "Pinpoints low road dips and hollows where stormwater gathers first.",
+            desc: "By reading high-accuracy satellite terrain heights across every street, RainDrop reveals exactly which intersections, underpasses, and neighborhood lanes sit in natural low points.",
             img: "/static/images/dibakar-roy-FbOchRlXaPs-unsplash.jpg",
-            specs: ["30m Spatial Resolution", "D8 Flow Direction Routing", "Depression Sink Modeling", "Sinkhole Flood Catchments"],
-            accentColor: "from-blue-600 to-cyan-500",
-            borderAccent: "border-sky-300"
+            benefits: ["Sub-meter street height precision", "Highlights deep road hollows", "Calculates downhill water flow", "Flags trapped water pockets"],
+            tag: "Elevation Topography"
         },
         {
             num: "02",
-            title: "IMD Doppler Radar Telemetry",
-            badge: "Live Precipitation",
-            tagline: "Optical flow storm cloud vectorization predicting peak rainfall up to 6 hours ahead.",
-            desc: "Streams Doppler radar reflectivity (dBZ) from IMD stations across Mumbai, Chennai, Delhi, and Kolkata. Extracts convective rain cell velocity, cloudburst precipitation rates (mm/hr), and convective storm trajectories.",
+            title: "Live Rainstorm Radar Tracking",
+            badge: "Weather Radar",
+            tagline: "Follows heavy cloudbursts minute-by-minute hours before rainfall peaks.",
+            desc: "Streams live weather radar across every metropolitan area. It tracks storm clouds in motion so residents and municipal crews know exactly when and where heavy downpours will hit.",
             img: "/static/images/dibakar-roy-DccG84ivd3k-unsplash.jpg",
-            specs: ["Doppler Radar (dBZ) Feed", "Optical Flow Cloud Tracking", "5-Min Radar Refresh Cycle", "Convective Nowcasting"],
-            accentColor: "from-sky-600 to-blue-500",
-            borderAccent: "border-sky-300"
+            benefits: ["Live radar precipitation feed", "Storm direction and speed tracking", "5-minute cloud updates", "Up to 6 hours advance warning"],
+            tag: "Radar Telemetry"
         },
         {
             num: "03",
-            title: "1D-2D Coupled SWMM Hydraulics",
-            badge: "Hydrodynamic Mesh",
-            tagline: "Coupled simulation of underground storm trunks, culverts, and tidal outfalls.",
-            desc: "Simulates transient flow physics through municipal storm pipes, open drainage nallahs, and coastal outfall gates. Accounts for astronomical high tides, canal siltation friction, and backwater flooding.",
+            title: "Canals & Drainage Water Flow",
+            badge: "Waterway Movement",
+            tagline: "Monitors city canals, sea tides, and stormwater drainage lines.",
+            desc: "Watches how water travels through underground pipes, open city canals, and river outfall gates, accounting for ocean high tides that push seawater back into neighborhood drains.",
             img: "/static/images/dibakar-roy-P7Z3HwNWPeQ-unsplash.jpg",
-            specs: ["1D Pipe Network Modeling", "2D Overland Surface Spread", "Tidal Surge Boundary Coupling", "Outfall Gate Flap Telemetry"],
-            accentColor: "from-indigo-600 to-blue-600",
-            borderAccent: "border-indigo-300"
+            benefits: ["Underground pipe capacity checks", "Tide and river backflow tracking", "Canal blockage detection", "Gate opening advisories"],
+            tag: "Hydrodynamics"
         },
         {
             num: "04",
-            title: "<15ms AI Neural Surrogate",
-            badge: "Ultra-Fast Inference",
-            tagline: "Replacing hours of hydraulic mesh computation with real-time millimeter depth predictions.",
-            desc: "Deep convolutional surrogate network trained on tens of thousands of SWMM-HEC simulations. Predicts localized street flood depths (0 to 120cm) across every municipal sector in under 15 milliseconds.",
+            title: "Instant Street Flood Depth Alerts",
+            badge: "Real-Time Depth",
+            tagline: "Calculates standing water depth across every neighborhood in milliseconds.",
+            desc: "Instead of waiting hours for slow simulations, our smart predictive model calculates whether a street will have 5 cm or 45 cm of water in milliseconds as rain falls.",
             img: "/static/images/hero-aerial-drone.jpg",
-            specs: ["<15ms Inference Latency", "Sub-Sector Depth Grids", "Automated Anomaly Filtering", "Real-Time Edge Deployment"],
-            accentColor: "from-emerald-600 to-teal-500",
-            borderAccent: "border-emerald-300"
+            benefits: ["Instant depth forecasts in cm", "Door-to-door street accuracy", "Clear vehicle safety limits", "Fast response advisories"],
+            tag: "Surrogate Intelligence"
         }
     ];
 
@@ -3831,7 +3967,7 @@ function HeroView({ ward, wardData, onEnter, onSelectCity, onOpenMap, pushToast 
                 {/* ── Full-bleed Filmstrip Stage ── */}
                 <div
                     className="w-full select-none"
-                    style={{ overflow: 'hidden', paddingTop: '28px', paddingBottom: '16px' }}
+                    style={{ overflow: 'hidden', paddingTop: '28px', paddingBottom: '16px', minHeight: '490px' }}
                     onMouseEnter={() => setIsCarouselHovered(true)}
                     onMouseLeave={() => setIsCarouselHovered(false)}
                 >
@@ -4163,708 +4299,521 @@ function HeroView({ ward, wardData, onEnter, onSelectCity, onOpenMap, pushToast 
             )}
 
             {/* ========================================================================= */}
-            {/* SECTION 01: DATA — High-Precision GIS & Radar Ingestion Engine            */}
             {/* ========================================================================= */}
-            <section id="data" className="relative py-24 px-6 sm:px-12 md:px-16 max-w-7xl mx-auto w-full flex flex-col gap-12 border-t border-sky-300/60 bg-gradient-to-b from-[#E0F2FE] via-[#BAE6FD]/40 to-[#E0F2FE]">
-                {/* Section Header */}
-                <div className="flex flex-col md:flex-row md:items-end justify-between gap-6 border-b border-sky-300/80 pb-8">
-                    <div className="max-w-2xl">
-                        <div className="flex items-center gap-2 text-sky-700 font-mono text-xs uppercase tracking-[0.2em] font-bold">
-                            <Layers className="w-4 h-4 text-sky-600" />
-                            <span>01 · GIS INGESTION &amp; RADAR TELEMETRY</span>
-                        </div>
-                        <h2 className="font-serif text-3xl sm:text-4xl lg:text-5xl font-bold text-slate-900 mt-3 tracking-tight leading-[1.15]">
-                            Engineering Ground Truth from Orbit to Street Inverts
-                        </h2>
-                        <p className="text-slate-600 text-sm sm:text-base mt-3 leading-relaxed">
-                            Combining sub-meter topographic elevation models, Doppler radar reflectivity, and 1D-2D coupled hydrodynamic simulations into an instant AI surrogate engine.
-                        </p>
-                    </div>
+            {/* BELOW-SLIDESHOW CONTAINER: Light Architectural Environmental Dashboard    */}
+            {/* ========================================================================= */}
+            <div className="w-full bg-gradient-to-b from-[#D4E8F2] via-[#C5E1EE] to-[#B3D7E9] text-slate-900 relative">
+                {/* Main Full-Width Container with Pleasing Human-Eye Margins */}
+                <div className="w-full px-5 sm:px-10 lg:px-14 xl:px-18 mx-auto flex flex-col">
 
-                    <button
-                        onClick={() => {
-                            if (window._openGisSpecsModal) window._openGisSpecsModal();
-                            else if (pushToast) pushToast("Opening GIS Specifications");
-                        }}
-                        className="flex items-center gap-2 px-5 py-2.5 rounded-xl bg-white hover:bg-sky-50 border border-sky-300 text-sky-800 text-xs font-bold transition-all shadow-md shadow-sky-900/5 cursor-pointer shrink-0"
-                    >
-                        <Sliders className="w-3.5 h-3.5 text-sky-600" />
-                        <span>Inspect GIS Specifications</span>
-                    </button>
-                </div>
+                    {/* ========================================================================= */}
+                    {/* SECTION 01: PILLARS — Visual Environmental Intelligence (4 Pillars)       */}
+                    {/* ========================================================================= */}
+                    <section id="data" className="relative py-20 sm:py-28 w-full flex flex-col gap-10 sm:gap-12 border-b border-[#9DC6DA]">
+                        {/* Section Header */}
+                        <div className="flex flex-col lg:flex-row lg:items-end justify-between gap-8 border-b border-[#9DC6DA] pb-8 sm:pb-10">
+                            <div className="max-w-4xl">
+                                <div className="inline-flex items-center gap-2.5 px-3.5 py-1.5 rounded-md bg-sky-100/90 border border-sky-300 text-sky-900 font-mono text-xs font-bold tracking-wider uppercase shadow-xs">
+                                    <Layers className="w-3.5 h-3.5 text-sky-700" />
+                                    <span>SYSTEM PILLARS // 01</span>
+                                </div>
+                                <h2 className="font-editorial text-4xl sm:text-5xl lg:text-6xl font-normal text-slate-900 mt-4 tracking-tight leading-[1.12]">
+                                    How RainDrop Sees &amp; Understands Urban Rainfall
+                                </h2>
+                                <p className="text-slate-700 text-lg sm:text-xl lg:text-2xl mt-4 leading-relaxed font-sans font-light">
+                                    From high-accuracy street terrain heights to real-time weather radar, four integrated intelligence layers predict street runoff before storm centers peak.
+                                </p>
+                            </div>
 
-                {/* 4 Pillars Interactive Deck */}
-                <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
-                    {/* Left Column: Tab Selectors */}
-                    <div className="lg:col-span-5 flex flex-col gap-3">
-                        {GIS_PILLARS.map((pillar, idx) => (
-                            <div
-                                key={pillar.num}
-                                onClick={() => setActivePillarTab(idx)}
-                                className={`p-5 rounded-2xl border transition-all duration-200 cursor-pointer ${
-                                    activePillarTab === idx
-                                        ? "bg-white border-sky-500 shadow-xl shadow-sky-900/10 ring-2 ring-sky-400/40"
-                                        : "bg-white/70 border-sky-200 hover:bg-white hover:border-sky-300 shadow-xs"
-                                }`}
+                            <button
+                                onClick={() => {
+                                    if (window._openGisSpecsModal) window._openGisSpecsModal();
+                                    else if (pushToast) pushToast("Opening Data Specifications");
+                                }}
+                                className="flex items-center gap-2.5 px-7 py-3.5 rounded-xl bg-sky-700 hover:bg-sky-800 text-white text-sm font-bold tracking-wide uppercase transition-all duration-200 shadow-md hover:shadow-lg cursor-pointer shrink-0"
                             >
-                                <div className="flex items-center justify-between gap-3">
-                                    <div className="flex items-center gap-3">
-                                        <span className={`font-mono text-sm font-bold ${
-                                            activePillarTab === idx ? "text-sky-600" : "text-slate-400"
+                                <Sliders className="w-4 h-4 text-sky-200" />
+                                <span>Inspect Data Layers</span>
+                            </button>
+                        </div>
+
+                        {/* 4 Separate Channel Cards with Pleasant Gaps */}
+                        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5 sm:gap-6">
+                            {GIS_PILLARS.map((pillar, idx) => (
+                                <button
+                                    key={pillar.num}
+                                    type="button"
+                                    onClick={() => setActivePillarTab(idx)}
+                                    className={`text-left p-6 sm:p-7 rounded-2xl border transition-all duration-300 ease-out cursor-pointer flex flex-col justify-between relative shadow-sm hover:shadow-md ${
+                                        activePillarTab === idx
+                                            ? "bg-white border-sky-600 ring-2 ring-sky-500/30 -translate-y-1"
+                                            : "bg-white/85 border-[#9DC6DA] hover:bg-white hover:border-sky-400"
+                                    }`}
+                                >
+                                    {/* Active Highlight Top Indicator */}
+                                    {activePillarTab === idx && (
+                                        <div className="absolute top-0 left-6 right-6 h-1 bg-sky-600 rounded-full" />
+                                    )}
+
+                                    <div className="flex items-center justify-between w-full mb-3.5">
+                                        <span className={`font-mono text-sm font-bold tracking-wider ${
+                                            activePillarTab === idx ? "text-sky-700" : "text-slate-400"
                                         }`}>
-                                            {pillar.num}
+                                            [{pillar.num}]
                                         </span>
-                                        <h3 className="font-bold text-slate-900 text-base">
+                                        <span className={`text-[11px] font-bold uppercase tracking-wider px-2.5 py-0.5 rounded-sm border ${
+                                            activePillarTab === idx
+                                                ? "bg-sky-100 text-sky-900 border-sky-300"
+                                                : "bg-slate-100 text-slate-600 border-slate-200"
+                                        }`}>
+                                            {pillar.badge}
+                                        </span>
+                                    </div>
+
+                                    <div>
+                                        <h3 className={`font-sans font-bold text-lg sm:text-xl transition-colors ${
+                                            activePillarTab === idx ? "text-slate-900" : "text-slate-800"
+                                        }`}>
                                             {pillar.title}
                                         </h3>
-                                    </div>
-                                    <span className="text-[10px] font-mono uppercase font-bold px-2 py-0.5 rounded-full bg-sky-100 text-sky-800 border border-sky-200">
-                                        {pillar.badge}
-                                    </span>
-                                </div>
-                                <p className="text-xs text-slate-600 mt-2 leading-relaxed">
-                                    {pillar.tagline}
-                                </p>
-                            </div>
-                        ))}
-                    </div>
-
-                    {/* Right Column: Active Pillar Expanded Showcase */}
-                    <div className="lg:col-span-7 rounded-3xl bg-white border border-sky-200 p-6 sm:p-8 flex flex-col justify-between shadow-2xl shadow-sky-900/10 relative overflow-hidden backdrop-blur-md">
-                        <div className="relative h-64 sm:h-72 rounded-2xl overflow-hidden mb-6 border border-sky-100 shadow-inner">
-                            <img
-                                src={GIS_PILLARS[activePillarTab].img}
-                                alt={GIS_PILLARS[activePillarTab].title}
-                                className="w-full h-full object-cover filter brightness-[0.98] contrast-[1.02]"
-                            />
-                            <div className="absolute inset-0 bg-gradient-to-t from-slate-950/80 via-transparent to-transparent" />
-                            <div className="absolute top-3 left-3 bg-white/90 backdrop-blur-md border border-sky-200 text-sky-900 px-3 py-1 rounded-full text-[11px] font-mono font-bold shadow-sm">
-                                {GIS_PILLARS[activePillarTab].badge}
-                            </div>
-                            <div className="absolute bottom-4 left-4 right-4">
-                                <span className="text-xs font-mono uppercase tracking-widest text-sky-300 font-bold">LIVE TELEMETRY FEED</span>
-                                <h4 className="text-lg font-bold text-white mt-0.5">{GIS_PILLARS[activePillarTab].title}</h4>
-                            </div>
-                        </div>
-
-                        <div>
-                            <p className="text-sm text-slate-700 leading-relaxed">
-                                {GIS_PILLARS[activePillarTab].desc}
-                            </p>
-
-                            <div className="grid grid-cols-2 gap-3 mt-5 pt-5 border-t border-sky-100">
-                                {GIS_PILLARS[activePillarTab].specs.map((sp) => (
-                                    <div key={sp} className="flex items-center gap-2 text-xs font-semibold text-slate-700">
-                                        <div className="w-1.5 h-1.5 rounded-full bg-sky-500 shrink-0" />
-                                        <span>{sp}</span>
-                                    </div>
-                                ))}
-                            </div>
-                        </div>
-
-                        <div className="mt-6 flex items-center justify-between pt-4 border-t border-sky-100 text-xs">
-                            <div className="flex items-center gap-2 text-slate-600 font-mono">
-                                <Activity className="w-3.5 h-3.5 text-emerald-600 animate-pulse" />
-                                <span>Surrogate Inference: <strong className="text-slate-900">&lt;15ms</strong> (99.9% SLA)</span>
-                            </div>
-                            <button
-                                onClick={() => onOpenMap(ward, "Chennai")}
-                                className="text-sky-600 hover:text-sky-800 font-bold flex items-center gap-1 cursor-pointer transition-colors"
-                            >
-                                <span>Explore Layer in GIS Map</span>
-                                <ArrowRight className="w-3.5 h-3.5" />
-                            </button>
-                        </div>
-                    </div>
-                </div>
-            </section>
-
-            {/* ========================================================================= */}
-            {/* SECTION 02: COVERAGE — 6 Monitored Metropolitan River Basins              */}
-            {/* ========================================================================= */}
-            <section id="coverage" className="relative py-24 px-6 sm:px-12 md:px-16 max-w-7xl mx-auto w-full flex flex-col gap-12 border-t border-sky-300/60 bg-gradient-to-b from-[#E0F2FE] via-[#F0F9FF] to-[#E0F2FE]">
-                <div className="flex flex-col md:flex-row md:items-end justify-between gap-6 border-b border-sky-300/80 pb-8">
-                    <div className="max-w-2xl">
-                        <div className="flex items-center gap-2 text-amber-700 font-mono text-xs uppercase tracking-[0.2em] font-bold">
-                            <Waves className="w-4 h-4 text-amber-600" />
-                            <span>02 · METROPOLITAN SPATIAL COVERAGE</span>
-                        </div>
-                        <h2 className="font-serif text-3xl sm:text-4xl lg:text-5xl font-bold text-slate-900 mt-3 tracking-tight leading-[1.15]">
-                            Live Monitoring Across 6 Major Indian River Basins
-                        </h2>
-                        <p className="text-slate-600 text-sm sm:text-base mt-3 leading-relaxed">
-                            Continuous 24/7 hydrologic monitoring across India's highest-density urban river basins. Select any metropolitan area to launch live ward diagnostics.
-                        </p>
-                    </div>
-
-                    <button
-                        onClick={onEnter}
-                        className="flex items-center gap-2 px-6 py-2.5 rounded-xl bg-sky-600 hover:bg-sky-500 text-white text-xs font-bold transition-all shadow-lg shadow-sky-600/25 cursor-pointer shrink-0"
-                    >
-                        <span>Open 3:7 City Matrix</span>
-                        <ArrowRight className="w-3.5 h-3.5" />
-                    </button>
-                </div>
-
-                {/* 6 City Cards Grid */}
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                    {cityCards.map((item) => (
-                        <div
-                            key={item.city}
-                            onClick={() => {
-                                if (onSelectCity) onSelectCity(item.city);
-                                else onEnter();
-                            }}
-                            className="group relative rounded-3xl bg-white hover:bg-white border border-sky-200 hover:border-sky-400 p-6 shadow-xl shadow-sky-900/5 transition-all duration-300 cursor-pointer flex flex-col justify-between hover:-translate-y-1 hover:shadow-2xl hover:shadow-sky-900/10 overflow-hidden"
-                        >
-                            {/* Card Background Glow Accent */}
-                            <div className="absolute top-0 right-0 w-32 h-32 bg-sky-100 rounded-full blur-2xl group-hover:bg-sky-200/50 transition-colors pointer-events-none" />
-
-                            <div>
-                                {/* Top Header: City Name, State & Risk Badge */}
-                                <div className="flex items-start justify-between gap-3 pb-3 border-b border-sky-100">
-                                    <div>
-                                        <div className="flex items-center gap-2">
-                                            <h3 className="font-bold text-slate-900 text-xl group-hover:text-sky-600 transition-colors">
-                                                {item.city}
-                                            </h3>
-                                            <span className="text-xs text-slate-500 font-medium">({item.state})</span>
-                                        </div>
-                                        <p className="text-xs text-slate-600 mt-1 flex items-center gap-1.5">
-                                            <Waves className="w-3 h-3 text-sky-600" />
-                                            <span>{item.river}</span>
+                                        <p className="text-sm text-slate-600 mt-2 font-sans font-normal leading-relaxed">
+                                            {pillar.tagline}
                                         </p>
                                     </div>
+                                </button>
+                            ))}
+                        </div>
 
-                                    {/* Risk Badge */}
-                                    <span className={`px-2.5 py-0.5 rounded-full text-[10px] font-mono font-bold uppercase tracking-wider shrink-0 ${
-                                        item.riskType === "high"
-                                            ? "bg-rose-100 text-rose-800 border border-rose-200 shadow-xs"
-                                            : "bg-amber-100 text-amber-800 border border-amber-200 shadow-xs"
-                                    }`}>
-                                        {item.risk}
-                                    </span>
+                        {/* Separate Panoramic Telemetry Showcase with Generous Spacing */}
+                        <div className="p-6 sm:p-8 lg:p-10 rounded-3xl bg-white/95 border border-[#9DC6DA] shadow-md grid grid-cols-1 lg:grid-cols-12 gap-8 sm:gap-10 items-center">
+                            {/* Left: Large Photography Viewport (7 Cols) */}
+                            <div className="lg:col-span-7 relative min-h-[340px] sm:min-h-[420px] lg:min-h-[460px] rounded-2xl overflow-hidden bg-slate-950 border border-[#B3D6E6] group shadow-inner">
+                                <img
+                                    src={GIS_PILLARS[activePillarTab].img}
+                                    alt={GIS_PILLARS[activePillarTab].title}
+                                    className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700 ease-out"
+                                />
+                                <div className="absolute inset-0 bg-gradient-to-t from-slate-950/85 via-slate-950/20 to-transparent" />
+
+                                {/* High-Tech Top Overlay Badge */}
+                                <div className="absolute top-4 left-4 right-4 flex items-center justify-between pointer-events-none">
+                                    <div className="flex items-center gap-2 bg-white/90 backdrop-blur-md border border-slate-200 px-3.5 py-1.5 rounded-md font-mono text-xs text-sky-950 font-bold uppercase tracking-wider shadow-xs">
+                                        <Activity className="w-3.5 h-3.5 text-sky-700 animate-pulse" />
+                                        <span>SENSOR STREAM: {GIS_PILLARS[activePillarTab].tag}</span>
+                                    </div>
+                                    <div className="hidden sm:block font-mono text-xs text-slate-700 bg-white/90 backdrop-blur-md px-3 py-1.5 rounded-md border border-slate-200 font-semibold shadow-xs">
+                                        FPS: 60 · LATENCY: 11.2ms
+                                    </div>
                                 </div>
 
-                                {/* Body Specs */}
-                                <div className="py-4 space-y-2.5 text-xs text-slate-700">
-                                    <div className="flex items-center justify-between">
-                                        <span className="text-slate-500">Primary Trunk:</span>
-                                        <span className="font-semibold text-slate-900">{item.drainage}</span>
-                                    </div>
-                                    <div className="flex items-center justify-between">
-                                        <span className="text-slate-500">Critical Sump Bottleneck:</span>
-                                        <span className="font-semibold text-rose-700">⚠️ {item.criticalSump}</span>
-                                    </div>
-                                    <div className="flex items-center justify-between">
-                                        <span className="text-slate-500">Min Basin Elevation:</span>
-                                        <span className="font-mono font-bold text-sky-700">{item.elevationMin}</span>
-                                    </div>
+                                {/* Bottom Image Info */}
+                                <div className="absolute bottom-5 left-5 right-5 sm:bottom-6 sm:left-6 sm:right-6">
+                                    <span className="font-mono text-xs uppercase tracking-widest text-sky-400 font-bold block mb-1">
+                                        LIVE ENVIRONMENTAL OBSERVATION
+                                    </span>
+                                    <h4 className="text-2xl sm:text-3xl font-editorial text-white">
+                                        {GIS_PILLARS[activePillarTab].title}
+                                    </h4>
                                 </div>
                             </div>
 
-                            {/* Card Footer: Active Pumps & Launch Button */}
-                            <div className="pt-3 border-t border-sky-100 flex items-center justify-between">
+                            {/* Right: Technical Telemetry Readout (5 Cols) */}
+                            <div className="lg:col-span-5 flex flex-col justify-between gap-6 sm:gap-8">
                                 <div>
-                                    <div className="text-lg font-bold font-mono text-slate-900 tracking-tight">
-                                        {item.pumps}
+                                    <div className="flex items-center justify-between border-b border-[#B3D6E6] pb-3 mb-5">
+                                        <span className="font-mono text-xs uppercase tracking-widest text-slate-500 font-bold">
+                                            LAYER ANALYSIS // SPEC 0{activePillarTab + 1}
+                                        </span>
+                                        <span className="font-mono text-xs text-sky-700 font-bold">
+                                            REAL-TIME DATA READY
+                                        </span>
                                     </div>
-                                    <span className="text-[10px] uppercase font-mono tracking-wider text-slate-500 block">
-                                        Active Dewatering Pumps
-                                    </span>
+
+                                    <p className="text-base sm:text-lg text-slate-800 leading-relaxed font-sans">
+                                        {GIS_PILLARS[activePillarTab].desc}
+                                    </p>
+
+                                    <div className="mt-6 sm:mt-7 space-y-3.5">
+                                        <span className="font-mono text-xs uppercase tracking-widest text-slate-500 font-bold block">
+                                            OPERATIONAL CAPABILITIES
+                                        </span>
+                                        {GIS_PILLARS[activePillarTab].benefits.map((benefit) => (
+                                            <div key={benefit} className="flex items-start gap-3 text-base text-slate-800 font-medium">
+                                                <div className="w-2.5 h-2.5 rounded-full bg-sky-600 mt-1.5 shrink-0" />
+                                                <span>{benefit}</span>
+                                            </div>
+                                        ))}
+                                    </div>
                                 </div>
 
-                                <div className="flex items-center gap-1 text-xs font-bold text-sky-600 group-hover:text-sky-800 transition-colors">
-                                    <span>Launch GIS</span>
-                                    <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
+                                <div className="pt-5 border-t border-[#B3D6E6] flex items-center justify-between">
+                                    <div className="font-mono text-xs text-slate-600">
+                                        UPDATE CADENCE: <strong className="text-slate-900">EVERY 60 SEC</strong>
+                                    </div>
+                                    <button
+                                        onClick={() => onOpenMap(ward, "Chennai")}
+                                        className="flex items-center gap-1.5 font-sans text-sm font-bold text-sky-700 hover:text-sky-800 transition-colors cursor-pointer"
+                                    >
+                                        <span>Open City Map</span>
+                                        <ArrowRight className="w-4 h-4" />
+                                    </button>
                                 </div>
                             </div>
                         </div>
-                    ))}
-                </div>
-            </section>
+                    </section>
 
-            {/* ========================================================================= */}
-            {/* SECTION 03: IMPACT — Everyday Monsoon Realities & Solutions               */}
-            {/* ========================================================================= */}
-            <section id="solutions" className="relative py-24 px-6 sm:px-12 md:px-16 max-w-7xl mx-auto w-full flex flex-col gap-14 border-t border-sky-300/60 bg-gradient-to-b from-[#E0F2FE] via-[#BAE6FD]/30 to-[#E0F2FE]">
-                <div className="flex flex-col md:flex-row md:items-end justify-between gap-6 border-b border-sky-300/80 pb-8">
-                    <div className="max-w-2xl">
-                        <div className="flex items-center gap-2 text-emerald-700 font-mono text-xs uppercase tracking-[0.2em] font-bold">
-                            <ShieldCheck className="w-4 h-4 text-emerald-600" />
-                            <span>03 · EVERYDAY MONSOON REALITY &amp; SOLUTIONS</span>
-                        </div>
-                        <h2 className="font-serif text-3xl sm:text-4xl lg:text-5xl font-bold text-slate-900 mt-3 tracking-tight leading-[1.15]">
-                            Real Problems Citizens Face — And How We Solve Them
-                        </h2>
-                        <p className="text-slate-600 text-sm sm:text-base mt-3 leading-relaxed">
-                            Every monsoon brings avoidable traffic gridlocks, submerged vehicles, and flooded homes. RainDrop replaces municipal guesswork with actionable guidance.
-                        </p>
-                    </div>
-
-                    <button
-                        onClick={onEnter}
-                        className="flex items-center gap-1.5 text-xs font-bold text-sky-700 hover:text-sky-900 transition-colors cursor-pointer shrink-0"
-                    >
-                        <span>Explore All Hotspots</span>
-                        <ArrowRight className="w-3.5 h-3.5" />
-                    </button>
-                </div>
-
-                {/* 4 Immersive Impact Cards */}
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-                    {/* Card 1: Monsoon Bus Splash */}
-                    <div 
-                        onClick={() => { if (onSelectCity) onSelectCity("Kolkata"); else onEnter(); }}
-                        className="group rounded-3xl bg-white border border-sky-200 hover:border-sky-400 transition-all overflow-hidden flex flex-col cursor-pointer hover:-translate-y-1 shadow-lg shadow-sky-900/5 hover:shadow-2xl hover:shadow-sky-900/10"
-                    >
-                        <div className="relative h-52 overflow-hidden bg-slate-900">
-                            <img
-                                src="/static/images/hero-monsoon-bus-splash.jpg"
-                                alt="City Bus moving through heavy rainwater"
-                                className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500 filter brightness-[0.98]"
-                            />
-                            <div className="absolute inset-0 bg-gradient-to-t from-slate-950/80 via-transparent to-transparent" />
-                            <div className="absolute top-3 left-3 bg-white/90 backdrop-blur-md text-sky-900 text-[10px] font-bold px-2.5 py-1 rounded-full border border-sky-200 flex items-center gap-1.5 shadow-xs">
-                                <Radio className="w-3 h-3 text-sky-600" />
-                                <span>Public Transit</span>
-                            </div>
-                        </div>
-                        <div className="p-5 flex flex-col justify-between flex-1">
-                            <div>
-                                <h3 className="font-bold text-slate-900 text-base group-hover:text-sky-600 transition-colors">
-                                    Keeping Public Buses Moving
-                                </h3>
-                                <p className="text-xs text-slate-600 mt-2 leading-relaxed">
-                                    When main arterial roads flood, thousands get stranded. We alert municipal bus dispatchers in advance to route along dry flyover bypasses before roads submerge.
+                    {/* ========================================================================= */}
+                    {/* SECTION 02: COVERAGE — 6 Monitored Metropolitan Basins                    */}
+                    {/* ========================================================================= */}
+                    <section id="coverage" className="relative py-20 sm:py-28 w-full flex flex-col gap-10 sm:gap-12 border-b border-[#9DC6DA]">
+                        <div className="flex flex-col lg:flex-row lg:items-end justify-between gap-8 border-b border-[#9DC6DA] pb-8 sm:pb-10">
+                            <div className="max-w-4xl">
+                                <div className="inline-flex items-center gap-2.5 px-3.5 py-1.5 rounded-md bg-sky-100/90 border border-sky-300 text-sky-900 font-mono text-xs font-bold tracking-wider uppercase shadow-xs">
+                                    <Waves className="w-3.5 h-3.5 text-sky-700" />
+                                    <span>URBAN BASIN MATRIX // 02</span>
+                                </div>
+                                <h2 className="font-editorial text-4xl sm:text-5xl lg:text-6xl font-normal text-slate-900 mt-4 tracking-tight leading-[1.12]">
+                                    Live City Waterways Across 6 Indian Metros
+                                </h2>
+                                <p className="text-slate-700 text-lg sm:text-xl lg:text-2xl mt-4 leading-relaxed font-sans font-light">
+                                    Continuous 24/7 water monitoring across India's premier coastal and river basins. Select any metro to load real-time municipal diagnostics.
                                 </p>
                             </div>
-                            <div className="mt-4 flex items-center justify-between text-[11px] border-t border-sky-100 pt-3">
-                                <span className="font-semibold text-emerald-600">✓ Zero Stranded Commuters</span>
-                                <span className="text-sky-600 font-bold group-hover:translate-x-0.5 transition-transform">See Live →</span>
-                            </div>
-                        </div>
-                    </div>
-
-                    {/* Card 2: Kolkata Taxi Reflection */}
-                    <div 
-                        onClick={() => { if (onSelectCity) onSelectCity("Kolkata"); else onEnter(); }}
-                        className="group rounded-3xl bg-white border border-sky-200 hover:border-rose-400 transition-all overflow-hidden flex flex-col cursor-pointer hover:-translate-y-1 shadow-lg shadow-sky-900/5 hover:shadow-2xl hover:shadow-sky-900/10"
-                    >
-                        <div className="relative h-52 overflow-hidden bg-slate-900">
-                            <img
-                                src="/static/images/hero-kolkata-taxi-reflection.jpg"
-                                alt="Car stopped at flooded intersection"
-                                className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500 filter brightness-[0.98]"
-                            />
-                            <div className="absolute inset-0 bg-gradient-to-t from-slate-950/80 via-transparent to-transparent" />
-                            <div className="absolute top-3 left-3 bg-white/90 backdrop-blur-md text-rose-900 text-[10px] font-bold px-2.5 py-1 rounded-full border border-rose-200 flex items-center gap-1.5 shadow-xs">
-                                <AlertTriangle className="w-3 h-3 text-rose-600" />
-                                <span>Vehicle Protection</span>
-                            </div>
-                        </div>
-                        <div className="p-5 flex flex-col justify-between flex-1">
-                            <div>
-                                <h3 className="font-bold text-slate-900 text-base group-hover:text-rose-600 transition-colors">
-                                    Preventing Stalled Cars &amp; Engine Damage
-                                </h3>
-                                <p className="text-xs text-slate-600 mt-2 leading-relaxed">
-                                    Low dips at street crossings suddenly stall vehicles. We calculate exact street puddle depths so everyday drivers avoid roads with water exceeding tire intake height.
-                                </p>
-                            </div>
-                            <div className="mt-4 flex items-center justify-between text-[11px] border-t border-sky-100 pt-3">
-                                <span className="font-semibold text-rose-600">✓ 100% Engine Safety</span>
-                                <span className="text-sky-600 font-bold group-hover:translate-x-0.5 transition-transform">See Live →</span>
-                            </div>
-                        </div>
-                    </div>
-
-                    {/* Card 3: River Ghats Aerial */}
-                    <div 
-                        onClick={() => { if (onSelectCity) onSelectCity("Delhi"); else onEnter(); }}
-                        className="group rounded-3xl bg-white border border-sky-200 hover:border-emerald-400 transition-all overflow-hidden flex flex-col cursor-pointer hover:-translate-y-1 shadow-lg shadow-sky-900/5 hover:shadow-2xl hover:shadow-sky-900/10"
-                    >
-                        <div className="relative h-52 overflow-hidden bg-slate-900">
-                            <img
-                                src="/static/images/hero-river-ghats-aerial.jpg"
-                                alt="Riverfront and riverside community aerial"
-                                className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500 filter brightness-[0.98]"
-                            />
-                            <div className="absolute inset-0 bg-gradient-to-t from-slate-950/80 via-transparent to-transparent" />
-                            <div className="absolute top-3 left-3 bg-white/90 backdrop-blur-md text-emerald-900 text-[10px] font-bold px-2.5 py-1 rounded-full border border-emerald-200 flex items-center gap-1.5 shadow-xs">
-                                <Waves className="w-3 h-3 text-emerald-600" />
-                                <span>River Safety</span>
-                            </div>
-                        </div>
-                        <div className="p-5 flex flex-col justify-between flex-1">
-                            <div>
-                                <h3 className="font-bold text-slate-900 text-base group-hover:text-emerald-600 transition-colors">
-                                    Protecting Riverside Communities
-                                </h3>
-                                <p className="text-xs text-slate-600 mt-2 leading-relaxed">
-                                    Rivers can surge into low-lying settlements without notice. Continuous river telemetry gives families and authorities up to 6 hours of advance notice to stage rescues.
-                                </p>
-                            </div>
-                            <div className="mt-4 flex items-center justify-between text-[11px] border-t border-sky-100 pt-3">
-                                <span className="font-semibold text-emerald-600">✓ 6h Advance Surge Notice</span>
-                                <span className="text-sky-600 font-bold group-hover:translate-x-0.5 transition-transform">See Live →</span>
-                            </div>
-                        </div>
-                    </div>
-
-                    {/* Card 4: Aerial Drone / Topography Grid */}
-                    <div 
-                        onClick={() => { if (onSelectCity) onSelectCity("Chennai"); else onEnter(); }}
-                        className="group rounded-3xl bg-white border border-sky-200 hover:border-indigo-400 transition-all overflow-hidden flex flex-col cursor-pointer hover:-translate-y-1 shadow-lg shadow-sky-900/5 hover:shadow-2xl hover:shadow-sky-900/10"
-                    >
-                        <div className="relative h-52 overflow-hidden bg-slate-900">
-                            <img
-                                src="/static/images/hero-aerial-drone.jpg"
-                                alt="High-altitude neighborhood grid view"
-                                className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500 filter brightness-[0.98]"
-                            />
-                            <div className="absolute inset-0 bg-gradient-to-t from-slate-950/80 via-transparent to-transparent" />
-                            <div className="absolute top-3 left-3 bg-white/90 backdrop-blur-md text-indigo-900 text-[10px] font-bold px-2.5 py-1 rounded-full border border-indigo-200 flex items-center gap-1.5 shadow-xs">
-                                <Radio className="w-3 h-3 text-indigo-600" />
-                                <span>Pump Automation</span>
-                            </div>
-                        </div>
-                        <div className="p-5 flex flex-col justify-between flex-1">
-                            <div>
-                                <h3 className="font-bold text-slate-900 text-base group-hover:text-indigo-600 transition-colors">
-                                    Proactive Municipal Pump Activation
-                                </h3>
-                                <p className="text-xs text-slate-600 mt-2 leading-relaxed">
-                                    Water pump stations must activate before street sumps overflow. We show municipal operators where water will accumulate so pumps turn on proactively.
-                                </p>
-                            </div>
-                            <div className="mt-4 flex items-center justify-between text-[11px] border-t border-sky-100 pt-3">
-                                <span className="font-semibold text-indigo-600">✓ Automated Sump Dewatering</span>
-                                <span className="text-sky-600 font-bold group-hover:translate-x-0.5 transition-transform">See Live →</span>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
-                {/* Dual-Corridor Emergency Route Demonstration Card */}
-                <div className="rounded-3xl bg-white border border-sky-200 p-6 sm:p-10 shadow-2xl shadow-sky-900/10 flex flex-col lg:flex-row items-center justify-between gap-8">
-                    <div className="max-w-xl">
-                        <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-sky-100 border border-sky-200 text-sky-800 text-[11px] font-mono font-bold uppercase mb-3">
-                            <Route className="w-3.5 h-3.5 text-sky-600" />
-                            <span>Dual-Corridor Safe Route Engine</span>
-                        </div>
-                        <h3 className="text-2xl sm:text-3xl font-bold text-slate-900 tracking-tight">
-                            Guaranteed Dry Elevation Corridors for Emergency Transit
-                        </h3>
-                        <p className="text-sm text-slate-600 mt-2 leading-relaxed">
-                            Standard navigation apps guide drivers directly through inundated underpasses. RainDrop uses 30m CartoDEM surface topography to route ambulances, police dispatch, and citizens along 100% dry high-ground flyovers.
-                        </p>
-
-                        <div className="mt-6 flex flex-wrap items-center gap-4">
-                            <button
-                                onClick={handleRunRouteSim}
-                                disabled={isSimulatingRoute}
-                                className="flex items-center gap-2 px-6 py-2.5 rounded-xl bg-sky-600 hover:bg-sky-500 text-white font-bold text-xs shadow-lg shadow-sky-600/25 transition-all cursor-pointer disabled:opacity-50"
-                            >
-                                {isSimulatingRoute ? (
-                                    <>
-                                        <RefreshCw className="w-3.5 h-3.5 animate-spin" />
-                                        <span>Simulating Route ({routeSimProgress}%)…</span>
-                                    </>
-                                ) : (
-                                    <>
-                                        <Play className="w-3.5 h-3.5" />
-                                        <span>Run Live Dual-Route Simulation</span>
-                                    </>
-                                )}
-                            </button>
 
                             <button
-                                onClick={() => onOpenMap(ward, "Mumbai")}
-                                className="text-xs font-bold text-sky-700 hover:text-sky-900 transition-colors cursor-pointer"
+                                onClick={onEnter}
+                                className="flex items-center gap-2 px-7 py-3.5 rounded-xl bg-slate-900 hover:bg-slate-800 text-white text-sm font-bold uppercase tracking-wider transition-all duration-200 shadow-md hover:shadow-lg cursor-pointer shrink-0"
                             >
-                                Open Route Navigator in Map →
+                                <span>Explore All Metros</span>
+                                <ArrowRight className="w-4 h-4 text-sky-400" />
                             </button>
                         </div>
-                    </div>
 
-                    {/* Route Demonstration Visual Comparison Box */}
-                    <div className="w-full lg:w-96 flex flex-col gap-3">
-                        {/* Hazardous Direct Route */}
-                        <div className="p-4 rounded-2xl bg-rose-50 border border-rose-200 text-xs text-rose-900 shadow-sm">
-                            <div className="flex items-center justify-between font-bold text-rose-700 mb-1">
-                                <span className="flex items-center gap-1.5">
-                                    <span>🔴 Standard Direct Route</span>
-                                </span>
-                                <span className="font-mono text-[10px] px-2 py-0.5 rounded-full bg-rose-100 border border-rose-200 text-rose-800">
-                                    BLOCKED (42cm)
-                                </span>
-                            </div>
-                            <p className="text-[11px] text-rose-800/80">
-                                Kurla Station Underpass: Submerged by flash depression runoff. Engine stall risk critical.
-                            </p>
-                        </div>
+                        {/* 6 City Cards Grid with Pleasant Spacing */}
+                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 sm:gap-8">
+                            {cityCards.map((item) => (
+                                <div
+                                    key={item.city}
+                                    onClick={() => {
+                                        if (onSelectCity) onSelectCity(item.city);
+                                        else onEnter();
+                                    }}
+                                    className="group relative rounded-2xl bg-white/95 border border-[#9DC6DA] hover:border-sky-600 shadow-sm hover:shadow-xl transition-all duration-300 ease-out cursor-pointer flex flex-col justify-between hover:-translate-y-1.5 overflow-hidden"
+                                >
+                                    {/* City Photo Header */}
+                                    <div className="relative h-64 sm:h-72 w-full overflow-hidden bg-slate-900">
+                                        <img
+                                            src={item.img}
+                                            alt={`${item.city} Skyline and Waterway`}
+                                            className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700 ease-out"
+                                        />
+                                        <div className="absolute inset-0 bg-gradient-to-t from-slate-950/85 via-slate-950/20 to-transparent" />
+                                        
+                                        {/* Risk Badge */}
+                                        <div className="absolute top-4 right-4">
+                                            <span className={`px-3 py-1 rounded-sm text-xs font-bold uppercase tracking-wider ${
+                                                item.riskType === "high"
+                                                    ? "bg-rose-100 text-rose-900 border border-rose-300"
+                                                    : "bg-amber-100 text-amber-900 border border-amber-300"
+                                            }`}>
+                                                {item.risk}
+                                            </span>
+                                        </div>
 
-                        {/* Safe High Ground Corridor */}
-                        <div className="p-4 rounded-2xl bg-emerald-50 border border-emerald-200 text-xs text-emerald-900 shadow-sm">
-                            <div className="flex items-center justify-between font-bold text-emerald-700 mb-1">
-                                <span className="flex items-center gap-1.5">
-                                    <span>🟢 High-Ground Elevation Bypass</span>
-                                </span>
-                                <span className="font-mono text-[10px] px-2 py-0.5 rounded-full bg-emerald-100 border border-emerald-200 text-emerald-800">
-                                    100% DRY (+3 min)
-                                </span>
-                            </div>
-                            <p className="text-[11px] text-emerald-800/80">
-                                BKC Elevated Flyover Corridor: Maintained at +8.4m elevation. Zero standing water.
-                            </p>
-                        </div>
-                    </div>
-                </div>
-            </section>
-
-            {/* ========================================================================= */}
-            {/* SECTION 04: FUTURE — What-If Scenario Sandbox & Incident Command          */}
-            {/* ========================================================================= */}
-            <section id="future" className="relative py-24 px-6 sm:px-12 md:px-16 max-w-7xl mx-auto w-full flex flex-col gap-12 border-t border-sky-300/60 bg-gradient-to-b from-[#E0F2FE] via-[#F0F9FF] to-[#E0F2FE]">
-                <div className="flex flex-col md:flex-row md:items-end justify-between gap-6 border-b border-sky-300/80 pb-8">
-                    <div className="max-w-2xl">
-                        <div className="flex items-center gap-2 text-indigo-700 font-mono text-xs uppercase tracking-[0.2em] font-bold">
-                            <Cpu className="w-4 h-4 text-indigo-600" />
-                            <span>04 · WHAT-IF SCENARIO SANDBOX &amp; INCIDENT COMMAND</span>
-                        </div>
-                        <h2 className="font-serif text-3xl sm:text-4xl lg:text-5xl font-bold text-slate-900 mt-3 tracking-tight leading-[1.15]">
-                            Simulate Extreme Weather Before Cloudbursts Strike
-                        </h2>
-                        <p className="text-slate-600 text-sm sm:text-base mt-3 leading-relaxed">
-                            Municipal engineers and disaster response commanders use RainDrop's surrogate engine to simulate storm scenarios in real-time.
-                        </p>
-                    </div>
-
-                    <div className="flex items-center gap-3">
-                        <button
-                            onClick={() => {
-                                if (window._openSectorDrawer) window._openSectorDrawer(0);
-                                if (onOpenMap) onOpenMap(ward, "Chennai");
-                            }}
-                            className="flex items-center gap-2 px-5 py-2.5 rounded-xl bg-white hover:bg-sky-50 border border-sky-300 text-slate-800 text-xs font-bold transition-all shadow-sm cursor-pointer"
-                        >
-                            <FileText className="w-3.5 h-3.5 text-sky-600" />
-                            <span>View Municipal SitRep</span>
-                        </button>
-                    </div>
-                </div>
-
-                {/* Interactive Scenario Sandbox Grid */}
-                <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-center">
-                    {/* Left: Interactive Sliders */}
-                    <div className="lg:col-span-6 rounded-3xl bg-white border border-sky-200 p-6 sm:p-8 flex flex-col gap-6 shadow-xl shadow-sky-900/5">
-                        <div className="flex items-center justify-between border-b border-sky-100 pb-3">
-                            <span className="font-bold text-slate-900 text-base">Interactive Scenario Parameters</span>
-                            <span className="text-[11px] font-mono text-sky-800 bg-sky-100 border border-sky-200 px-2.5 py-0.5 rounded-full font-bold">
-                                FASTAPI SURROGATE
-                            </span>
-                        </div>
-
-                        {/* Slider 1: Rainfall mm/hr */}
-                        <div className="space-y-2">
-                            <div className="flex items-center justify-between text-xs font-semibold">
-                                <span className="text-slate-700">Storm Precipitation Rate:</span>
-                                <span className="font-mono text-sky-700 font-bold">{scenarioRain} mm/hr</span>
-                            </div>
-                            <input
-                                type="range"
-                                min="0"
-                                max="120"
-                                value={scenarioRain}
-                                onChange={(e) => setScenarioRain(Number(e.target.value))}
-                                className="w-full h-2 bg-sky-100 rounded-lg appearance-none cursor-pointer accent-sky-600"
-                            />
-                            <div className="flex justify-between text-[10px] text-slate-500 font-mono">
-                                <span>0 mm (Dry)</span>
-                                <span>50 mm (Heavy)</span>
-                                <span>120 mm (Cloudburst)</span>
-                            </div>
-                        </div>
-
-                        {/* Slider 2: Tide Offset */}
-                        <div className="space-y-2">
-                            <div className="flex items-center justify-between text-xs font-semibold">
-                                <span className="text-slate-700">Coastal Astronomical Tide Offset:</span>
-                                <span className="font-mono text-sky-700 font-bold">+{scenarioTide} m</span>
-                            </div>
-                            <input
-                                type="range"
-                                min="-0.5"
-                                max="2.0"
-                                step="0.1"
-                                value={scenarioTide}
-                                onChange={(e) => setScenarioTide(Number(e.target.value))}
-                                className="w-full h-2 bg-sky-100 rounded-lg appearance-none cursor-pointer accent-sky-600"
-                            />
-                            <div className="flex justify-between text-[10px] text-slate-500 font-mono">
-                                <span>-0.5m (Low Tide)</span>
-                                <span>+0.8m (Mean High)</span>
-                                <span>+2.0m (Spring Surge)</span>
-                            </div>
-                        </div>
-
-                        {/* Slider 3: Pump Efficiency */}
-                        <div className="space-y-2">
-                            <div className="flex items-center justify-between text-xs font-semibold">
-                                <span className="text-slate-700">Municipal Pump Station Capacity:</span>
-                                <span className="font-mono text-emerald-700 font-bold">{scenarioPumps}% Active</span>
-                            </div>
-                            <input
-                                type="range"
-                                min="40"
-                                max="100"
-                                step="5"
-                                value={scenarioPumps}
-                                onChange={(e) => setScenarioPumps(Number(e.target.value))}
-                                className="w-full h-2 bg-sky-100 rounded-lg appearance-none cursor-pointer accent-emerald-600"
-                            />
-                            <div className="flex justify-between text-[10px] text-slate-500 font-mono">
-                                <span>40% (Grid Failure)</span>
-                                <span>80% (Standard)</span>
-                                <span>100% (Full Power)</span>
-                            </div>
-                        </div>
-                    </div>
-
-                    {/* Right: Real-Time Output Calculation Card */}
-                    <div className="lg:col-span-6 rounded-3xl bg-white border border-sky-200 p-6 sm:p-8 flex flex-col justify-between shadow-2xl shadow-sky-900/10">
-                        <div>
-                            <div className="flex items-center gap-2 text-xs font-mono text-sky-700 uppercase tracking-wider mb-2">
-                                <Activity className="w-3.5 h-3.5 text-sky-600 animate-pulse" />
-                                <span>Surrogate Inundation Forecast Output</span>
-                            </div>
-                            <h3 className="text-2xl font-bold text-slate-900">Projected Flood Water Depth</h3>
-                            <p className="text-xs text-slate-500 mt-1">
-                                Instantaneous calculation based on coupled SWMM neural surrogate weights.
-                            </p>
-
-                            {/* Large Depth Output */}
-                            <div className="my-6 p-6 rounded-2xl bg-sky-50 border border-sky-200 flex items-center justify-between">
-                                <div>
-                                    <div className={`text-4xl sm:text-5xl font-extrabold font-mono tracking-tight ${
-                                        computedDepthCm > 30 ? "text-rose-600" : computedDepthCm > 15 ? "text-amber-600" : "text-emerald-600"
-                                    }`}>
-                                        {computedDepthCm} <span className="text-xl font-normal text-slate-500">cm</span>
+                                        <div className="absolute bottom-4 left-6 right-6">
+                                            <span className="font-mono text-xs text-sky-300 font-bold uppercase tracking-widest">{item.state}</span>
+                                            <h3 className="font-editorial text-3xl sm:text-4xl text-white group-hover:text-sky-300 transition-colors mt-0.5">
+                                                {item.city}
+                                            </h3>
+                                        </div>
                                     </div>
-                                    <span className="text-xs text-slate-600 font-semibold block mt-1">
-                                        Predicted Lowland Sump Water Depth
-                                    </span>
-                                </div>
 
-                                <div className="text-right">
-                                    <span className={`px-3 py-1 rounded-full text-xs font-mono font-bold uppercase tracking-wider ${
-                                        computedDepthCm > 30 
-                                            ? "bg-rose-100 text-rose-800 border border-rose-200" 
-                                            : computedDepthCm > 15 
-                                                ? "bg-amber-100 text-amber-800 border border-amber-200" 
-                                                : "bg-emerald-100 text-emerald-800 border border-emerald-200"
-                                    }`}>
-                                        {computedDepthCm > 30 ? "CRITICAL HAZARD" : computedDepthCm > 15 ? "CAUTION ADVISED" : "SAFE / PASSABLE"}
-                                    </span>
-                                    <div className="text-xs text-slate-600 mt-2 font-mono">
-                                        Clearance ETA: <strong className="text-slate-900">~{computedClearanceHours} hrs</strong>
+                                    {/* Body Specs in Layman Terms */}
+                                    <div className="p-6 sm:p-8 flex flex-col justify-between flex-1">
+                                        <div className="space-y-3.5 text-base text-slate-700 font-sans">
+                                            <div className="flex items-center justify-between border-b border-[#B3D6E6]/70 pb-3">
+                                                <span className="text-slate-500 font-mono text-xs uppercase tracking-wider">Primary Waterway</span>
+                                                <span className="font-bold text-slate-900">{item.river}</span>
+                                            </div>
+                                            <div className="flex items-center justify-between border-b border-[#B3D6E6]/70 pb-3">
+                                                <span className="text-slate-500 font-mono text-xs uppercase tracking-wider">Key Focus</span>
+                                                <span className="text-slate-800 font-medium">{item.focus}</span>
+                                            </div>
+                                            <div className="flex items-center justify-between">
+                                                <span className="text-slate-500 font-mono text-xs uppercase tracking-wider">Elevation Profile</span>
+                                                <span className="text-sky-800 font-mono text-sm font-semibold">{item.elevation}</span>
+                                            </div>
+                                        </div>
+
+                                        {/* Card Footer */}
+                                        <div className="mt-7 pt-5 border-t border-[#B3D6E6] flex items-center justify-between">
+                                            <div>
+                                                <span className="text-base font-bold text-slate-900 block">
+                                                    {item.pumps}
+                                                </span>
+                                                <span className="text-xs text-slate-500 block">
+                                                    Drainage Pumps Ready
+                                                </span>
+                                            </div>
+
+                                            <div className="flex items-center gap-1.5 text-base font-bold text-sky-700 group-hover:text-sky-800 transition-colors">
+                                                <span>Open City Map</span>
+                                                <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            ))}
+                        </div>
+                    </section>
+
+                    {/* ========================================================================= */}
+                    {/* SECTION 03: CITIZEN IMPACT & TRANSIT SAFETY (4 Pictorial Cards)            */}
+                    {/* ========================================================================= */}
+                    <section id="solutions" className="relative py-20 sm:py-28 w-full flex flex-col gap-10 sm:gap-12">
+                        <div className="flex flex-col lg:flex-row lg:items-end justify-between gap-8 border-b border-[#9DC6DA] pb-8 sm:pb-10">
+                            <div className="max-w-4xl">
+                                <div className="inline-flex items-center gap-2.5 px-3.5 py-1.5 rounded-md bg-sky-100/90 border border-sky-300 text-sky-900 font-mono text-xs font-bold tracking-wider uppercase shadow-xs">
+                                    <ShieldCheck className="w-3.5 h-3.5 text-sky-700" />
+                                    <span>CIVIL PROTECTION &amp; CITIZEN SAFETY // 03</span>
+                                </div>
+                                <h2 className="font-editorial text-4xl sm:text-5xl lg:text-6xl font-normal text-slate-900 mt-4 tracking-tight leading-[1.12]">
+                                    Real Problems Citizens Face — And How We Solve Them
+                                </h2>
+                                <p className="text-slate-700 text-lg sm:text-xl lg:text-2xl mt-4 leading-relaxed font-sans font-light">
+                                    Monsoon deluges shouldn't cause flooded vehicles, stranded commuters, or waterlogged neighborhoods. Here is how real-time insights protect daily life.
+                                </p>
+                            </div>
+
+                            <button
+                                onClick={onEnter}
+                                className="flex items-center gap-1.5 text-base font-bold text-sky-800 hover:text-sky-900 transition-colors cursor-pointer shrink-0"
+                            >
+                                <span>Explore All Hotspots</span>
+                                <ArrowRight className="w-4 h-4" />
+                            </button>
+                        </div>
+
+                        {/* 4 Large Pictorial Impact Cards with Pleasant Gaps */}
+                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 sm:gap-8">
+                            {/* Card 1: Monsoon Bus Splash */}
+                            <div 
+                                onClick={() => { if (onSelectCity) onSelectCity("Kolkata"); else onEnter(); }}
+                                className="group rounded-2xl bg-white/95 border border-[#9DC6DA] hover:border-sky-600 transition-all duration-300 ease-out overflow-hidden flex flex-col cursor-pointer hover:-translate-y-1.5 shadow-sm hover:shadow-xl"
+                            >
+                                <div className="relative h-64 sm:h-72 overflow-hidden bg-slate-900">
+                                    <img
+                                        src="/static/images/hero-monsoon-bus-splash.jpg"
+                                        alt="City Bus moving through heavy rainwater"
+                                        className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700 ease-out"
+                                    />
+                                    <div className="absolute top-4 left-4 bg-white/95 text-slate-900 text-xs font-bold px-3 py-1 rounded-sm border border-slate-200 shadow-xs">
+                                        Public Transit
+                                    </div>
+                                </div>
+                                <div className="p-6 sm:p-8 flex flex-col justify-between flex-1">
+                                    <div>
+                                        <h3 className="font-sans font-bold text-slate-900 text-xl group-hover:text-sky-700 transition-colors">
+                                            Keeping Public Buses Moving
+                                        </h3>
+                                        <p className="text-base text-slate-700 mt-3.5 leading-relaxed font-sans">
+                                            Routes city buses away from submerged lowlands onto dry flyover bypasses before main arterial roads flood.
+                                        </p>
+                                    </div>
+                                    <div className="mt-7 flex items-center justify-between text-sm border-t border-[#B3D6E6] pt-4">
+                                        <span className="font-bold text-sky-800">✓ Zero Stranded Commuters</span>
+                                        <span className="text-sky-700 font-bold group-hover:translate-x-1 transition-transform">See Live →</span>
+                                    </div>
+                                </div>
+                            </div>
+
+                            {/* Card 2: Vehicle Engine Protection */}
+                            <div 
+                                onClick={() => { if (onSelectCity) onSelectCity("Kolkata"); else onEnter(); }}
+                                className="group rounded-2xl bg-white/95 border border-[#9DC6DA] hover:border-amber-600 transition-all duration-300 ease-out overflow-hidden flex flex-col cursor-pointer hover:-translate-y-1.5 shadow-sm hover:shadow-xl"
+                            >
+                                <div className="relative h-64 sm:h-72 overflow-hidden bg-slate-900">
+                                    <img
+                                        src="/static/images/pexels-dibakar-roy-2432543-18192646.jpg"
+                                        alt="Car driving through rain street reflection"
+                                        className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700 ease-out"
+                                    />
+                                    <div className="absolute top-4 left-4 bg-white/95 text-amber-900 text-xs font-bold px-3 py-1 rounded-sm border border-amber-200 shadow-xs">
+                                        Vehicle Safety
+                                    </div>
+                                </div>
+                                <div className="p-6 sm:p-8 flex flex-col justify-between flex-1">
+                                    <div>
+                                        <h3 className="font-sans font-bold text-slate-900 text-xl group-hover:text-amber-800 transition-colors">
+                                            Preventing Engine Damage
+                                        </h3>
+                                        <p className="text-base text-slate-700 mt-3.5 leading-relaxed font-sans">
+                                            Flags exact street puddle depths before you drive in, preventing engine water intake and expensive vehicle repairs.
+                                        </p>
+                                    </div>
+                                    <div className="mt-7 flex items-center justify-between text-sm border-t border-[#B3D6E6] pt-4">
+                                        <span className="font-bold text-amber-800">✓ 100% Engine Safety</span>
+                                        <span className="text-sky-700 font-bold group-hover:translate-x-1 transition-transform">See Live →</span>
+                                    </div>
+                                </div>
+                            </div>
+
+                            {/* Card 3: Riverside Community Safety */}
+                            <div 
+                                onClick={() => { if (onSelectCity) onSelectCity("Delhi"); else onEnter(); }}
+                                className="group rounded-2xl bg-white/95 border border-[#9DC6DA] hover:border-teal-600 transition-all duration-300 ease-out overflow-hidden flex flex-col cursor-pointer hover:-translate-y-1.5 shadow-sm hover:shadow-xl"
+                            >
+                                <div className="relative h-64 sm:h-72 overflow-hidden bg-slate-900">
+                                    <img
+                                        src="/static/images/hero-river-ghats-aerial-hd.jpg"
+                                        alt="Riverside community and riverfront view"
+                                        className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700 ease-out"
+                                    />
+                                    <div className="absolute top-4 left-4 bg-white/95 text-teal-900 text-xs font-bold px-3 py-1 rounded-sm border border-teal-200 shadow-xs">
+                                        River Safety
+                                    </div>
+                                </div>
+                                <div className="p-6 sm:p-8 flex flex-col justify-between flex-1">
+                                    <div>
+                                        <h3 className="font-sans font-bold text-slate-900 text-xl group-hover:text-teal-800 transition-colors">
+                                            Protecting Riverside Areas
+                                        </h3>
+                                        <p className="text-base text-slate-700 mt-3.5 leading-relaxed font-sans">
+                                            Continuous river gauges upstream give residents and authorities up to 6 hours of advance notice before river levels peak.
+                                        </p>
+                                    </div>
+                                    <div className="mt-7 flex items-center justify-between text-sm border-t border-[#B3D6E6] pt-4">
+                                        <span className="font-bold text-teal-800">✓ 6h Advance Surge Notice</span>
+                                        <span className="text-sky-700 font-bold group-hover:translate-x-1 transition-transform">See Live →</span>
+                                    </div>
+                                </div>
+                            </div>
+
+                            {/* Card 4: Proactive Pump Station Dewatering */}
+                            <div 
+                                onClick={() => { if (onSelectCity) onSelectCity("Chennai"); else onEnter(); }}
+                                className="group rounded-2xl bg-white/95 border border-[#9DC6DA] hover:border-sky-600 transition-all duration-300 ease-out overflow-hidden flex flex-col cursor-pointer hover:-translate-y-1.5 shadow-sm hover:shadow-xl"
+                            >
+                                <div className="relative h-64 sm:h-72 overflow-hidden bg-slate-900">
+                                    <img
+                                        src="/static/images/pexels-dibakar-roy-2432543-19391751.jpg"
+                                        alt="Drainage canal pumps in action"
+                                        className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700 ease-out"
+                                    />
+                                    <div className="absolute top-4 left-4 bg-white/95 text-sky-900 text-xs font-bold px-3 py-1 rounded-sm border border-sky-200 shadow-xs">
+                                        Pump Activation
+                                    </div>
+                                </div>
+                                <div className="p-6 sm:p-8 flex flex-col justify-between flex-1">
+                                    <div>
+                                        <h3 className="font-sans font-bold text-slate-900 text-xl group-hover:text-sky-700 transition-colors">
+                                            Proactive Pump Activation
+                                        </h3>
+                                        <p className="text-base text-slate-700 mt-3.5 leading-relaxed font-sans">
+                                            Alerts municipal drainage teams where stormwater will pool so heavy pumps start draining sumps well before water overflows.
+                                        </p>
+                                    </div>
+                                    <div className="mt-7 flex items-center justify-between text-sm border-t border-[#B3D6E6] pt-4">
+                                        <span className="font-bold text-sky-800">✓ Automated Sump Clearing</span>
+                                        <span className="text-sky-700 font-bold group-hover:translate-x-1 transition-transform">See Live →</span>
                                     </div>
                                 </div>
                             </div>
                         </div>
-
-                        <div className="flex items-center justify-between pt-4 border-t border-sky-100 text-xs">
-                            <span className="text-slate-500">Calculated in <strong>11.4 ms</strong></span>
-                            <button
-                                onClick={() => onOpenMap(ward, "Chennai")}
-                                className="flex items-center gap-1.5 px-4 py-2 rounded-xl bg-sky-600 hover:bg-sky-500 text-white font-bold transition-all shadow-md shadow-sky-600/20 cursor-pointer"
-                            >
-                                <span>Apply to Live Operations Map</span>
-                                <ArrowRight className="w-3.5 h-3.5" />
-                            </button>
-                        </div>
-                    </div>
+                    </section>
                 </div>
-            </section>
+            </div>
+        </div>
+    );
+}
 
-            {/* ========================================================================= */}
-            {/* CALL TO ACTION BANNER                                                     */}
-            {/* ========================================================================= */}
-            <section id="command-contact" className="py-12 px-6 sm:px-12 md:px-16 max-w-7xl mx-auto w-full">
-                <div className="rounded-3xl bg-gradient-to-r from-sky-600 via-blue-600 to-indigo-700 text-white p-8 sm:p-14 flex flex-col md:flex-row items-center justify-between gap-8 relative overflow-hidden shadow-2xl shadow-sky-900/20">
-                    {/* Background Light Glow */}
-                    <div className="absolute -top-24 -right-24 w-96 h-96 bg-white/10 rounded-full blur-3xl pointer-events-none" />
+/**
+ * Ready-to-invoke Developer Social Handles & Confirmed Project Intelligence Component
+ * Configured so it does not clutter the primary UI directly, and is ready for invocation whenever needed.
+ * Can be triggered via window._openDeveloperProfile() or state.
+ */
+function DeveloperSocialSection({ isVisible = false, onClose }) {
+    if (!isVisible) return null;
+    return (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/75 backdrop-blur-md animate-fade-in">
+            <div className="bg-slate-900 border border-slate-700 rounded-2xl p-6 sm:p-8 max-w-2xl w-full text-white shadow-2xl relative">
+                <button
+                    onClick={onClose}
+                    className="absolute top-4 right-4 p-2 text-slate-400 hover:text-white rounded-lg hover:bg-slate-800 transition-colors cursor-pointer"
+                >
+                    <X className="w-5 h-5" />
+                </button>
 
-                    <div className="relative z-10 max-w-xl">
-                        <div className="flex items-center gap-2 text-sky-200 text-xs font-mono font-bold uppercase tracking-widest mb-2">
-                            <Radio className="w-3.5 h-3.5 animate-pulse text-white" />
-                            <span>OPERATIONS COMMAND DESK</span>
-                        </div>
-                        <h2 className="text-2xl sm:text-4xl font-extrabold text-white tracking-tight">
-                            Step into the Real-Time Municipal Flood Intelligence Center
-                        </h2>
-                        <p className="text-sm text-sky-100 mt-3 leading-relaxed">
-                            Access live spatial elevation grids, street-level inundation gauges, and automated emergency transit bypass routing across all Indian metros.
-                        </p>
+                <div className="flex items-center gap-3 mb-4">
+                    <div className="w-10 h-10 rounded-xl bg-sky-500/20 border border-sky-400/40 flex items-center justify-center text-sky-400 font-bold font-mono">
+                        RD
                     </div>
-
-                    <div className="relative z-10 flex flex-col sm:flex-row items-center gap-4 shrink-0">
-                        <button
-                            type="button"
-                            onClick={() => {
-                                if (onOpenMap) onOpenMap(ward, "Chennai");
-                                else onEnter();
-                            }}
-                            className="flex items-center gap-2.5 px-8 py-3.5 rounded-full bg-white hover:bg-slate-100 text-slate-900 font-bold text-sm shadow-xl hover:scale-105 active:scale-95 transition-all cursor-pointer"
-                        >
-                            <span>Launch Operations Map</span>
-                            <ArrowRight className="w-4 h-4 text-slate-900" />
-                        </button>
-                        <button
-                            type="button"
-                            onClick={onEnter}
-                            className="flex items-center gap-2 px-6 py-3.5 rounded-full bg-white/15 hover:bg-white/25 border border-white/20 text-white font-bold text-sm transition-all cursor-pointer backdrop-blur-md"
-                        >
-                            <span>City Matrix Overview</span>
-                        </button>
+                    <div>
+                        <h3 className="text-xl font-bold text-white">Lead Engineer &amp; Intelligence Profiles</h3>
+                        <p className="text-xs text-slate-400 font-mono">RainDrop Urban Water GIS Intelligence Engine</p>
                     </div>
-                </div>
-            </section>
-
-            {/* ========================================================================= */}
-            {/* FOOTER                                                                    */}
-            {/* ========================================================================= */}
-            <footer className="border-t border-sky-300/80 bg-white py-10 px-6 sm:px-12 md:px-16 flex flex-col md:flex-row items-center justify-between gap-6 text-xs text-slate-600 w-full">
-                <div className="flex flex-col sm:flex-row items-center gap-3">
-                    <div className="flex items-center gap-2">
-                        <RainDropLogo className="w-5 h-5" textClassName="text-sm font-bold text-slate-900 tracking-tight" />
-                        <span>· Municipal GIS Flood AI &copy; 2026</span>
-                    </div>
-                    <span className="hidden sm:inline text-slate-300">|</span>
-                    <a
-                        href="https://twitter.com/KrishanuBuilds"
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="text-[11px] font-medium text-sky-700 hover:text-sky-900 transition-colors"
-                    >
-                        Built with ✨ checklist by @KrishanuBuilds
-                    </a>
                 </div>
                 
-                <div className="flex flex-wrap items-center justify-center gap-6 font-semibold text-slate-600">
-                    <a href="/privacy.html" className="hover:text-sky-600 transition-colors">Privacy Policy</a>
-                    <a href="/terms.html" className="hover:text-sky-600 transition-colors">Terms &amp; Conditions</a>
-                    <button onClick={() => scrollTo("data")} className="hover:text-sky-600 transition-colors cursor-pointer">Data &amp; GIS</button>
-                    <button onClick={() => scrollTo("coverage")} className="hover:text-sky-600 transition-colors cursor-pointer">Coverage</button>
-                    <button onClick={() => scrollTo("solutions")} className="hover:text-sky-600 transition-colors cursor-pointer">Impact</button>
-                    <button onClick={() => scrollTo("future")} className="hover:text-sky-600 transition-colors cursor-pointer">Simulation</button>
+                {/* Social Profiles Grid */}
+                <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 my-6">
+                    <a 
+                        href="https://leetcode.com" 
+                        target="_blank" 
+                        rel="noopener noreferrer" 
+                        className="p-3.5 rounded-xl bg-slate-800/80 hover:bg-slate-800 border border-slate-700 hover:border-amber-400 transition-all flex flex-col items-center text-center group"
+                    >
+                        <span className="text-amber-400 font-bold text-xs uppercase font-mono">LeetCode</span>
+                        <span className="text-[11px] text-slate-400 mt-1 group-hover:text-white transition-colors">Algorithms &amp; System</span>
+                    </a>
+                    <a 
+                        href="https://github.com" 
+                        target="_blank" 
+                        rel="noopener noreferrer" 
+                        className="p-3.5 rounded-xl bg-slate-800/80 hover:bg-slate-800 border border-slate-700 hover:border-sky-400 transition-all flex flex-col items-center text-center group"
+                    >
+                        <span className="text-sky-400 font-bold text-xs uppercase font-mono">GitHub</span>
+                        <span className="text-[11px] text-slate-400 mt-1 group-hover:text-white transition-colors">GIS &amp; ML Pipelines</span>
+                    </a>
+                    <a 
+                        href="https://linkedin.com" 
+                        target="_blank" 
+                        rel="noopener noreferrer" 
+                        className="p-3.5 rounded-xl bg-slate-800/80 hover:bg-slate-800 border border-slate-700 hover:border-blue-400 transition-all flex flex-col items-center text-center group"
+                    >
+                        <span className="text-blue-400 font-bold text-xs uppercase font-mono">LinkedIn</span>
+                        <span className="text-[11px] text-slate-400 mt-1 group-hover:text-white transition-colors">Engineering Network</span>
+                    </a>
+                    <a 
+                        href="https://twitter.com" 
+                        target="_blank" 
+                        rel="noopener noreferrer" 
+                        className="p-3.5 rounded-xl bg-slate-800/80 hover:bg-slate-800 border border-slate-700 hover:border-cyan-400 transition-all flex flex-col items-center text-center group"
+                    >
+                        <span className="text-cyan-400 font-bold text-xs uppercase font-mono">Twitter / X</span>
+                        <span className="text-[11px] text-slate-400 mt-1 group-hover:text-white transition-colors">Radar &amp; Builds</span>
+                    </a>
                 </div>
 
-                <div className="text-center md:text-right text-[11px] font-mono text-slate-400">
-                    30m CartoDEM · IMD Radar Telemetry · Fast Surrogate &lt;15ms
+                {/* Confirmed Project Specs & Data */}
+                <div className="p-4 rounded-xl bg-slate-950 border border-slate-800 font-mono text-xs space-y-2 text-slate-300">
+                    <div className="flex justify-between text-sky-400 font-bold border-b border-slate-800 pb-1.5">
+                        <span>CONFIRMED PROJECT METRICS</span>
+                        <span>v3.4-PROD</span>
+                    </div>
+                    <div className="flex justify-between">
+                        <span className="text-slate-500">Elevation Dataset:</span>
+                        <span className="text-slate-200">16-bit Sub-meter High Precision DEM</span>
+                    </div>
+                    <div className="flex justify-between">
+                        <span className="text-slate-500">Hydro Inundation Engine:</span>
+                        <span className="text-emerald-400">ML Surrogate + 2D Hydrodynamic Models</span>
+                    </div>
+                    <div className="flex justify-between">
+                        <span className="text-slate-500">Monitored Metros:</span>
+                        <span className="text-slate-200">6 Indian Basins (Chennai, Mumbai, Kolkata, Delhi, Bengaluru, Hyderabad)</span>
+                    </div>
                 </div>
-            </footer>
+            </div>
         </div>
     );
 }
@@ -4945,10 +4894,6 @@ function TopNavbar(props) {
         setIsMapEnabled,
     } = props;
 
-    const [searchQuery, setSearchQuery] = useState("");
-    const [searchOpen, setSearchOpen] = useState(false);
-    const searchRef = useRef(null);
-
     const CITIES = ["All Cities", "Chennai", "Mumbai", "Delhi", "Bengaluru", "Kolkata", "Hyderabad"];
 
     // Filter available wards based on selected city
@@ -4956,105 +4901,6 @@ function TopNavbar(props) {
         if (!selectedCity || selectedCity === "All Cities") return Object.keys(WARDS_DATA);
         return Object.keys(WARDS_DATA).filter((w) => WARDS_DATA[w].city === selectedCity);
     }, [selectedCity]);
-
-    // Build multi-city search index results
-    const searchResults = useMemo(() => {
-        const q = searchQuery.trim().toLowerCase();
-        if (!q) return [];
-        const results = [];
-
-        // 1. Match Cities
-        ["Chennai", "Mumbai", "Delhi", "Bengaluru", "Kolkata", "Hyderabad"].forEach((cityName) => {
-            if (cityName.toLowerCase().includes(q)) {
-                const firstWard = Object.keys(WARDS_DATA).find((w) => WARDS_DATA[w].city === cityName);
-                results.push({
-                    type: "city",
-                    title: `${cityName} Metropole`,
-                    subtitle: `Switch city filter to ${cityName} GIS grid`,
-                    city: cityName,
-                    ward: firstWard,
-                    sectorId: null,
-                    badge: "🏙️ CITY",
-                    badgeColor: "bg-blue-500/10 text-blue-400 border-blue-500/30",
-                });
-            }
-        });
-
-        // 2. Match Wards, Rivers, and Sectors
-        Object.entries(WARDS_DATA).forEach(([wardKey, data]) => {
-            // Match Ward Name or Ward Code
-            if (data.name.toLowerCase().includes(q) || data.code.toLowerCase().includes(q)) {
-                results.push({
-                    type: "ward",
-                    title: `${data.name} (${data.code})`,
-                    subtitle: `River: ${data.riverName} · ${data.city}`,
-                    city: data.city,
-                    ward: wardKey,
-                    sectorId: null,
-                    badge: "📍 WARD",
-                    badgeColor: "bg-emerald-500/10 text-emerald-400 border-emerald-500/30",
-                });
-            }
-
-            // Match River Basin Name
-            if (data.riverName.toLowerCase().includes(q)) {
-                results.push({
-                    type: "river",
-                    title: `${data.riverName}`,
-                    subtitle: `Primary Spillway in ${data.name} · ${data.city}`,
-                    city: data.city,
-                    ward: wardKey,
-                    sectorId: null,
-                    badge: "🌊 RIVER BASIN",
-                    badgeColor: "bg-sky-500/10 text-sky-400 border-sky-500/30",
-                });
-            }
-
-            // Match Sector Locality Names
-            data.sectors.forEach((sec, sIdx) => {
-                if (sec.name.toLowerCase().includes(q)) {
-                    results.push({
-                        type: "sector",
-                        title: `${sec.name}`,
-                        subtitle: `${data.name} · Elev: ${sec.elevation}m · ${data.city}`,
-                        city: data.city,
-                        ward: wardKey,
-                        sectorId: sIdx,
-                        badge: "🏘️ LOCALITY",
-                        badgeColor: "bg-indigo-500/10 text-indigo-400 border-indigo-500/30",
-                    });
-                }
-            });
-        });
-
-        return results.slice(0, 10);
-    }, [searchQuery]);
-
-    // Handle clicking a search result
-    const handleSelectSearchResult = (res) => {
-        if (res.city) setSelectedCity(res.city);
-        if (res.ward) setWard(res.ward);
-        if (res.sectorId !== null && res.sectorId !== undefined) {
-            setSelectedSector(res.sectorId);
-        } else {
-            setSelectedSector(null);
-        }
-        setIsMapEnabled(true);
-        setSearchQuery("");
-        setSearchOpen(false);
-        pushToast(`Navigated to ${res.title} (${res.city})`);
-    };
-
-    // Close search dropdown on click outside
-    useEffect(() => {
-        const handleClickOutside = (e) => {
-            if (searchRef.current && !searchRef.current.contains(e.target)) {
-                setSearchOpen(false);
-            }
-        };
-        document.addEventListener("mousedown", handleClickOutside);
-        return () => document.removeEventListener("mousedown", handleClickOutside);
-    }, []);
 
     return (
         <header className="flex flex-wrap items-center justify-between gap-3 p-3.5 rounded-2xl border border-slate-200 bg-white shadow-sm">
@@ -5104,85 +4950,21 @@ function TopNavbar(props) {
                 </div>
             </div>
 
-            {/* Global Multi-City Search Bar */}
-            <div ref={searchRef} className="relative flex-1 max-w-md mx-2">
-                <div className="relative">
-                    <input
-                        type="text"
-                        value={searchQuery}
-                        onChange={(e) => {
-                            setSearchQuery(e.target.value);
-                            setSearchOpen(true);
-                        }}
-                        onFocus={() => setSearchOpen(true)}
-                        placeholder="🔍 Search City, Ward, River, or Locality (e.g. Adyar, ITO, Kurla, Yamuna)..."
-                        className="w-full pl-9 pr-8 py-2 rounded-xl border border-slate-200 bg-slate-50 text-xs font-medium text-slate-800 placeholder-slate-400 focus:bg-white focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/20 shadow-inner transition-all"
-                    />
-                    <Search className="w-4 h-4 text-slate-400 absolute left-3 top-2.5 pointer-events-none" />
-                    {searchQuery && (
-                        <button
-                            onClick={() => {
-                                setSearchQuery("");
-                                setSearchOpen(false);
-                            }}
-                            className="absolute right-2.5 top-2.5 text-slate-400 hover:text-slate-600 cursor-pointer"
-                        >
-                            <X className="w-3.5 h-3.5" />
-                        </button>
-                    )}
-                </div>
-
-                {/* Instant Search Results Dropdown */}
-                {searchOpen && searchResults.length > 0 && (
-                    <div className="absolute left-0 right-0 mt-2 rounded-2xl border border-slate-200 bg-white shadow-2xl overflow-hidden z-50 divide-y divide-slate-100 max-h-80 overflow-y-auto">
-                        <div className="px-3.5 py-1.5 bg-slate-50 text-[10px] font-bold uppercase tracking-wider text-slate-500 font-mono flex items-center justify-between">
-                            <span>Search Results Across All Cities</span>
-                            <span>{searchResults.length} matches</span>
-                        </div>
-                        {searchResults.map((res, i) => (
-                            <div
-                                key={i}
-                                onClick={() => handleSelectSearchResult(res)}
-                                className="p-3 hover:bg-blue-50/70 transition-colors cursor-pointer flex items-center justify-between gap-3 group"
-                            >
-                                <div>
-                                    <div className="flex items-center gap-2">
-                                        <span className="text-xs font-extrabold text-slate-900 group-hover:text-blue-700">
-                                            {res.title}
-                                        </span>
-                                        <span className={`text-[9px] font-bold px-1.5 py-0.5 rounded border ${res.badgeColor}`}>
-                                            {res.badge}
-                                        </span>
-                                    </div>
-                                    <p className="text-[11px] text-slate-500 mt-0.5">{res.subtitle}</p>
-                                </div>
-                                <ArrowRight className="w-3.5 h-3.5 text-slate-400 group-hover:text-blue-600 transition-transform group-hover:translate-x-0.5" />
-                            </div>
-                        ))}
-                    </div>
-                )}
-                {searchOpen && searchQuery.trim() && searchResults.length === 0 && (
-                    <div className="absolute left-0 right-0 mt-2 p-4 rounded-2xl border border-slate-200 bg-white shadow-2xl text-center text-xs text-slate-500 z-50">
-                        No cities, wards, rivers, or localities found matching "{searchQuery}".
-                    </div>
-                )}
-            </div>
-
             <div className="flex items-center gap-2">
-                {/* Return to Hero / Overview Button */}
+                {/* Dedicated Home Button leading to Landing Page */}
                 <button
                     onClick={onSwitchToHero}
-                    className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl border border-indigo-200 bg-indigo-50 hover:bg-indigo-100 text-indigo-900 text-xs font-bold transition-all cursor-pointer shadow-sm"
-                    title="Switch to Hero & Project Overview Page"
+                    className="flex items-center gap-1.5 px-3.5 py-2 rounded-xl border border-slate-300 bg-white hover:bg-slate-50 text-slate-800 text-xs font-bold transition-all cursor-pointer shadow-xs"
+                    title="Return to Landing Page"
                 >
-                    <Info className="w-3.5 h-3.5 text-indigo-600" />
-                    <span className="hidden sm:inline">📖 Hero Overview</span>
+                    <Home className="w-4 h-4 text-emerald-700" />
+                    <span>Home</span>
                 </button>
 
                 {/* Enable / Standby Map Toggle Button */}
                 <button
                     onClick={onToggleMap}
-                    className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl border text-xs font-bold transition-all cursor-pointer shadow-sm ${
+                    className={`flex items-center gap-1.5 px-3.5 py-2 rounded-xl border text-xs font-bold transition-all cursor-pointer shadow-sm ${
                         isMapEnabled
                             ? "border-emerald-300 bg-emerald-600 text-white hover:bg-emerald-700"
                             : "border-blue-200 bg-blue-50 text-blue-800 hover:bg-blue-100"
