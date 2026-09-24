@@ -3304,6 +3304,17 @@ function HeroView({ ward, wardData, onEnter, onSelectCity, onOpenMap, pushToast 
     const [mobileDrawerOpen, setMobileDrawerOpen] = useState(false);
     const [modalArtworkIdx, setModalArtworkIdx] = useState(0);
 
+    // Responsive viewport tracking for mathematically exact slide centering
+    const [viewportWidth, setViewportWidth] = useState(
+        typeof window !== 'undefined' ? window.innerWidth : 1440
+    );
+
+    useEffect(() => {
+        const handleResize = () => setViewportWidth(window.innerWidth);
+        window.addEventListener('resize', handleResize);
+        return () => window.removeEventListener('resize', handleResize);
+    }, []);
+
     const ARTWORKS = [
         {
             num: "01",
@@ -3350,38 +3361,49 @@ function HeroView({ ward, wardData, onEnter, onSelectCity, onOpenMap, pushToast 
         ...ARTWORKS  // Set 2: buffer on the right
     ];
 
-    // Automatic slide progression every 1 second
+    // Responsive card dimensions & exact horizontal center alignment:
+    // Active card is prominent (48vw, max 760px); inactive cards are compact (23vw, max 360px)
+    const cardWidthActive = Math.min(760, Math.max(340, Math.round(viewportWidth * 0.48)));
+    const cardWidthInactive = Math.min(360, Math.max(200, Math.round(viewportWidth * 0.23)));
+    const carouselGap = 20;
+
+    // Center equation: (viewport / 2) - (activeCardWidth / 2) places the active card's center at exactly 50vw
+    const centerOffset = Math.round(viewportWidth / 2 - (cardWidthActive / 2));
+    const slideStep = cardWidthInactive + carouselGap;
+    const translateX = centerOffset - (slideIndex * slideStep);
+
+    // Automatic slide progression every 1.75 seconds with smooth 750ms glide
     useEffect(() => {
         if (isCarouselHovered) return;
         const timer = setInterval(() => {
             setIsTransitioning(true);
-            setSlideIndex((prev) => prev + 1);
-        }, 1000);
+            setSlideIndex((prev) => {
+                if (prev >= 8) return 5;
+                return prev + 1;
+            });
+        }, 1750);
         return () => clearInterval(timer);
     }, [isCarouselHovered]);
 
-    // Handle seamless infinite loop normalization when sliding past boundaries
-    const handleSlideTransitionEnd = (e) => {
-        // ONLY trigger on transform transition of the track container itself
-        if (e.target !== e.currentTarget || e.propertyName !== 'transform') return;
+    // Rock-solid infinite loop normalization:
+    // When transitioning past index 7 to index 8 (Slide 01 in Set 2), wait for the 750ms transition
+    // to complete, then silently reset to index 4 (Slide 01 in Set 1) with transition disabled.
+    // Because Slide 8 and Slide 4 are visually identical on screen, this reset is 100% invisible!
+    useEffect(() => {
         if (slideIndex >= 8) {
-            setIsTransitioning(false);
-            setSlideIndex((prev) => prev - 4);
-            requestAnimationFrame(() => {
-                requestAnimationFrame(() => {
-                    setIsTransitioning(true);
-                });
-            });
+            const t = setTimeout(() => {
+                setIsTransitioning(false);
+                setSlideIndex(4);
+            }, 750);
+            return () => clearTimeout(t);
         } else if (slideIndex < 4) {
-            setIsTransitioning(false);
-            setSlideIndex((prev) => prev + 4);
-            requestAnimationFrame(() => {
-                requestAnimationFrame(() => {
-                    setIsTransitioning(true);
-                });
-            });
+            const t = setTimeout(() => {
+                setIsTransitioning(false);
+                setSlideIndex((prev) => prev + 4);
+            }, 750);
+            return () => clearTimeout(t);
         }
-    };
+    }, [slideIndex]);
 
     // Calculate active project index (0, 1, 2, 3) and sync activeArtworkIdx
     const activeProjectIdx = ((slideIndex % 4) + 4) % 4;
@@ -3391,13 +3413,8 @@ function HeroView({ ward, wardData, onEnter, onSelectCity, onOpenMap, pushToast 
     }, [activeProjectIdx]);
 
     const handleDotClick = (targetIdx) => {
-        const currentArtIdx = ((slideIndex % 4) + 4) % 4;
-        let diff = targetIdx - currentArtIdx;
-        if (diff === 3) diff = -1;
-        if (diff === -3) diff = 1;
-        if (diff === 0) return;
         setIsTransitioning(true);
-        setSlideIndex((prev) => prev + diff);
+        setSlideIndex(4 + targetIdx);
     };
 
 
@@ -3756,10 +3773,10 @@ function HeroView({ ward, wardData, onEnter, onSelectCity, onOpenMap, pushToast 
             {/* ========================================================================= */}
             <section
                 className="w-full bg-white border-t border-neutral-200 text-neutral-900 font-sans"
-                style={{ paddingTop: '64px', paddingBottom: '0' }}
+                style={{ paddingTop: '96px', paddingBottom: '0' }}
             >
                 {/* ── Header (constrained) ── */}
-                <div className="relative w-full max-w-7xl mx-auto px-6 sm:px-10 lg:px-14 mb-10">
+                <div className="relative w-full max-w-7xl mx-auto px-6 sm:px-10 lg:px-14 mb-12">
                     {/* "OUR FOCUS AREAS" label with flanking lines */}
                     <div className="flex items-center justify-center gap-4 mb-4">
                         <span style={{ flex: '0 0 60px', height: '1px', background: '#93c5fd' }} />
@@ -3812,28 +3829,20 @@ function HeroView({ ward, wardData, onEnter, onSelectCity, onOpenMap, pushToast 
                 </div>
 
                 {/* ── Full-bleed Filmstrip Stage ── */}
-                {/*
-                  Math for centering active slide (index K in EXTENDED_SLIDES[6]):
-                    All slides 0..K-1 are INACTIVE (23vw each) → offset = K * (23vw + 20px)
-                    Active slide K is 48vw wide → its center = K*(23vw+20px) + 24vw
-                    We want center at 50vw → translateX = 50vw - [K*(23vw+20px) + 24vw]
-                                                        = 26vw - K*(23vw+20px)
-                */}
                 <div
                     className="w-full select-none"
-                    style={{ overflow: 'hidden', paddingTop: '16px', paddingBottom: '8px' }}
+                    style={{ overflow: 'hidden', paddingTop: '28px', paddingBottom: '16px' }}
                     onMouseEnter={() => setIsCarouselHovered(true)}
                     onMouseLeave={() => setIsCarouselHovered(false)}
                 >
                     <div
-                        onTransitionEnd={handleSlideTransitionEnd}
                         style={{
                             display: 'flex',
                             alignItems: 'flex-end',
-                            gap: '20px',
-                            transform: `translate3d(calc(26vw - ${slideIndex} * (23vw + 20px)), 0, 0)`,
+                            gap: `${carouselGap}px`,
+                            transform: `translate3d(${translateX}px, 0, 0)`,
                             transition: isTransitioning
-                                ? 'transform 600ms cubic-bezier(0.25, 0.8, 0.25, 1)'
+                                ? 'transform 750ms cubic-bezier(0.25, 1, 0.5, 1)'
                                 : 'none',
                             willChange: 'transform',
                         }}
@@ -3854,19 +3863,16 @@ function HeroView({ ward, wardData, onEnter, onSelectCity, onOpenMap, pushToast 
                                         borderRadius: '16px',
                                         overflow: 'hidden',
                                         boxShadow: isCurrent
-                                            ? '0 24px 64px rgba(0,0,0,0.35)'
-                                            : '0 8px 24px rgba(0,0,0,0.18)',
-                                        width: isCurrent ? '48vw' : '23vw',
-                                        maxWidth: isCurrent ? '780px' : '370px',
-                                        height: isCurrent ? '420px' : '340px',
-                                        opacity: isCurrent ? 1 : 0.78,
-                                        transition: isTransitioning ? [
-                                            'width 600ms cubic-bezier(0.25,0.8,0.25,1)',
-                                            'max-width 600ms cubic-bezier(0.25,0.8,0.25,1)',
-                                            'height 600ms cubic-bezier(0.25,0.8,0.25,1)',
-                                            'opacity 600ms ease',
-                                            'box-shadow 600ms ease',
-                                        ].join(', ') : 'none',
+                                            ? '0 24px 64px rgba(0,0,0,0.38)'
+                                            : '0 8px 24px rgba(0,0,0,0.16)',
+                                        width: `${isCurrent ? cardWidthActive : cardWidthInactive}px`,
+                                        height: isCurrent ? '430px' : '350px',
+                                        transform: isCurrent ? 'translateY(-16px)' : 'translateY(0)',
+                                        opacity: isCurrent ? 1 : 0.72,
+                                        transition: isTransitioning
+                                            ? 'width 750ms cubic-bezier(0.25, 1, 0.5, 1), height 750ms cubic-bezier(0.25, 1, 0.5, 1), transform 750ms cubic-bezier(0.25, 1, 0.5, 1), opacity 750ms ease, box-shadow 750ms ease'
+                                            : 'none',
+                                        willChange: 'transform, width',
                                     }}
                                 >
                                     {/* Full-card background image */}

@@ -2267,6 +2267,14 @@ function HeroView({ ward, wardData, onEnter, onSelectCity, onOpenMap, pushToast 
   const [showreelModalOpen, setShowreelModalOpen] = useState(false);
   const [mobileDrawerOpen, setMobileDrawerOpen] = useState(false);
   const [modalArtworkIdx, setModalArtworkIdx] = useState(0);
+  const [viewportWidth, setViewportWidth] = useState(
+    typeof window !== "undefined" ? window.innerWidth : 1440
+  );
+  useEffect(() => {
+    const handleResize = () => setViewportWidth(window.innerWidth);
+    window.addEventListener("resize", handleResize);
+    return () => window.removeEventListener("resize", handleResize);
+  }, []);
   const ARTWORKS = [
     {
       num: "01",
@@ -2313,46 +2321,45 @@ function HeroView({ ward, wardData, onEnter, onSelectCity, onOpenMap, pushToast 
     ...ARTWORKS
     // Set 2: buffer on the right
   ];
+  const cardWidthActive = Math.min(760, Math.max(340, Math.round(viewportWidth * 0.48)));
+  const cardWidthInactive = Math.min(360, Math.max(200, Math.round(viewportWidth * 0.23)));
+  const carouselGap = 20;
+  const centerOffset = Math.round(viewportWidth / 2 - cardWidthActive / 2);
+  const slideStep = cardWidthInactive + carouselGap;
+  const translateX = centerOffset - slideIndex * slideStep;
   useEffect(() => {
     if (isCarouselHovered) return;
     const timer = setInterval(() => {
       setIsTransitioning(true);
-      setSlideIndex((prev) => prev + 1);
-    }, 1e3);
+      setSlideIndex((prev) => {
+        if (prev >= 8) return 5;
+        return prev + 1;
+      });
+    }, 1750);
     return () => clearInterval(timer);
   }, [isCarouselHovered]);
-  const handleSlideTransitionEnd = (e) => {
-    if (e.target !== e.currentTarget || e.propertyName !== "transform") return;
+  useEffect(() => {
     if (slideIndex >= 8) {
-      setIsTransitioning(false);
-      setSlideIndex((prev) => prev - 4);
-      requestAnimationFrame(() => {
-        requestAnimationFrame(() => {
-          setIsTransitioning(true);
-        });
-      });
+      const t = setTimeout(() => {
+        setIsTransitioning(false);
+        setSlideIndex(4);
+      }, 750);
+      return () => clearTimeout(t);
     } else if (slideIndex < 4) {
-      setIsTransitioning(false);
-      setSlideIndex((prev) => prev + 4);
-      requestAnimationFrame(() => {
-        requestAnimationFrame(() => {
-          setIsTransitioning(true);
-        });
-      });
+      const t = setTimeout(() => {
+        setIsTransitioning(false);
+        setSlideIndex((prev) => prev + 4);
+      }, 750);
+      return () => clearTimeout(t);
     }
-  };
+  }, [slideIndex]);
   const activeProjectIdx = (slideIndex % 4 + 4) % 4;
   useEffect(() => {
     setActiveArtworkIdx(activeProjectIdx);
   }, [activeProjectIdx]);
   const handleDotClick = (targetIdx) => {
-    const currentArtIdx = (slideIndex % 4 + 4) % 4;
-    let diff = targetIdx - currentArtIdx;
-    if (diff === 3) diff = -1;
-    if (diff === -3) diff = 1;
-    if (diff === 0) return;
     setIsTransitioning(true);
-    setSlideIndex((prev) => prev + diff);
+    setSlideIndex(4 + targetIdx);
   };
   const computedDepthCm = Math.max(0, Math.round(scenarioRain * 0.45 + scenarioTide * 12 - scenarioPumps / 100 * 16));
   const computedClearanceHours = Math.max(0.5, Number((computedDepthCm * 0.12 / (scenarioPumps / 100)).toFixed(1)));
@@ -2641,9 +2648,9 @@ function HeroView({ ward, wardData, onEnter, onSelectCity, onOpenMap, pushToast 
     "section",
     {
       className: "w-full bg-white border-t border-neutral-200 text-neutral-900 font-sans",
-      style: { paddingTop: "64px", paddingBottom: "0" }
+      style: { paddingTop: "96px", paddingBottom: "0" }
     },
-    /* @__PURE__ */ React.createElement("div", { className: "relative w-full max-w-7xl mx-auto px-6 sm:px-10 lg:px-14 mb-10" }, /* @__PURE__ */ React.createElement("div", { className: "flex items-center justify-center gap-4 mb-4" }, /* @__PURE__ */ React.createElement("span", { style: { flex: "0 0 60px", height: "1px", background: "#93c5fd" } }), /* @__PURE__ */ React.createElement(
+    /* @__PURE__ */ React.createElement("div", { className: "relative w-full max-w-7xl mx-auto px-6 sm:px-10 lg:px-14 mb-12" }, /* @__PURE__ */ React.createElement("div", { className: "flex items-center justify-center gap-4 mb-4" }, /* @__PURE__ */ React.createElement("span", { style: { flex: "0 0 60px", height: "1px", background: "#93c5fd" } }), /* @__PURE__ */ React.createElement(
       "span",
       {
         className: "font-bebas uppercase tracking-[0.35em] text-sky-500",
@@ -2690,20 +2697,19 @@ function HeroView({ ward, wardData, onEnter, onSelectCity, onOpenMap, pushToast 
       "div",
       {
         className: "w-full select-none",
-        style: { overflow: "hidden", paddingTop: "16px", paddingBottom: "8px" },
+        style: { overflow: "hidden", paddingTop: "28px", paddingBottom: "16px" },
         onMouseEnter: () => setIsCarouselHovered(true),
         onMouseLeave: () => setIsCarouselHovered(false)
       },
       /* @__PURE__ */ React.createElement(
         "div",
         {
-          onTransitionEnd: handleSlideTransitionEnd,
           style: {
             display: "flex",
             alignItems: "flex-end",
-            gap: "20px",
-            transform: `translate3d(calc(26vw - ${slideIndex} * (23vw + 20px)), 0, 0)`,
-            transition: isTransitioning ? "transform 600ms cubic-bezier(0.25, 0.8, 0.25, 1)" : "none",
+            gap: `${carouselGap}px`,
+            transform: `translate3d(${translateX}px, 0, 0)`,
+            transition: isTransitioning ? "transform 750ms cubic-bezier(0.25, 1, 0.5, 1)" : "none",
             willChange: "transform"
           }
         },
@@ -2723,18 +2729,13 @@ function HeroView({ ward, wardData, onEnter, onSelectCity, onOpenMap, pushToast 
                 cursor: "pointer",
                 borderRadius: "16px",
                 overflow: "hidden",
-                boxShadow: isCurrent ? "0 24px 64px rgba(0,0,0,0.35)" : "0 8px 24px rgba(0,0,0,0.18)",
-                width: isCurrent ? "48vw" : "23vw",
-                maxWidth: isCurrent ? "780px" : "370px",
-                height: isCurrent ? "420px" : "340px",
-                opacity: isCurrent ? 1 : 0.78,
-                transition: isTransitioning ? [
-                  "width 600ms cubic-bezier(0.25,0.8,0.25,1)",
-                  "max-width 600ms cubic-bezier(0.25,0.8,0.25,1)",
-                  "height 600ms cubic-bezier(0.25,0.8,0.25,1)",
-                  "opacity 600ms ease",
-                  "box-shadow 600ms ease"
-                ].join(", ") : "none"
+                boxShadow: isCurrent ? "0 24px 64px rgba(0,0,0,0.38)" : "0 8px 24px rgba(0,0,0,0.16)",
+                width: `${isCurrent ? cardWidthActive : cardWidthInactive}px`,
+                height: isCurrent ? "430px" : "350px",
+                transform: isCurrent ? "translateY(-16px)" : "translateY(0)",
+                opacity: isCurrent ? 1 : 0.72,
+                transition: isTransitioning ? "width 750ms cubic-bezier(0.25, 1, 0.5, 1), height 750ms cubic-bezier(0.25, 1, 0.5, 1), transform 750ms cubic-bezier(0.25, 1, 0.5, 1), opacity 750ms ease, box-shadow 750ms ease" : "none",
+                willChange: "transform, width"
               }
             },
             /* @__PURE__ */ React.createElement(
