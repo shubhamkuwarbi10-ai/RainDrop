@@ -144,6 +144,8 @@ const ChevronRight = getIcon("ChevronRight");
 
 
 // --- MODULE: client/src/data/mockData.js ---
+/* Mock Data and Ward Specifications */
+
 const WARDS_DATA = {
     // --- MUMBAI WARDS ---
     "Kurla West": {
@@ -783,7 +785,26 @@ const WARDS_DATA = {
 const WARDS = Object.keys(WARDS_DATA);
 
 // Web Audio synthesizer for alert notifications
+function playAlertChime() {
+    try {
+        const ctx = new (window.AudioContext || window.webkitAudioContext)();
+        const osc = ctx.createOscillator();
+        const gain = ctx.createGain();
+        osc.type = "sine";
+        osc.frequency.setValueAtTime(587.33, ctx.currentTime);
+        osc.frequency.exponentialRampToValueAtTime(880, ctx.currentTime + 0.15);
+        gain.gain.setValueAtTime(0.2, ctx.currentTime);
+        gain.gain.exponentialRampToValueAtTime(0.01, ctx.currentTime + 0.4);
+        osc.connect(gain);
+        gain.connect(ctx.destination);
+        osc.start();
+        osc.stop(ctx.currentTime + 0.42);
+    } catch {
+        // audio context muted/blocked
+    }
+}
 
+// Hydrograph forecast timeline data
 const HYDROGRAPH_DATA = [
     { t: "T-1h", rain: 1.2, surge: 1.2, label: "-1h Past" },
     { t: "Now", rain: 2.8, surge: 1.5, label: "Live Telemetry" },
@@ -798,7 +819,7 @@ const HYDROGRAPH_DATA = [
 const ROUTE_OPTIONS = [
     {
         id: "route-1",
-        name: "Kurla West Depot → Kurla Railway Station",
+        name: "Kurla West Depot â†’ Kurla Railway Station",
         origin: "Kurla Depot",
         destination: "Kurla Station",
         standard: {
@@ -829,7 +850,7 @@ const ROUTE_OPTIONS = [
     },
     {
         id: "route-2",
-        name: "LBS Marg North → BKC Connector",
+        name: "LBS Marg North -> BKC Connector",
         origin: "LBS Marg North",
         destination: "BKC Connector",
         standard: {
@@ -859,9 +880,6 @@ const ROUTE_OPTIONS = [
     },
 ];
 
-// ============================================================================
-// Small Reusable Components
-// ============================================================================
 
 
 const CITY_PROFILES = {
@@ -957,11 +975,6 @@ const CITY_PROFILES = {
     },
 };
 
-// ============================================================================
-// 3:7 Split City & Ward Intelligence Matrix Overview Component
-// Reference Design Implementation (Minimalist Editorial Civic Layout)
-// ============================================================================
-
 const CITY_HERO_BACKDROPS = {
     "Chennai": "/static/Landing Page images/zoshua-colah-1fradOPdjBM-unsplash.jpg",
     "Mumbai": "/static/Landing Page images/hero-mumbai-harbor-boats.jpg",
@@ -971,30 +984,8 @@ const CITY_HERO_BACKDROPS = {
     "Hyderabad": "/static/Landing Page images/hero-river-ghats-aerial-hd.jpg",
 };
 
-// Line-art Monument Sketches for the 6 Metros
 
 // --- MODULE: client/src/components/common/CommonUI.jsx ---
-function playAlertChime() {
-    try {
-        const ctx = new (window.AudioContext || window.webkitAudioContext)();
-        const osc = ctx.createOscillator();
-        const gain = ctx.createGain();
-        osc.type = "sine";
-        osc.frequency.setValueAtTime(587.33, ctx.currentTime);
-        osc.frequency.exponentialRampToValueAtTime(880, ctx.currentTime + 0.15);
-        gain.gain.setValueAtTime(0.2, ctx.currentTime);
-        gain.gain.exponentialRampToValueAtTime(0.01, ctx.currentTime + 0.4);
-        osc.connect(gain);
-        gain.connect(ctx.destination);
-        osc.start();
-        osc.stop(ctx.currentTime + 0.42);
-    } catch {
-        // audio context muted/blocked
-    }
-}
-
-// Hydrograph forecast timeline data
-
 function ToastStack({ toasts }) {
     return (
         <div className="fixed bottom-5 right-5 z-[80] flex flex-col gap-2 items-end pointer-events-none">
@@ -1336,12 +1327,13 @@ function CityWardOverview(props) {
         { name: "Hyderabad", sub: "Musi River" },
     ];
 
-    const activeCityProfile = CITY_PROFILES[selectedCity] || CITY_PROFILES["Chennai"];
-    const activeBackdrop = CITY_HERO_BACKDROPS[selectedCity] || CITY_HERO_BACKDROPS["Chennai"];
+    const activeCityProfile = (typeof CITY_PROFILES !== "undefined" && (CITY_PROFILES[selectedCity] || CITY_PROFILES["Chennai"])) || {};
+    const activeBackdrop = (typeof CITY_HERO_BACKDROPS !== "undefined" && (CITY_HERO_BACKDROPS[selectedCity] || CITY_HERO_BACKDROPS["Chennai"])) || "";
 
     // Filter wards for selected city
     const cityWards = useMemo(() => {
-        return Object.entries(WARDS_DATA).filter(([_, data]) => data.city.toLowerCase() === selectedCity.toLowerCase());
+        if (typeof WARDS_DATA === "undefined") return [];
+        return Object.entries(WARDS_DATA).filter(([_, data]) => data && data.city && selectedCity && data.city.toLowerCase() === selectedCity.toLowerCase());
     }, [selectedCity]);
 
     // Filter by risk tier
@@ -1488,7 +1480,7 @@ function CityWardOverview(props) {
                             {/* Clock */}
                             <div className="hidden sm:flex items-center gap-1 text-xs text-stone-600 font-mono">
                                 <Clock className="w-3.5 h-3.5 text-stone-500" />
-                                <span>{currentTime.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' })}</span>
+                                <span>{(currentTime instanceof Date ? currentTime : new Date()).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' })}</span>
                             </div>
 
                             {/* DEDICATED HOME BUTTON -> Leads directly to Landing Page */}

@@ -25,12 +25,13 @@ function CityWardOverview(props) {
         { name: "Hyderabad", sub: "Musi River" },
     ];
 
-    const activeCityProfile = CITY_PROFILES[selectedCity] || CITY_PROFILES["Chennai"];
-    const activeBackdrop = CITY_HERO_BACKDROPS[selectedCity] || CITY_HERO_BACKDROPS["Chennai"];
+    const activeCityProfile = (typeof CITY_PROFILES !== "undefined" && (CITY_PROFILES[selectedCity] || CITY_PROFILES["Chennai"])) || {};
+    const activeBackdrop = (typeof CITY_HERO_BACKDROPS !== "undefined" && (CITY_HERO_BACKDROPS[selectedCity] || CITY_HERO_BACKDROPS["Chennai"])) || "";
 
     // Filter wards for selected city
     const cityWards = useMemo(() => {
-        return Object.entries(WARDS_DATA).filter(([_, data]) => data.city.toLowerCase() === selectedCity.toLowerCase());
+        if (typeof WARDS_DATA === "undefined") return [];
+        return Object.entries(WARDS_DATA).filter(([_, data]) => data && data.city && selectedCity && data.city.toLowerCase() === selectedCity.toLowerCase());
     }, [selectedCity]);
 
     // Filter by risk tier
@@ -177,7 +178,7 @@ function CityWardOverview(props) {
                             {/* Clock */}
                             <div className="hidden sm:flex items-center gap-1 text-xs text-stone-600 font-mono">
                                 <Clock className="w-3.5 h-3.5 text-stone-500" />
-                                <span>{currentTime.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' })}</span>
+                                <span>{(currentTime instanceof Date ? currentTime : new Date()).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' })}</span>
                             </div>
 
                             {/* DEDICATED HOME BUTTON -> Leads directly to Landing Page */}

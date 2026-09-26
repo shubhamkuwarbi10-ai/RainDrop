@@ -410,6 +410,8 @@ const ChevronRight = getIcon("ChevronRight");
 // ============================================================================
 
 // --- MODULE: client/src/data/mockData.js ---
+/* Mock Data and Ward Specifications */
+
 const WARDS_DATA = {
   // --- MUMBAI WARDS ---
   "Kurla West": {
@@ -1722,7 +1724,26 @@ const WARDS_DATA = {
 const WARDS = Object.keys(WARDS_DATA);
 
 // Web Audio synthesizer for alert notifications
+function playAlertChime() {
+  try {
+    const ctx = new (window.AudioContext || window.webkitAudioContext)();
+    const osc = ctx.createOscillator();
+    const gain = ctx.createGain();
+    osc.type = "sine";
+    osc.frequency.setValueAtTime(587.33, ctx.currentTime);
+    osc.frequency.exponentialRampToValueAtTime(880, ctx.currentTime + 0.15);
+    gain.gain.setValueAtTime(0.2, ctx.currentTime);
+    gain.gain.exponentialRampToValueAtTime(0.01, ctx.currentTime + 0.4);
+    osc.connect(gain);
+    gain.connect(ctx.destination);
+    osc.start();
+    osc.stop(ctx.currentTime + 0.42);
+  } catch {
+    // audio context muted/blocked
+  }
+}
 
+// Hydrograph forecast timeline data
 const HYDROGRAPH_DATA = [{
   t: "T-1h",
   rain: 1.2,
@@ -1763,7 +1784,7 @@ const HYDROGRAPH_DATA = [{
 // Route definitions for interactive routing
 const ROUTE_OPTIONS = [{
   id: "route-1",
-  name: "Kurla West Depot → Kurla Railway Station",
+  name: "Kurla West Depot â†’ Kurla Railway Station",
   origin: "Kurla Depot",
   destination: "Kurla Station",
   standard: {
@@ -1812,7 +1833,7 @@ const ROUTE_OPTIONS = [{
   }
 }, {
   id: "route-2",
-  name: "LBS Marg North → BKC Connector",
+  name: "LBS Marg North -> BKC Connector",
   origin: "LBS Marg North",
   destination: "BKC Connector",
   standard: {
@@ -1856,11 +1877,6 @@ const ROUTE_OPTIONS = [{
     }]
   }
 }];
-
-// ============================================================================
-// Small Reusable Components
-// ============================================================================
-
 const CITY_PROFILES = {
   "Chennai": {
     state: "Tamil Nadu",
@@ -1953,12 +1969,6 @@ const CITY_PROFILES = {
     elevationAvg: "512.6m"
   }
 };
-
-// ============================================================================
-// 3:7 Split City & Ward Intelligence Matrix Overview Component
-// Reference Design Implementation (Minimalist Editorial Civic Layout)
-// ============================================================================
-
 const CITY_HERO_BACKDROPS = {
   "Chennai": "/static/Landing Page images/zoshua-colah-1fradOPdjBM-unsplash.jpg",
   "Mumbai": "/static/Landing Page images/hero-mumbai-harbor-boats.jpg",
@@ -1968,30 +1978,7 @@ const CITY_HERO_BACKDROPS = {
   "Hyderabad": "/static/Landing Page images/hero-river-ghats-aerial-hd.jpg"
 };
 
-// Line-art Monument Sketches for the 6 Metros
-
 // --- MODULE: client/src/components/common/CommonUI.jsx ---
-function playAlertChime() {
-  try {
-    const ctx = new (window.AudioContext || window.webkitAudioContext)();
-    const osc = ctx.createOscillator();
-    const gain = ctx.createGain();
-    osc.type = "sine";
-    osc.frequency.setValueAtTime(587.33, ctx.currentTime);
-    osc.frequency.exponentialRampToValueAtTime(880, ctx.currentTime + 0.15);
-    gain.gain.setValueAtTime(0.2, ctx.currentTime);
-    gain.gain.exponentialRampToValueAtTime(0.01, ctx.currentTime + 0.4);
-    osc.connect(gain);
-    gain.connect(ctx.destination);
-    osc.start();
-    osc.stop(ctx.currentTime + 0.42);
-  } catch {
-    // audio context muted/blocked
-  }
-}
-
-// Hydrograph forecast timeline data
-
 function ToastStack({
   toasts
 }) {
@@ -2015,7 +2002,7 @@ function StatusPill({
       className: "inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-indigo-500/10 border border-indigo-500/30 text-[11px] font-medium text-indigo-300"
     }, /*#__PURE__*/React.createElement("span", {
       className: "w-1.5 h-1.5 rounded-full bg-indigo-400 animate-ping"
-    }), "Processing…");
+    }), "Processing\u2026");
   }
   return /*#__PURE__*/React.createElement("span", {
     className: "inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-emerald-500/10 border border-emerald-500/30 text-[11px] font-medium text-emerald-300"
@@ -2370,7 +2357,7 @@ function MapStandbyDeck({
     type: "button"
   }, /*#__PURE__*/React.createElement(Power, {
     className: "w-4 h-4 fill-current text-zinc-950"
-  }), /*#__PURE__*/React.createElement("span", null, "🗺️ View Interactive Map"), /*#__PURE__*/React.createElement(ArrowRight, {
+  }), /*#__PURE__*/React.createElement("span", null, "\uD83D\uDDFA\uFE0F View Interactive Map"), /*#__PURE__*/React.createElement(ArrowRight, {
     className: "w-4 h-4 transition-transform group-hover:translate-x-1"
   }))), /*#__PURE__*/React.createElement("div", {
     className: "relative z-10 mt-8 grid grid-cols-3 gap-3 w-full max-w-md border-t border-zinc-800 pt-5 text-xs"
@@ -2425,7 +2412,7 @@ function EmergencyBanner({
     className: "flex items-center gap-1 text-[11px] font-bold px-3 py-1.5 rounded-xl bg-blue-600 hover:bg-blue-700 text-white transition-colors cursor-pointer border border-blue-700 shadow-sm"
   }, /*#__PURE__*/React.createElement(Eye, {
     className: "w-3.5 h-3.5 text-white"
-  }), /*#__PURE__*/React.createElement("span", null, "🗺️ Open Interactive Map"))));
+  }), /*#__PURE__*/React.createElement("span", null, "\uD83D\uDDFA\uFE0F Open Interactive Map"))));
 }
 
 // ============================================================================
@@ -2469,12 +2456,13 @@ function CityWardOverview(props) {
     name: "Hyderabad",
     sub: "Musi River"
   }];
-  const activeCityProfile = CITY_PROFILES[selectedCity] || CITY_PROFILES["Chennai"];
-  const activeBackdrop = CITY_HERO_BACKDROPS[selectedCity] || CITY_HERO_BACKDROPS["Chennai"];
+  const activeCityProfile = typeof CITY_PROFILES !== "undefined" && (CITY_PROFILES[selectedCity] || CITY_PROFILES["Chennai"]) || {};
+  const activeBackdrop = typeof CITY_HERO_BACKDROPS !== "undefined" && (CITY_HERO_BACKDROPS[selectedCity] || CITY_HERO_BACKDROPS["Chennai"]) || "";
 
   // Filter wards for selected city
   const cityWards = useMemo(() => {
-    return Object.entries(WARDS_DATA).filter(([_, data]) => data.city.toLowerCase() === selectedCity.toLowerCase());
+    if (typeof WARDS_DATA === "undefined") return [];
+    return Object.entries(WARDS_DATA).filter(([_, data]) => data && data.city && selectedCity && data.city.toLowerCase() === selectedCity.toLowerCase());
   }, [selectedCity]);
 
   // Filter by risk tier
@@ -2579,7 +2567,7 @@ function CityWardOverview(props) {
     className: "hidden sm:flex items-center gap-1 text-xs text-stone-600 font-mono"
   }, /*#__PURE__*/React.createElement(Clock, {
     className: "w-3.5 h-3.5 text-stone-500"
-  }), /*#__PURE__*/React.createElement("span", null, currentTime.toLocaleTimeString([], {
+  }), /*#__PURE__*/React.createElement("span", null, (currentTime instanceof Date ? currentTime : new Date()).toLocaleTimeString([], {
     hour: '2-digit',
     minute: '2-digit',
     second: '2-digit'
@@ -2733,7 +2721,7 @@ function CityWardOverview(props) {
       className: "text-sm font-semibold text-stone-900 leading-snug"
     }, data.name), /*#__PURE__*/React.createElement("span", {
       className: "text-xs text-stone-500 block mt-0.5"
-    }, data.code, " · ", data.sectors?.length || 5, " Sectors")), /*#__PURE__*/React.createElement("span", {
+    }, data.code, " \xB7 ", data.sectors?.length || 5, " Sectors")), /*#__PURE__*/React.createElement("span", {
       className: `text-[11px] font-medium px-2.5 py-0.5 rounded-full shrink-0 border ${isCritical ? "bg-[#FDF2E9] text-[#B95D1E] border-[#FCE3CF]" : isModerate ? "bg-[#FDF6ED] text-[#C07E38] border-[#FBECD9]" : "bg-[#EEF7EE] text-[#3D7A46] border-[#DCF2DC]"}`
     }, isCritical ? "High" : isModerate ? "Moderate" : "Low")), /*#__PURE__*/React.createElement("div", {
       className: "space-y-2"
@@ -3011,7 +2999,7 @@ function TopNavbar(props) {
     className: "block font-semibold"
   }, w), /*#__PURE__*/React.createElement("span", {
     className: "text-[10px] text-slate-400"
-  }, WARDS_DATA[w].city, " · ", WARDS_DATA[w].code)), w === ward && /*#__PURE__*/React.createElement(Check, {
+  }, WARDS_DATA[w].city, " \xB7 ", WARDS_DATA[w].code)), w === ward && /*#__PURE__*/React.createElement(Check, {
     className: "w-3.5 h-3.5 text-blue-600"
   }))))), /*#__PURE__*/React.createElement("button", {
     onClick: () => {
@@ -3498,11 +3486,11 @@ function HeroView({
     className: "hover:text-emerald-700 transition-colors"
   }, "REAL-TIME RADAR"), /*#__PURE__*/React.createElement("span", {
     className: "text-black/40"
-  }, "•"), /*#__PURE__*/React.createElement("span", {
+  }, "\u2022"), /*#__PURE__*/React.createElement("span", {
     className: "hover:text-emerald-700 transition-colors"
   }, "ZERO FLOOD DELAYS"), /*#__PURE__*/React.createElement("span", {
     className: "text-black/40"
-  }, "•"), /*#__PURE__*/React.createElement("span", {
+  }, "\u2022"), /*#__PURE__*/React.createElement("span", {
     className: "hover:text-emerald-700 transition-colors"
   }, "6 INDIAN BASINS")))), /*#__PURE__*/React.createElement("section", {
     className: "w-full bg-white border-t border-neutral-200 text-neutral-900 font-sans",
@@ -3770,7 +3758,7 @@ function HeroView({
       fontSize: '11px',
       letterSpacing: '0.18em'
     }
-  }, "FROM RIVERS TO COASTLINES TO URBAN STREETS — TURNING REAL-TIME DATA INTO SAFER, MORE RESILIENT CITIES."), /*#__PURE__*/React.createElement("div", {
+  }, "FROM RIVERS TO COASTLINES TO URBAN STREETS \u2014 TURNING REAL-TIME DATA INTO SAFER, MORE RESILIENT CITIES."), /*#__PURE__*/React.createElement("div", {
     style: {
       display: 'flex',
       alignItems: 'center',
@@ -3889,7 +3877,7 @@ function HeroView({
     className: "w-3.5 h-3.5 text-sky-700 animate-pulse"
   }), /*#__PURE__*/React.createElement("span", null, "SENSOR STREAM: ", GIS_PILLARS[activePillarTab].tag)), /*#__PURE__*/React.createElement("div", {
     className: "hidden sm:block font-mono text-xs text-slate-700 bg-white/90 backdrop-blur-md px-3 py-1.5 rounded-md border border-slate-200 font-semibold shadow-xs"
-  }, "FPS: 60 · LATENCY: 11.2ms")), /*#__PURE__*/React.createElement("div", {
+  }, "FPS: 60 \xB7 LATENCY: 11.2ms")), /*#__PURE__*/React.createElement("div", {
     className: "absolute bottom-5 left-5 right-5 sm:bottom-6 sm:left-6 sm:right-6"
   }, /*#__PURE__*/React.createElement("span", {
     className: "font-mono text-xs uppercase tracking-widest text-sky-400 font-bold block mb-1"
@@ -4016,7 +4004,7 @@ function HeroView({
     className: "w-3.5 h-3.5 text-sky-700"
   }), /*#__PURE__*/React.createElement("span", null, "CIVIL PROTECTION & CITIZEN SAFETY // 03")), /*#__PURE__*/React.createElement("h2", {
     className: "font-editorial text-4xl sm:text-5xl lg:text-6xl font-normal text-slate-900 mt-4 tracking-tight leading-[1.12]"
-  }, "Real Problems Citizens Face — And How We Solve Them"), /*#__PURE__*/React.createElement("p", {
+  }, "Real Problems Citizens Face \u2014 And How We Solve Them"), /*#__PURE__*/React.createElement("p", {
     className: "text-slate-700 text-lg sm:text-xl lg:text-2xl mt-4 leading-relaxed font-sans font-light"
   }, "Monsoon deluges shouldn't cause flooded vehicles, stranded commuters, or waterlogged neighborhoods. Here is how real-time insights protect daily life.")), /*#__PURE__*/React.createElement("button", {
     onClick: onEnter,
@@ -4048,9 +4036,9 @@ function HeroView({
     className: "mt-7 flex items-center justify-between text-sm border-t border-[#B3D6E6] pt-4"
   }, /*#__PURE__*/React.createElement("span", {
     className: "font-bold text-sky-800"
-  }, "✓ Zero Stranded Commuters"), /*#__PURE__*/React.createElement("span", {
+  }, "\u2713 Zero Stranded Commuters"), /*#__PURE__*/React.createElement("span", {
     className: "text-sky-700 font-bold group-hover:translate-x-1 transition-transform"
-  }, "See Live →")))), /*#__PURE__*/React.createElement("div", {
+  }, "See Live \u2192")))), /*#__PURE__*/React.createElement("div", {
     onClick: () => {
       if (onSelectCity) onSelectCity("Kolkata");else onEnter();
     },
@@ -4073,9 +4061,9 @@ function HeroView({
     className: "mt-7 flex items-center justify-between text-sm border-t border-[#B3D6E6] pt-4"
   }, /*#__PURE__*/React.createElement("span", {
     className: "font-bold text-amber-800"
-  }, "✓ 100% Engine Safety"), /*#__PURE__*/React.createElement("span", {
+  }, "\u2713 100% Engine Safety"), /*#__PURE__*/React.createElement("span", {
     className: "text-sky-700 font-bold group-hover:translate-x-1 transition-transform"
-  }, "See Live →")))), /*#__PURE__*/React.createElement("div", {
+  }, "See Live \u2192")))), /*#__PURE__*/React.createElement("div", {
     onClick: () => {
       if (onSelectCity) onSelectCity("Delhi");else onEnter();
     },
@@ -4098,9 +4086,9 @@ function HeroView({
     className: "mt-7 flex items-center justify-between text-sm border-t border-[#B3D6E6] pt-4"
   }, /*#__PURE__*/React.createElement("span", {
     className: "font-bold text-teal-800"
-  }, "✓ 6h Advance Surge Notice"), /*#__PURE__*/React.createElement("span", {
+  }, "\u2713 6h Advance Surge Notice"), /*#__PURE__*/React.createElement("span", {
     className: "text-sky-700 font-bold group-hover:translate-x-1 transition-transform"
-  }, "See Live →")))), /*#__PURE__*/React.createElement("div", {
+  }, "See Live \u2192")))), /*#__PURE__*/React.createElement("div", {
     onClick: () => {
       if (onSelectCity) onSelectCity("Chennai");else onEnter();
     },
@@ -4123,9 +4111,9 @@ function HeroView({
     className: "mt-7 flex items-center justify-between text-sm border-t border-[#B3D6E6] pt-4"
   }, /*#__PURE__*/React.createElement("span", {
     className: "font-bold text-sky-800"
-  }, "✓ Automated Sump Clearing"), /*#__PURE__*/React.createElement("span", {
+  }, "\u2713 Automated Sump Clearing"), /*#__PURE__*/React.createElement("span", {
     className: "text-sky-700 font-bold group-hover:translate-x-1 transition-transform"
-  }, "See Live →")))))))));
+  }, "See Live \u2192")))))))));
 }
 
 /**
@@ -4543,11 +4531,11 @@ function SectorDrawer({
     className: "flex items-center gap-2"
   }, /*#__PURE__*/React.createElement("span", {
     className: "text-[10px] uppercase font-bold tracking-wider px-2 py-0.5 rounded-full bg-blue-50 text-blue-700"
-  }, wardName, " · Spot Safety Check")), /*#__PURE__*/React.createElement("h3", {
+  }, wardName, " \xB7 Spot Safety Check")), /*#__PURE__*/React.createElement("h3", {
     className: "text-lg font-extrabold text-slate-900 mt-1"
   }, sector.name), /*#__PURE__*/React.createElement("p", {
     className: "text-xs text-slate-500 mt-0.5"
-  }, "Critical Drainage & Road Point · Low-lying Sector")), /*#__PURE__*/React.createElement("button", {
+  }, "Critical Drainage & Road Point \xB7 Low-lying Sector")), /*#__PURE__*/React.createElement("button", {
     onClick: onClose,
     className: "p-2 rounded-full text-slate-400 hover:text-slate-700 hover:bg-slate-100 transition-colors cursor-pointer",
     title: "Close (Esc)"
@@ -4590,13 +4578,13 @@ function SectorDrawer({
     className: "text-[10px] uppercase tracking-wider font-semibold text-slate-400"
   }, "Water Movement"), /*#__PURE__*/React.createElement("p", {
     className: "text-xs font-bold text-slate-800 mt-1 flex items-center gap-1.5"
-  }, depth >= 25 ? /*#__PURE__*/React.createElement(React.Fragment, null, /*#__PURE__*/React.createElement("span", null, "⚠️"), " Fast moving current") : depth >= 15 ? /*#__PURE__*/React.createElement(React.Fragment, null, /*#__PURE__*/React.createElement("span", null, "🌊"), " Slow moving runoff") : /*#__PURE__*/React.createElement(React.Fragment, null, /*#__PURE__*/React.createElement("span", null, "✅"), " Standing puddles only"))), /*#__PURE__*/React.createElement("div", {
+  }, depth >= 25 ? /*#__PURE__*/React.createElement(React.Fragment, null, /*#__PURE__*/React.createElement("span", null, "\u26A0\uFE0F"), " Fast moving current") : depth >= 15 ? /*#__PURE__*/React.createElement(React.Fragment, null, /*#__PURE__*/React.createElement("span", null, "\uD83C\uDF0A"), " Slow moving runoff") : /*#__PURE__*/React.createElement(React.Fragment, null, /*#__PURE__*/React.createElement("span", null, "\u2705"), " Standing puddles only"))), /*#__PURE__*/React.createElement("div", {
     className: "p-3 rounded-2xl bg-white border border-slate-200/80 shadow-2xs"
   }, /*#__PURE__*/React.createElement("span", {
     className: "text-[10px] uppercase tracking-wider font-semibold text-slate-400"
   }, "Local Drains"), /*#__PURE__*/React.createElement("p", {
     className: "text-xs font-bold text-slate-800 mt-1 flex items-center gap-1.5"
-  }, depth >= 30 ? /*#__PURE__*/React.createElement(React.Fragment, null, /*#__PURE__*/React.createElement("span", null, "⚠️"), " Drains near full capacity") : /*#__PURE__*/React.createElement(React.Fragment, null, /*#__PURE__*/React.createElement("span", null, "⚡"), " Pumps actively draining")))), /*#__PURE__*/React.createElement("div", {
+  }, depth >= 30 ? /*#__PURE__*/React.createElement(React.Fragment, null, /*#__PURE__*/React.createElement("span", null, "\u26A0\uFE0F"), " Drains near full capacity") : /*#__PURE__*/React.createElement(React.Fragment, null, /*#__PURE__*/React.createElement("span", null, "\u26A1"), " Pumps actively draining")))), /*#__PURE__*/React.createElement("div", {
     className: "rounded-2xl border border-slate-200/90 bg-white p-4 mb-4 shadow-xs"
   }, /*#__PURE__*/React.createElement("h4", {
     className: "text-xs font-bold text-slate-900 mb-3 flex items-center justify-between"
@@ -4612,25 +4600,25 @@ function SectorDrawer({
     className: "flex items-center justify-between py-1.5 border-b border-slate-100"
   }, /*#__PURE__*/React.createElement("span", {
     className: "text-slate-600 flex items-center gap-2 font-medium"
-  }, /*#__PURE__*/React.createElement("span", null, "🚶"), " Walking on foot"), /*#__PURE__*/React.createElement("span", {
+  }, /*#__PURE__*/React.createElement("span", null, "\uD83D\uDEB6"), " Walking on foot"), /*#__PURE__*/React.createElement("span", {
     className: `font-bold px-2 py-0.5 rounded-md ${depth >= 15 ? "bg-rose-50 text-rose-700" : "bg-emerald-50 text-emerald-700"}`
   }, depth >= 15 ? "⛔ Avoid — Water above ankles" : "✅ Safe to walk")), /*#__PURE__*/React.createElement("div", {
     className: "flex items-center justify-between py-1.5 border-b border-slate-100"
   }, /*#__PURE__*/React.createElement("span", {
     className: "text-slate-600 flex items-center gap-2 font-medium"
-  }, /*#__PURE__*/React.createElement("span", null, "🛵"), " Bikes & Scooters"), /*#__PURE__*/React.createElement("span", {
+  }, /*#__PURE__*/React.createElement("span", null, "\uD83D\uDEF5"), " Bikes & Scooters"), /*#__PURE__*/React.createElement("span", {
     className: `font-bold px-2 py-0.5 rounded-md ${depth >= 18 ? "bg-rose-50 text-rose-700" : "bg-emerald-50 text-emerald-700"}`
   }, depth >= 18 ? "⛔ High stall risk" : "✅ Safe to ride")), /*#__PURE__*/React.createElement("div", {
     className: "flex items-center justify-between py-1.5 border-b border-slate-100"
   }, /*#__PURE__*/React.createElement("span", {
     className: "text-slate-600 flex items-center gap-2 font-medium"
-  }, /*#__PURE__*/React.createElement("span", null, "🚗"), " Cars & Autos"), /*#__PURE__*/React.createElement("span", {
+  }, /*#__PURE__*/React.createElement("span", null, "\uD83D\uDE97"), " Cars & Autos"), /*#__PURE__*/React.createElement("span", {
     className: `font-bold px-2 py-0.5 rounded-md ${depth >= 25 ? "bg-rose-50 text-rose-700" : depth >= 15 ? "bg-amber-50 text-amber-800" : "bg-emerald-50 text-emerald-700"}`
   }, depth >= 25 ? "⛔ Impassable — Do not enter" : depth >= 15 ? "⚠️ Caution — Slow down" : "✅ Passable")), /*#__PURE__*/React.createElement("div", {
     className: "flex items-center justify-between py-1.5"
   }, /*#__PURE__*/React.createElement("span", {
     className: "text-slate-600 flex items-center gap-2 font-medium"
-  }, /*#__PURE__*/React.createElement("span", null, "🚑"), " Buses & Emergency Trucks"), /*#__PURE__*/React.createElement("span", {
+  }, /*#__PURE__*/React.createElement("span", null, "\uD83D\uDE91"), " Buses & Emergency Trucks"), /*#__PURE__*/React.createElement("span", {
     className: `font-bold px-2 py-0.5 rounded-md ${depth >= 45 ? "bg-amber-50 text-amber-800" : "bg-emerald-50 text-emerald-700"}`
   }, depth >= 45 ? "⚠️ High clearance only" : "✅ Priority Corridor Clear")))), (pumpStatus || divertStatus || showRouteTip) && /*#__PURE__*/React.createElement("div", {
     className: "space-y-2 mb-4 animate-in fade-in slide-in-from-top-2 duration-200"
@@ -4640,11 +4628,11 @@ function SectorDrawer({
     className: "flex items-start gap-2"
   }, /*#__PURE__*/React.createElement("span", {
     className: "text-blue-600 mt-0.5 font-bold"
-  }, "⚡"), /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("strong", {
+  }, "\u26A1"), /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("strong", {
     className: "font-bold block"
   }, "Dewatering Pump Unit #14 Dispatched"), /*#__PURE__*/React.createElement("span", {
     className: "text-blue-700 text-[11px]"
-  }, "En route to ", sector.name, " · Estimated suction start: ~10 mins"))), /*#__PURE__*/React.createElement("button", {
+  }, "En route to ", sector.name, " \xB7 Estimated suction start: ~10 mins"))), /*#__PURE__*/React.createElement("button", {
     onClick: () => setPumpStatus(null),
     className: "text-blue-500 hover:text-blue-700 text-[11px] font-bold underline cursor-pointer"
   }, "Dismiss")), divertStatus === "active" && /*#__PURE__*/React.createElement("div", {
@@ -4653,7 +4641,7 @@ function SectorDrawer({
     className: "flex items-start gap-2"
   }, /*#__PURE__*/React.createElement("span", {
     className: "text-amber-600 mt-0.5 font-bold"
-  }, "📢"), /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("strong", {
+  }, "\uD83D\uDCE2"), /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("strong", {
     className: "font-bold block"
   }, "Traffic Diversion Active"), /*#__PURE__*/React.createElement("span", {
     className: "text-amber-800 text-[11px]"
@@ -4666,7 +4654,7 @@ function SectorDrawer({
     className: "flex items-start gap-2"
   }, /*#__PURE__*/React.createElement("span", {
     className: "text-emerald-600 mt-0.5 font-bold"
-  }, "🛣️"), /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("strong", {
+  }, "\uD83D\uDEE3\uFE0F"), /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("strong", {
     className: "font-bold block"
   }, "Recommended Dry Alternate Route"), /*#__PURE__*/React.createElement("span", {
     className: "text-emerald-800 text-[11px]"
@@ -4884,13 +4872,13 @@ function HotspotTelemetryDeck({
     className: "font-bold text-white"
   }, sec.name)), /*#__PURE__*/React.createElement("span", {
     className: "text-[10px] text-zinc-400 font-mono"
-  }, "Elev: ", sec.elevation, "m · ", sec.coords)), /*#__PURE__*/React.createElement("div", {
+  }, "Elev: ", sec.elevation, "m \xB7 ", sec.coords)), /*#__PURE__*/React.createElement("div", {
     className: "text-right"
   }, /*#__PURE__*/React.createElement("span", {
     className: "font-mono font-bold text-sm block text-white"
   }, sec.depth, " cm"), /*#__PURE__*/React.createElement("span", {
     className: "text-[10px] text-zinc-400 font-mono"
-  }, "Elev: ", sec.elevation, "m · ", sec.coords)), /*#__PURE__*/React.createElement("div", {
+  }, "Elev: ", sec.elevation, "m \xB7 ", sec.coords)), /*#__PURE__*/React.createElement("div", {
     className: "text-right"
   }, /*#__PURE__*/React.createElement("span", {
     className: "font-mono font-bold text-sm block text-white"
@@ -4955,7 +4943,7 @@ function ScenarioSandbox({
     className: "text-sm font-bold text-white flex items-center gap-2"
   }, /*#__PURE__*/React.createElement(Play, {
     className: "w-4 h-4 text-white"
-  }), "Simulate Run — Real-Time Flood Timeline"), /*#__PURE__*/React.createElement("span", {
+  }), "Simulate Run \u2014 Real-Time Flood Timeline"), /*#__PURE__*/React.createElement("span", {
     className: "text-[10px] font-mono px-2 py-0.5 rounded bg-zinc-900 text-zinc-200 border border-white/20"
   }, "Event Simulator")), /*#__PURE__*/React.createElement("p", {
     className: "text-[11px] text-zinc-400 mt-1"
@@ -5067,12 +5055,12 @@ function SafeRoutingPanel(props) {
     className: "text-xs font-bold text-red-300 flex items-center gap-1.5 mb-1.5"
   }, /*#__PURE__*/React.createElement(AlertTriangle, {
     className: "w-3.5 h-3.5 text-red-400"
-  }), "⛔ Currently Flooded Regions to Avoid (", floodedSectors.length, " Active Hazards)"), /*#__PURE__*/React.createElement("div", {
+  }), "\u26D4 Currently Flooded Regions to Avoid (", floodedSectors.length, " Active Hazards)"), /*#__PURE__*/React.createElement("div", {
     className: "flex flex-wrap gap-1.5"
   }, floodedSectors.slice(0, 4).map(s => /*#__PURE__*/React.createElement("span", {
     key: s.id,
     className: "text-[10px] font-bold px-2 py-0.5 rounded border bg-red-500/20 border-red-500/50 text-red-300 font-mono"
-  }, "🛑 ", s.name, " (", s.depth, "cm)")), floodedSectors.length === 0 && /*#__PURE__*/React.createElement("span", {
+  }, "\uD83D\uDED1 ", s.name, " (", s.depth, "cm)")), floodedSectors.length === 0 && /*#__PURE__*/React.createElement("span", {
     className: "text-[11px] text-emerald-400"
   }, "All primary road sectors clear."))), /*#__PURE__*/React.createElement("div", {
     className: "flex gap-2"
@@ -5084,7 +5072,7 @@ function SafeRoutingPanel(props) {
     className: "block text-[9px] uppercase font-mono text-zinc-400"
   }, "Corridor ", idx + 1), /*#__PURE__*/React.createElement("span", {
     className: "truncate block font-bold"
-  }, r.origin, " → ", r.destination)))), /*#__PURE__*/React.createElement("div", {
+  }, r.origin, " \u2192 ", r.destination)))), /*#__PURE__*/React.createElement("div", {
     className: "space-y-3"
   }, /*#__PURE__*/React.createElement("div", {
     className: "rounded-md border border-red-500/40 bg-zinc-900 p-3"
@@ -5092,25 +5080,25 @@ function SafeRoutingPanel(props) {
     className: "flex items-center justify-between mb-1"
   }, /*#__PURE__*/React.createElement("span", {
     className: "text-xs font-bold text-red-400 flex items-center gap-1"
-  }, "❌ Standard Direct Route"), /*#__PURE__*/React.createElement("span", {
+  }, "\u274C Standard Direct Route"), /*#__PURE__*/React.createElement("span", {
     className: "text-[10px] font-mono font-bold text-red-300 bg-red-500/20 px-1.5 py-0.5 rounded border border-red-500/30"
   }, "BLOCKED BY FLOOD")), /*#__PURE__*/React.createElement("p", {
     className: "text-[11px] text-zinc-300 font-mono"
-  }, currentRoute.standard.dist, " · ", currentRoute.standard.time), /*#__PURE__*/React.createElement("p", {
+  }, currentRoute.standard.dist, " \xB7 ", currentRoute.standard.time), /*#__PURE__*/React.createElement("p", {
     className: "text-[10.5px] text-red-300 mt-1 font-sans"
-  }, "⚠️ ", currentRoute.standard.blockReason)), /*#__PURE__*/React.createElement("div", {
+  }, "\u26A0\uFE0F ", currentRoute.standard.blockReason)), /*#__PURE__*/React.createElement("div", {
     className: "rounded-md border border-emerald-500/50 bg-zinc-900 p-3"
   }, /*#__PURE__*/React.createElement("div", {
     className: "flex items-center justify-between mb-1"
   }, /*#__PURE__*/React.createElement("span", {
     className: "text-xs font-bold text-emerald-400 flex items-center gap-1"
-  }, "🟢 Smart Safe Elevation Route"), /*#__PURE__*/React.createElement("span", {
+  }, "\uD83D\uDFE2 Smart Safe Elevation Route"), /*#__PURE__*/React.createElement("span", {
     className: "text-[10px] font-mono font-bold text-emerald-300 bg-emerald-500/20 px-1.5 py-0.5 rounded border border-emerald-500/30"
   }, "100% CLEAR & SAFE")), /*#__PURE__*/React.createElement("p", {
     className: "text-[11px] text-zinc-200 font-mono"
-  }, currentRoute.safeRoute.dist, " · ", currentRoute.safeRoute.time, " · ", currentRoute.safeRoute.elevation), /*#__PURE__*/React.createElement("p", {
+  }, currentRoute.safeRoute.dist, " \xB7 ", currentRoute.safeRoute.time, " \xB7 ", currentRoute.safeRoute.elevation), /*#__PURE__*/React.createElement("p", {
     className: "text-[10.5px] text-emerald-300 mt-1 font-sans"
-  }, "✅ ", currentRoute.safeRoute.corridor))), /*#__PURE__*/React.createElement("button", {
+  }, "\u2705 ", currentRoute.safeRoute.corridor))), /*#__PURE__*/React.createElement("button", {
     onClick: onStartSimulation,
     disabled: isSimulatingRoute,
     className: "w-full flex items-center justify-center gap-2 py-3 px-4 rounded-md bg-white hover:bg-zinc-200 text-zinc-950 text-xs font-bold border border-white shadow transition-all cursor-pointer"
@@ -5163,23 +5151,23 @@ function TacticalMapControls({
   }), /*#__PURE__*/React.createElement("span", null, isMapEnabled ? "Map: Active" : "Enable Map"))), /*#__PURE__*/React.createElement("div", {
     className: "space-y-1 divide-y divide-slate-800/60"
   }, /*#__PURE__*/React.createElement(ToggleRow, {
-    label: "🌊 Flood Inundation Heatmap",
+    label: "\uD83C\uDF0A Flood Inundation Heatmap",
     checked: layers.heatmap,
     onChange: () => toggleLayer("heatmap", "Flood Inundation")
   }), /*#__PURE__*/React.createElement(ToggleRow, {
-    label: "⚡ Drainage Pumps & Sluice Gates",
+    label: "\u26A1 Drainage Pumps & Sluice Gates",
     checked: layers.pumps,
     onChange: () => toggleLayer("pumps", "Drainage Pumps")
   }), /*#__PURE__*/React.createElement(ToggleRow, {
-    label: "🏥 Evacuation Shelters & Relief Camps",
+    label: "\uD83C\uDFE5 Evacuation Shelters & Relief Camps",
     checked: layers.shelters,
     onChange: () => toggleLayer("shelters", "Emergency Shelters")
   }), /*#__PURE__*/React.createElement(ToggleRow, {
-    label: "🚗 Dynamic Safe Navigation Path",
+    label: "\uD83D\uDE97 Dynamic Safe Navigation Path",
     checked: layers.safeCorridor,
     onChange: () => toggleLayer("safeCorridor", "Safe Route Corridor")
   }), /*#__PURE__*/React.createElement(ToggleRow, {
-    label: "📐 Topographical Elevation Contours",
+    label: "\uD83D\uDCD0 Topographical Elevation Contours",
     checked: layers.elevationContours,
     onChange: () => toggleLayer("elevationContours", "Elevation Contours")
   })));
@@ -5627,11 +5615,11 @@ function SitRepModal({
     className: "flex items-center gap-2"
   }, /*#__PURE__*/React.createElement("span", {
     className: "text-[10px] uppercase font-bold tracking-wider px-2 py-0.5 rounded-full bg-blue-100/80 text-blue-800"
-  }, "Official Incident Dispatch · BMC / NDRF")), /*#__PURE__*/React.createElement("h2", {
+  }, "Official Incident Dispatch \xB7 BMC / NDRF")), /*#__PURE__*/React.createElement("h2", {
     className: "text-lg font-bold text-slate-900 mt-0.5"
   }, "RainDrop Municipal Situation Report (SitRep)"), /*#__PURE__*/React.createElement("p", {
     className: "text-xs text-slate-500 font-medium"
-  }, wardName, " · ", data.code, " · Generated ", new Date().toLocaleTimeString(), " · Horizon: ", currentForecast.t, " (", currentForecast.label, ")"))), /*#__PURE__*/React.createElement("button", {
+  }, wardName, " \xB7 ", data.code, " \xB7 Generated ", new Date().toLocaleTimeString(), " \xB7 Horizon: ", currentForecast.t, " (", currentForecast.label, ")"))), /*#__PURE__*/React.createElement("button", {
     type: "button",
     onClick: onClose,
     className: "p-2 rounded-full text-slate-400 hover:text-slate-700 hover:bg-slate-100 cursor-pointer transition-colors",
@@ -6295,7 +6283,7 @@ function RainDrop() {
     className: "w-full flex items-center justify-center gap-2 py-2.5 rounded-2xl bg-blue-600 hover:bg-blue-700 text-white text-xs font-bold shadow-md shadow-blue-500/20 transition-all cursor-pointer disabled:opacity-50"
   }, routeCheckBusy ? /*#__PURE__*/React.createElement(React.Fragment, null, /*#__PURE__*/React.createElement(RefreshCw, {
     className: "w-3.5 h-3.5 animate-spin"
-  }), " Analyzing 30m Elevation Corridors…") : /*#__PURE__*/React.createElement(React.Fragment, null, /*#__PURE__*/React.createElement(Send, {
+  }), " Analyzing 30m Elevation Corridors\u2026") : /*#__PURE__*/React.createElement(React.Fragment, null, /*#__PURE__*/React.createElement(Send, {
     className: "w-3.5 h-3.5"
   }), " Check Dual-Corridor Safety")))), routeCheckResult && !routeCheckResult.error && /*#__PURE__*/React.createElement("div", {
     className: "space-y-3 border-t border-slate-100 pt-4"
@@ -6305,7 +6293,7 @@ function RainDrop() {
     className: "flex items-center justify-between mb-1.5"
   }, /*#__PURE__*/React.createElement("span", {
     className: "text-xs font-bold flex items-center gap-1.5 text-rose-700"
-  }, "🔴 Standard Direct Route"), /*#__PURE__*/React.createElement("span", {
+  }, "\uD83D\uDD34 Standard Direct Route"), /*#__PURE__*/React.createElement("span", {
     className: "text-[10px] font-extrabold px-2 py-0.5 rounded-full bg-rose-200 text-rose-800"
   }, routeCheckResult.standard_route?.status_label || "HAZARDOUS")), /*#__PURE__*/React.createElement("div", {
     className: "grid grid-cols-3 gap-2 text-[11px] text-slate-600 my-2"
@@ -6315,15 +6303,15 @@ function RainDrop() {
     className: "text-slate-900"
   }, routeCheckResult.standard_route?.est_time_min, " mins")), /*#__PURE__*/React.createElement("div", null, "Max Flood: ", /*#__PURE__*/React.createElement("strong", {
     className: "text-rose-600"
-  }, "🌊 ", routeCheckResult.standard_route?.max_water_depth_cm, " cm"))), routeCheckResult.standard_route?.danger_points?.[0] && /*#__PURE__*/React.createElement("div", {
+  }, "\uD83C\uDF0A ", routeCheckResult.standard_route?.max_water_depth_cm, " cm"))), routeCheckResult.standard_route?.danger_points?.[0] && /*#__PURE__*/React.createElement("div", {
     className: "text-[10px] text-rose-800 bg-rose-100/80 px-2.5 py-1.5 rounded-xl"
-  }, "⚠️ ", /*#__PURE__*/React.createElement("strong", null, "Hazard Bottleneck:"), " ", routeCheckResult.standard_route.danger_points[0].name, " (", routeCheckResult.standard_route.danger_points[0].hazard, ")")), /*#__PURE__*/React.createElement("div", {
+  }, "\u26A0\uFE0F ", /*#__PURE__*/React.createElement("strong", null, "Hazard Bottleneck:"), " ", routeCheckResult.standard_route.danger_points[0].name, " (", routeCheckResult.standard_route.danger_points[0].hazard, ")")), /*#__PURE__*/React.createElement("div", {
     className: "rounded-2xl p-3.5 bg-emerald-50 border border-emerald-200 text-emerald-900"
   }, /*#__PURE__*/React.createElement("div", {
     className: "flex items-center justify-between mb-1.5"
   }, /*#__PURE__*/React.createElement("span", {
     className: "text-xs font-bold flex items-center gap-1.5 text-emerald-700"
-  }, "🟢 Safe Elevation Corridor (Recommended)"), /*#__PURE__*/React.createElement("span", {
+  }, "\uD83D\uDFE2 Safe Elevation Corridor (Recommended)"), /*#__PURE__*/React.createElement("span", {
     className: "text-[10px] font-extrabold px-2 py-0.5 rounded-full bg-emerald-200 text-emerald-800"
   }, routeCheckResult.safe_corridor?.status_label || "SAFE PASSAGE")), /*#__PURE__*/React.createElement("div", {
     className: "grid grid-cols-3 gap-2 text-[11px] text-slate-600 my-2"
@@ -6333,9 +6321,9 @@ function RainDrop() {
     className: "text-slate-900"
   }, routeCheckResult.safe_corridor?.est_time_min, " mins")), /*#__PURE__*/React.createElement("div", null, "Max Flood: ", /*#__PURE__*/React.createElement("strong", {
     className: "text-emerald-600"
-  }, "🌊 ", routeCheckResult.safe_corridor?.max_water_depth_cm, " cm"))), /*#__PURE__*/React.createElement("div", {
+  }, "\uD83C\uDF0A ", routeCheckResult.safe_corridor?.max_water_depth_cm, " cm"))), /*#__PURE__*/React.createElement("div", {
     className: "flex items-center justify-between text-[10px] text-emerald-800 bg-emerald-100/80 px-2.5 py-1.5 rounded-xl"
-  }, /*#__PURE__*/React.createElement("span", null, "🛡️ ", /*#__PURE__*/React.createElement("strong", null, "Highland Bypass:"), " Elevated Flyover Route"), /*#__PURE__*/React.createElement("span", {
+  }, /*#__PURE__*/React.createElement("span", null, "\uD83D\uDEE1\uFE0F ", /*#__PURE__*/React.createElement("strong", null, "Highland Bypass:"), " Elevated Flyover Route"), /*#__PURE__*/React.createElement("span", {
     className: "font-bold"
   }, "+", routeCheckResult.safe_corridor?.detour_time_min, " min detour (+", routeCheckResult.safe_corridor?.detour_dist_km, " km)")))), routeCheckResult && routeCheckResult.error && /*#__PURE__*/React.createElement("p", {
     className: "mt-3 text-xs text-rose-500 font-semibold"
@@ -6649,7 +6637,7 @@ function RainDrop() {
     className: "bg-transparent text-xs text-slate-800 placeholder-slate-400 outline-none w-full font-medium"
   }), /*#__PURE__*/React.createElement("span", {
     className: "text-[10px] font-semibold text-slate-400 bg-white px-1.5 py-0.5 rounded border border-slate-200 shadow-2xs shrink-0"
-  }, "⌘ K")), searchOpen && searchResults.length > 0 && /*#__PURE__*/React.createElement("div", {
+  }, "\u2318 K")), searchOpen && searchResults.length > 0 && /*#__PURE__*/React.createElement("div", {
     className: "absolute top-12 left-0 w-full bg-white rounded-2xl shadow-2xl border border-slate-200 py-2 z-50 animate-in fade-in slide-in-from-top-2"
   }, /*#__PURE__*/React.createElement("div", {
     className: "px-3.5 py-1 text-[10px] font-bold text-slate-400 uppercase tracking-wider"
@@ -6831,13 +6819,13 @@ function RainDrop() {
     className: "w-12 h-0.5 bg-slate-400 inline-block"
   }), /*#__PURE__*/React.createElement("span", null, "5 km")), /*#__PURE__*/React.createElement("div", {
     className: "w-7 h-7 rounded-full bg-white/90 backdrop-blur-xs border border-slate-200/80 shadow-xs flex items-center justify-center text-[10px] font-extrabold text-slate-700"
-  }, "N ▲")), /*#__PURE__*/React.createElement("div", {
+  }, "N \u25B2")), /*#__PURE__*/React.createElement("div", {
     className: `absolute top-5 left-6 z-[400] bg-white/95 backdrop-blur-xl rounded-2xl border border-slate-200/90 shadow-xl transition-all duration-300 ${riverCardMinimized ? "w-auto p-2.5" : "w-[310px] p-4 flex flex-col gap-2.5"}`
   }, /*#__PURE__*/React.createElement("div", {
     className: "flex items-center justify-between gap-2"
   }, /*#__PURE__*/React.createElement("span", {
     className: `px-2.5 py-0.5 rounded-full text-[10px] font-extrabold tracking-wider uppercase flex items-center gap-1.5 ${currentWardData.riskLevel.includes("HIGH") || currentWardData.riskLevel.includes("EXTREME") ? "bg-rose-50 border border-rose-200/80 text-rose-600" : "bg-amber-50 border border-amber-200/80 text-amber-700"}`
-  }, /*#__PURE__*/React.createElement("span", null, "⚠️"), " Emergency Watch"), /*#__PURE__*/React.createElement("div", {
+  }, /*#__PURE__*/React.createElement("span", null, "\u26A0\uFE0F"), " Emergency Watch"), /*#__PURE__*/React.createElement("div", {
     className: "flex items-center gap-1"
   }, /*#__PURE__*/React.createElement("span", {
     className: "text-[10px] font-bold text-slate-400 font-mono"
@@ -6874,7 +6862,7 @@ function RainDrop() {
     className: "w-3.5 h-3.5"
   })))), /*#__PURE__*/React.createElement("div", {
     className: "pt-2 border-t border-slate-100 flex items-center justify-between text-[11px] text-slate-500 font-medium"
-  }, /*#__PURE__*/React.createElement("span", null, "⚡ ", currentWardData.activePumps, " pumps active"), /*#__PURE__*/React.createElement("span", {
+  }, /*#__PURE__*/React.createElement("span", null, "\u26A1 ", currentWardData.activePumps, " pumps active"), /*#__PURE__*/React.createElement("span", {
     className: "text-rose-600 font-semibold"
   }, currentWardData.sectors.filter((_, i) => (sectorDepths[i] || 0) >= 30).length, " flooded spots")))), /*#__PURE__*/React.createElement("div", {
     className: `absolute top-5 right-6 z-[400] w-[295px] bg-white/95 backdrop-blur-xl rounded-3xl border border-slate-200/90 shadow-2xl p-5 flex flex-col gap-3.5 transition-all duration-300 ${rightCardCollapsed ? "h-14 overflow-hidden" : ""}`
@@ -6923,7 +6911,7 @@ function RainDrop() {
     className: "leading-tight"
   }, /*#__PURE__*/React.createElement("div", {
     className: "text-[10.5px] font-bold text-slate-800"
-  }, "15–30 cm"), /*#__PURE__*/React.createElement("div", {
+  }, "15\u201330 cm"), /*#__PURE__*/React.createElement("div", {
     className: "text-[9px] font-semibold text-blue-600"
   }, "Caution"))), /*#__PURE__*/React.createElement("div", {
     className: "flex items-center gap-2 p-1.5 rounded-xl bg-white/80 border border-sky-100 shadow-2xs"
@@ -7072,7 +7060,7 @@ function RainDrop() {
     title: "Click to fetch latest Open-Meteo Doppler observation and recompute ML depths"
   }, /*#__PURE__*/React.createElement(RefreshCw, {
     className: `w-3.5 h-3.5 text-blue-600 ${isFetchingForecast ? "animate-spin" : ""}`
-  }), /*#__PURE__*/React.createElement("span", null, "Live Feed · ", currentTime.toLocaleTimeString([], {
+  }), /*#__PURE__*/React.createElement("span", null, "Live Feed \xB7 ", currentTime.toLocaleTimeString([], {
     hour: '2-digit',
     minute: '2-digit',
     second: '2-digit'
