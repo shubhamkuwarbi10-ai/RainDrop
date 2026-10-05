@@ -1,23 +1,38 @@
-# Core Data Science & Satellite Processing
-h5py>=3.9.0
-numpy>=1.24.0
-pandas>=2.0.0
-scipy>=1.10.0
-rasterio>=1.3.0
-shapely>=2.0.0
-geopandas>=0.13.0
-pysteps>=1.7.0
+# Pinned to the versions this project is tested against.
+# Unpinned ranges meant a rebuild could silently pull a different numpy or
+# scikit-learn than the one the surrogate artefact was trained with.
+#
+# Full transitive set: requirements.lock.txt
+# Development and test extras: requirements-dev.txt
 
-# Machine Learning & Surrogate Model
-scikit-learn>=1.3.0
-xgboost>=2.0.0
+# ── Geospatial and scientific stack ──────────────────────────
+h5py==3.16.0
+numpy==2.4.6
+pandas==3.0.6
+scipy==1.17.1
+rasterio==1.4.4
+shapely==2.1.2
+geopandas==1.1.4
+pysteps==1.21.5
 
-# Backend Web Server & PostGIS Database
-fastapi>=0.100.0
-uvicorn>=0.22.0
-requests>=2.31.0
-sqlalchemy>=2.0.0
-geoalchemy2>=0.14.0
-psycopg2-binary>=2.9.0
-python-dotenv>=1.0.0
+# ── Machine learning ─────────────────────────────────────────
+scikit-learn==1.9.1
+xgboost==3.2.0
 
+# ── Backend and database ─────────────────────────────────────
+fastapi==0.141.1
+uvicorn==0.53.0
+requests==2.34.2
+SQLAlchemy==2.0.54
+GeoAlchemy2==0.20.0
+psycopg2-binary==2.9.13
+python-dotenv==1.2.3
+
+# ── Optional, enabled when the data is available ─────────────
+# Hydraulic simulation used to generate training labels (models/swmm_labels.py).
+# Install with: pip install pyswmm==2.0.1
+# pyswmm==2.0.1
+#
+# Correct depression filling and D8 flow accumulation (pipeline/process_dem.py
+# falls back to a slower built-in implementation when this is absent).
+# pysheds==0.4

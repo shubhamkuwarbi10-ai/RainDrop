@@ -1,0 +1,6 @@
+# Test and development extras. Not installed in the runtime image.
+-r requirements.txt
+
+pytest==8.3.4
+httpx==0.28.1        # required by fastapi.testclient
+pip-audit==2.7.3     # dependency vulnerability scan, run in CI

@@ -1,5 +1,8 @@
+# Version control and local tooling
 .git
+.github
 .gitignore
+.agents
 .venv
 venv
 __pycache__
@@ -7,7 +10,33 @@ __pycache__
 *.pyo
 *.pyd
 .pytest_cache
+.ruff_cache
+
+# Secrets and local state. Credentials come from the environment, never the image.
 .env
-dataset/DEM data/*.zip
-dataset/*.crdownload
+.env.*
+!.env.example
+data/state
+
+# Scratch, datasets and large artefacts. These are mounted at runtime, not baked in.
+scratch
+dataset
+data/raw
+data/processed
+data/*.zip
+data/babel.min.js
+reports
+*.tif
+*.tiff
+*.HDF5
+*.hdf5
+*.zip
+*.crdownload
 *.tmp.tif
+
+# Documentation and design assets the running service never reads
+docs
+prd
+walkthrough.md
+PROJECT_COMPREHENSIVE_OVERVIEW.txt
+README.md

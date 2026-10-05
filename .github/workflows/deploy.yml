@@ -2,61 +2,111 @@ name: Deploy RainDrop to AWS EC2
 
 on:
   push:
+    # Set this to the branch you actually release from.
     branches: [main]
+  workflow_dispatch:
 
 # ─────────────────────────────────────────────────────────────
-# Required GitHub Secrets (set in repo Settings → Secrets):
-#   EC2_HOST         — your EC2 public IP or domain
-#   EC2_USER         — typically "ubuntu"
-#   EC2_SSH_KEY      — your private key (contents of .pem file)
-#   POSTGRES_PASSWORD — strong DB password
-#   SECRET_KEY       — app secret key
+# Required GitHub Secrets (Settings -> Secrets and variables -> Actions):
+#   EC2_HOST                  EC2 public IP or domain
+#   EC2_USER                  typically "ubuntu"
+#   EC2_SSH_KEY               private key contents
+#   EC2_SSH_FINGERPRINT       output of: ssh-keyscan -t rsa <host>
+#   POSTGRES_PASSWORD         strong database password
+#   RAINDROP_SESSION_SECRET   signs operator session cookies (openssl rand -base64 32)
+#   RAINDROP_INGEST_KEY       shared secret for pipeline write endpoints
 # ─────────────────────────────────────────────────────────────
+
+permissions:
+  contents: read
 
 jobs:
+  test:
+    name: Test
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Install dependencies
+        run: pip install -r requirements-dev.txt
+
+      - name: Run tests
+        run: pytest backend/tests -q
+
+      - name: Audit dependencies for known vulnerabilities
+        run: pip-audit -r requirements.txt
+        continue-on-error: true
+
   deploy:
     name: Deploy to EC2
+    needs: test
     runs-on: ubuntu-latest
-
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
 
       - name: Deploy via SSH
+        # TODO(security): pin this by commit SHA. A tag is mutable and can be
+        # repointed at new code by anyone who controls the action's repository.
+        # Get the SHA for the release you want and replace the line below with
+        # `uses: appleboy/ssh-action@<sha> # v1.0.3`:
+        #   gh api repos/appleboy/ssh-action/git/ref/tags/v1.0.3 --jq .object.sha
         uses: appleboy/ssh-action@v1.0.3
         with:
           host: ${{ secrets.EC2_HOST }}
           username: ${{ secrets.EC2_USER }}
           key: ${{ secrets.EC2_SSH_KEY }}
+          # Without this the first connection trusts whatever host answers.
+          fingerprint: ${{ secrets.EC2_SSH_FINGERPRINT }}
+          envs: POSTGRES_PASSWORD,RAINDROP_SESSION_SECRET,RAINDROP_INGEST_KEY
           script: |
-            set -e
+            set -euo pipefail
 
-            # ── Navigate to project directory ──
-            cd ~/raindrop || (git clone https://github.com/${{ github.repository }}.git ~/raindrop && cd ~/raindrop)
+            if [ ! -d ~/raindrop/.git ]; then
+              git clone https://github.com/${{ github.repository }}.git ~/raindrop
+            fi
+            cd ~/raindrop
+            git fetch origin ${{ github.ref_name }}
+            git reset --hard origin/${{ github.ref_name }}
 
-            # ── Pull latest code ──
-            git fetch origin main
-            git reset --hard origin/main
-
-            # ── Write .env with production secrets ──
-            cat > .env << EOF
+            # Secrets arrive as environment variables, so they are not expanded
+            # into the script body that lands in the runner log.
+            umask 077
+            cat > .env <<'ENVEOF'
             POSTGRES_DB=raindrop
-            POSTGRES_USER=postgres
-            POSTGRES_PASSWORD=${{ secrets.POSTGRES_PASSWORD }}
-            DATABASE_URL=postgresql+psycopg2://postgres:${{ secrets.POSTGRES_PASSWORD }}@db:5432/raindrop
-            ML_API_URL=http://ml-server:8000
-            APP_ENV=production
-            SECRET_KEY=${{ secrets.SECRET_KEY }}
-            EOF
+            POSTGRES_USER=raindrop
+            RAINDROP_ENV=production
+            ENABLE_API_DOCS=false
+            RAINDROP_SESSION_COOKIE_SECURE=false
+            ENVEOF
+            {
+              echo "POSTGRES_PASSWORD=${POSTGRES_PASSWORD}"
+              echo "RAINDROP_SESSION_SECRET=${RAINDROP_SESSION_SECRET}"
+              echo "RAINDROP_INGEST_KEY=${RAINDROP_INGEST_KEY}"
+            } >> .env
 
-            # ── Rebuild and restart containers ──
-            docker compose pull db  # pull latest PostGIS image
+            docker compose pull db
             docker compose up --build -d --remove-orphans
+            docker image prune -f
 
-            # ── Wait for health checks ──
-            sleep 10
-            docker compose ps
+            # Wait for the health check rather than guessing with sleep.
+            for attempt in $(seq 1 30); do
+              if curl -fsS http://localhost/health > /dev/null; then
+                echo "Backend healthy after ${attempt} attempt(s)."
+                docker compose ps
+                exit 0
+              fi
+              sleep 5
+            done
 
-            echo "✅ Deploy complete. Services:"
-            curl -sf http://localhost:8001/health && echo " Backend: OK" || echo " Backend: FAILED"
-            curl -sf http://localhost:8000/health && echo " ML Server: OK" || echo " ML Server: FAILED"
+            echo "Backend did not become healthy. Recent logs:"
+            docker compose logs --tail=50 backend
+            exit 1
+    env:
+      POSTGRES_PASSWORD: ${{ secrets.POSTGRES_PASSWORD }}
+      RAINDROP_SESSION_SECRET: ${{ secrets.RAINDROP_SESSION_SECRET }}
+      RAINDROP_INGEST_KEY: ${{ secrets.RAINDROP_INGEST_KEY }}

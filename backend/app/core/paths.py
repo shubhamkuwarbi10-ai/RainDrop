@@ -17,13 +17,16 @@ MODELS_DIR = ROOT_DIR / "models"
 ARTIFACTS_DIR = MODELS_DIR / "artifacts"
 CLIENT_DIR = ROOT_DIR / "client"
 REPORTS_DIR = ROOT_DIR / "reports"
+# Mutable runtime state (operator credentials). Mounted as a named volume in
+# docker-compose so it survives a rebuild and is not baked into the image.
+STATE_DIR = DATA_DIR / "state"
 
 # Canonical artefact names.
 FORECAST_FILE = FORECASTS_DIR / "pysteps_forecast.tif"
 SURROGATE_MODEL_FILE = ARTIFACTS_DIR / "flood_surrogate.pkl"
 SURROGATE_CARD_FILE = ARTIFACTS_DIR / "flood_surrogate.model_card.json"
 NOWCAST_REPORT_FILE = REPORTS_DIR / "nowcast_verification.json"
-OPERATORS_FILE = DATA_DIR / "operators.json"
+OPERATORS_FILE = STATE_DIR / "operators.json"
 
 
 def _resolve(name: str) -> Path:
@@ -52,5 +55,5 @@ def forecast_file() -> Path:
 
 
 def ensure_dirs() -> None:
-    for directory in (RAW_DIR, PROCESSED_DIR, FORECASTS_DIR, TERRAIN_DIR, ARTIFACTS_DIR, REPORTS_DIR):
+    for directory in (RAW_DIR, PROCESSED_DIR, FORECASTS_DIR, TERRAIN_DIR, ARTIFACTS_DIR, REPORTS_DIR, STATE_DIR):
         directory.mkdir(parents=True, exist_ok=True)
