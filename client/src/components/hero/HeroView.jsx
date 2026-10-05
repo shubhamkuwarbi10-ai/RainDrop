@@ -1,20 +1,48 @@
-function HeroView({ ward, wardData, onEnter, onSelectCity, onOpenMap, pushToast }) {
-    const [activeRailStep, setActiveRailStep] = useState(0); // 0: DATA, 1: COVERAGE, 2: IMPACT, 3: FUTURE
+/**
+ * Should we download the 46 MB background video?
+ *
+ * Only on a wide screen, over a connection that has not asked us to save data,
+ * for someone who has not asked for reduced motion. Everyone else gets the
+ * 204 KB poster, which carries the same meaning. During the monsoon, on a
+ * phone, on a congested network, this is the difference between a page that
+ * loads and one that does not.
+ */
+function useBackgroundVideo() {
+    const [shouldLoad, setShouldLoad] = useState(false);
+
+    useEffect(() => {
+        const connection = navigator.connection || {};
+        const wantsLessData = connection.saveData === true ||
+            /^(slow-2g|2g|3g)$/.test(connection.effectiveType || "");
+        const wantsLessMotion = window.matchMedia &&
+            window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+        const isWideScreen = window.matchMedia &&
+            window.matchMedia("(min-width: 1024px)").matches;
+
+        setShouldLoad(Boolean(isWideScreen && !wantsLessData && !wantsLessMotion));
+    }, []);
+
+    return shouldLoad;
+}
+
+function HeroView({ ward, wardData, onEnter, onSelectCity, onOpenMap, onCheckRoute, pushToast }) {
+    const showBackgroundVideo = useBackgroundVideo();
     const [activePillarTab, setActivePillarTab] = useState(0);
-    const [scenarioRain, setScenarioRain] = useState(45); // mm/hr
-    const [scenarioTide, setScenarioTide] = useState(0.4); // meters
-    const [scenarioPumps, setScenarioPumps] = useState(90); // %
-    const [routeSimProgress, setRouteSimProgress] = useState(0);
-    const [isSimulatingRoute, setIsSimulatingRoute] = useState(false);
 
     // CreativaX Studio State & Filmstrip Slideshow Track State
     const [slideIndex, setSlideIndex] = useState(4); // Starts at index 4 (Real 01 in middle set)
-    const [activeArtworkIdx, setActiveArtworkIdx] = useState(0);
     const [isTransitioning, setIsTransitioning] = useState(true);
     const [isCarouselHovered, setIsCarouselHovered] = useState(false);
-    const [showreelModalOpen, setShowreelModalOpen] = useState(false);
+    // WCAG 2.2.2: auto-moving content needs a way to stop it that does not
+    // depend on a mouse. Hover alone fails keyboard and touch users.
+    const [isCarouselPaused, setIsCarouselPaused] = useState(false);
+    const [isCarouselFocused, setIsCarouselFocused] = useState(false);
+    const prefersReducedMotion = useMemo(
+        () => typeof window !== "undefined" && window.matchMedia &&
+            window.matchMedia("(prefers-reduced-motion: reduce)").matches,
+        []
+    );
     const [mobileDrawerOpen, setMobileDrawerOpen] = useState(false);
-    const [modalArtworkIdx, setModalArtworkIdx] = useState(0);
 
     // Responsive viewport tracking for mathematically exact slide centering
     const [viewportWidth, setViewportWidth] = useState(
@@ -29,41 +57,49 @@ function HeroView({ ward, wardData, onEnter, onSelectCity, onOpenMap, pushToast 
 
     const ARTWORKS = [
         {
-            num: "01",
-            title: "Historic River City Ghats",
-            subtitle: "Varanasi Riverfront Topography",
-            desc: "High-resolution spatial elevation models mapping riverbank gradient steps and sacred hydrological corridors.",
-            img: "/static/images/hero-river-ghats-aerial-hd.jpg",
-            tag: "RIVER TOPOGRAPHY",
-            stats: "25.3176° N, 82.8739° E"
+            key: "route",
+            title: "Can I get through?",
+            subtitle: "Walking, two-wheeler, car or bus",
+            desc: "Enter the depth you can see and get advice for each way of travelling, plus the elevated road on file for your city.",
+            img: "/static/images/hero-monsoon-bus-splash.webp",
+            alt: "A city bus driving through deep standing water",
+            tag: "Getting through",
+            actionLabel: "Check a route",
+            onAction: () => (onCheckRoute ? onCheckRoute("Chennai") : onOpenMap(ward, "Chennai")),
         },
         {
-            num: "02",
-            title: "Harbor Tides & Coastal Fleets",
-            subtitle: "Mumbai Harbor Tidal Basin",
-            desc: "Coastal surge modeling and astronomical high-tide boundary conditions for peninsular megacities.",
-            img: "/static/images/hero-mumbai-harbor-boats.jpg",
-            tag: "COASTAL DYNAMICS",
-            stats: "18.9220° N, 72.8347° E"
+            key: "mumbai",
+            title: "Mumbai, where the tide meets the drains",
+            subtitle: "Mithi river and Mahim Bay",
+            desc: "Low wards along the Mithi flood first. High tide can lock the outfalls, which the estimate does not model yet, so read it as a lower bound at high tide.",
+            img: "/static/images/hero-mumbai-harbor-boats.webp",
+            alt: "Fishing boats moored in Mumbai harbour with the skyline behind",
+            tag: "Focus city",
+            actionLabel: "Open Mumbai",
+            onAction: () => onOpenMap(null, "Mumbai"),
         },
         {
-            num: "03",
-            title: "Urban Monsoons & Street Reflections",
-            subtitle: "Kolkata Metropolitan Grid",
-            desc: "Street-level micro-inundation nowcasting tracking waterlogged taxi avenues and low-elevation sumps.",
-            img: "/static/images/hero-kolkata-taxi-reflection.jpg",
-            tag: "URBAN INUNDATION",
-            stats: "22.5726° N, 88.3639° E"
+            key: "kolkata",
+            title: "Kolkata, flat ground and slow drains",
+            subtitle: "Hooghly river and city canals",
+            desc: "Much of the city sits only a few metres above sea level, so rain has nowhere to run. Covered, but less closely calibrated than the focus cities.",
+            img: "/static/images/hero-kolkata-taxi-reflection.webp",
+            alt: "A yellow Kolkata taxi on a wet street after rain",
+            tag: "Covered city",
+            actionLabel: "Open Kolkata",
+            onAction: () => onOpenMap(null, "Kolkata"),
         },
         {
-            num: "04",
-            title: "Highway Drainage & Storm Surges",
-            subtitle: "Corridor Transit Bypass",
-            desc: "Dual-corridor safe elevation routing bypassing flooded underpasses and high-velocity stormwater splash zones.",
-            img: "/static/images/hero-monsoon-bus-splash.jpg",
-            tag: "TRANSIT RESILIENCE",
-            stats: "22.6200° N, 88.4200° E"
-        }
+            key: "method",
+            title: "The ground decides where water collects",
+            subtitle: "How the depth figure is worked out",
+            desc: "Forecast rain, minus what the drains can carry, pooled into the lowest ground. Every number on the map shows its method and its limits.",
+            img: "/static/images/hero-river-ghats-aerial-hd.webp",
+            alt: "Aerial view of riverside steps and buildings along a river",
+            tag: "How it works",
+            actionLabel: "See how it works",
+            onAction: () => scrollTo("data"),
+        },
     ];
 
     // 3 complete sets of ARTWORKS (indices 0..3, 4..7, 8..11) for true infinite forward/backward track sliding
@@ -85,17 +121,19 @@ function HeroView({ ward, wardData, onEnter, onSelectCity, onOpenMap, pushToast 
     const translateX = centerOffset - (slideIndex * slideStep);
 
     // Automatic slide progression every 1.75 seconds with smooth 750ms glide
+    const isCarouselStill = isCarouselHovered || isCarouselFocused || isCarouselPaused || prefersReducedMotion;
+
     useEffect(() => {
-        if (isCarouselHovered) return;
+        if (isCarouselStill) return;
         const timer = setInterval(() => {
             setIsTransitioning(true);
             setSlideIndex((prev) => {
                 if (prev >= 8) return 5;
                 return prev + 1;
             });
-        }, 1750);
+        }, 6000);
         return () => clearInterval(timer);
-    }, [isCarouselHovered]);
+    }, [isCarouselStill]);
 
     // Rock-solid infinite loop normalization:
     // When transitioning past index 7 to index 8 (Slide 01 in Set 2), wait for the 750ms transition
@@ -120,9 +158,6 @@ function HeroView({ ward, wardData, onEnter, onSelectCity, onOpenMap, pushToast 
     // Calculate active project index (0, 1, 2, 3) and sync activeArtworkIdx
     const activeProjectIdx = ((slideIndex % 4) + 4) % 4;
 
-    useEffect(() => {
-        setActiveArtworkIdx(activeProjectIdx);
-    }, [activeProjectIdx]);
 
     const handleDotClick = (targetIdx) => {
         setIsTransitioning(true);
@@ -131,31 +166,11 @@ function HeroView({ ward, wardData, onEnter, onSelectCity, onOpenMap, pushToast 
 
 
 
-    // Dynamic calculation for the What-If sandbox
-    const computedDepthCm = Math.max(0, Math.round((scenarioRain * 0.45) + (scenarioTide * 12) - ((scenarioPumps / 100) * 16)));
-    const computedClearanceHours = Math.max(0.5, Number(((computedDepthCm * 0.12) / (scenarioPumps / 100)).toFixed(1)));
-
     const scrollTo = (id) => {
         const el = document.getElementById(id);
         if (el) {
             el.scrollIntoView({ behavior: "smooth" });
         }
-    };
-
-    const handleRunRouteSim = () => {
-        setIsSimulatingRoute(true);
-        setRouteSimProgress(0);
-        const timer = setInterval(() => {
-            setRouteSimProgress((prev) => {
-                if (prev >= 100) {
-                    clearInterval(timer);
-                    setIsSimulatingRoute(false);
-                    if (pushToast) pushToast("Dual-Corridor: Emergency vehicle successfully routed via elevated bypass!");
-                    return 100;
-                }
-                return prev + 10;
-            });
-        }, 120);
     };
 
     const cityCards = [
@@ -164,113 +179,108 @@ function HeroView({ ward, wardData, onEnter, onSelectCity, onOpenMap, pushToast 
             state: "Tamil Nadu",
             river: "Adyar & Cooum Basin",
             focus: "Coastal Storm Canals",
-            risk: "High Watch",
-            riskType: "high",
-            pumps: "49 / 54 Active",
+            focusCity: true,
             elevation: "Sea Level Basin",
-            img: "/static/images/pexels-wanderinglenses-13670217.jpg"
+            img: "/static/images/pexels-wanderinglenses-13670217.webp"
         },
         {
             city: "Mumbai",
             state: "Maharashtra",
             river: "Mithi River & Mahim Bay",
             focus: "Tidal Creek Outfalls",
-            risk: "High Watch",
-            riskType: "high",
-            pumps: "51 / 58 Active",
+            focusCity: true,
             elevation: "Coastal Lowland",
-            img: "/static/images/zoshua-colah-1fradOPdjBM-unsplash.jpg"
+            img: "/static/images/zoshua-colah-1fradOPdjBM-unsplash.webp"
         },
         {
             city: "Delhi",
             state: "NCR",
             river: "Yamuna River Basin",
             focus: "Ring Road Underpasses",
-            risk: "High Watch",
-            riskType: "high",
-            pumps: "62 / 69 Active",
+            focusCity: true,
             elevation: "River Floodplain",
-            img: "/static/images/dibakar-roy-KbG3OsDKkCM-unsplash.jpg"
+            img: "/static/images/dibakar-roy-KbG3OsDKkCM-unsplash.webp"
         },
         {
             city: "Kolkata",
             state: "West Bengal",
             river: "Hooghly River & Canals",
             focus: "Historic Sump Stations",
-            risk: "High Watch",
-            riskType: "high",
-            pumps: "44 / 50 Active",
+            focusCity: false,
             elevation: "Delta Lowland",
-            img: "/static/images/hero-kolkata-taxi-reflection.jpg"
+            img: "/static/images/hero-kolkata-taxi-reflection.webp"
         },
         {
             city: "Bengaluru",
             state: "Karnataka",
             river: "Bellandur & Vrishabhavathi",
             focus: "Valley Storm Drains",
-            risk: "Moderate",
-            riskType: "mod",
-            pumps: "38 / 42 Active",
+            focusCity: false,
             elevation: "Elevated Plateau",
-            img: "/static/images/hero-aerial-drone.jpg"
+            img: "/static/images/hero-aerial-drone.webp"
         },
         {
             city: "Hyderabad",
             state: "Telangana",
             river: "Musi River & Hussain Sagar",
             focus: "Storm Culvert Runoff",
-            risk: "Moderate",
-            riskType: "mod",
-            pumps: "34 / 38 Active",
+            focusCity: false,
             elevation: "Deccan Basin",
-            img: "/static/images/dibakar-roy-aby-GGLtD-A-unsplash.jpg"
+            img: "/static/images/dibakar-roy-aby-GGLtD-A-unsplash.webp"
         }
     ];
 
     const GIS_PILLARS = [
         {
             num: "01",
-            title: "3D Street Elevation Mapping",
-            badge: "Terrain Heights",
-            tagline: "Pinpoints low road dips and hollows where stormwater gathers first.",
-            desc: "By reading high-accuracy satellite terrain heights across every street, RainDrop reveals exactly which intersections, underpasses, and neighborhood lanes sit in natural low points.",
-            img: "/static/images/dibakar-roy-FbOchRlXaPs-unsplash.jpg",
-            benefits: ["Sub-meter street height precision", "Highlights deep road hollows", "Calculates downhill water flow", "Flags trapped water pockets"],
-            tag: "Elevation Topography"
+            title: "Where the ground is low",
+            badge: "Terrain",
+            tagline: "Finds the dips and hollows where rain water collects first.",
+            desc: "A 30 m elevation model is filled, routed and turned into slope and flow lines, so each ward has a measure of how readily water pools there. Until a city's elevation tiles are processed, city-wide averages stand in, and the dashboard says so.",
+            img: "/static/images/dibakar-roy-FbOchRlXaPs-unsplash.webp",
+            alt: "Rain falling on a low-lying city street",
+            benefits: ["Depression filling and flow routing", "Slope measured on a metre grid", "Sets the share of each ward that ponds", "Marked as an average until real tiles load"],
+            status: "Estimate",
+            statusNote: "City-wide averages until elevation tiles are processed",
         },
         {
             num: "02",
-            title: "Live Rainstorm Radar Tracking",
-            badge: "Weather Radar",
-            tagline: "Follows heavy cloudbursts minute-by-minute hours before rainfall peaks.",
-            desc: "Streams live weather radar across every metropolitan area. It tracks storm clouds in motion so residents and municipal crews know exactly when and where heavy downpours will hit.",
-            img: "/static/images/dibakar-roy-DccG84ivd3k-unsplash.jpg",
-            benefits: ["Live radar precipitation feed", "Storm direction and speed tracking", "5-minute cloud updates", "Up to 6 hours advance warning"],
-            tag: "Radar Telemetry"
+            title: "How much rain, and how fast",
+            badge: "Rainfall",
+            tagline: "Hourly forecast rainfall for each ward, from the current hour.",
+            desc: "Hourly rainfall forecasts from Open-Meteo, refreshed through the day and checked for age. Intensity matters more than the daily total: 100 mm in three hours floods streets that 100 mm spread over a day does not.",
+            img: "/static/images/dibakar-roy-DccG84ivd3k-unsplash.webp",
+            alt: "Heavy monsoon rain over a city",
+            benefits: ["Next 12 hours, hour by hour", "Peak intensity, not just totals", "Marked stale or offline when it lapses", "No radar feed connected yet"],
+            status: "Live",
+            statusNote: "Open-Meteo hourly forecast",
         },
         {
             num: "03",
-            title: "Canals & Drainage Water Flow",
-            badge: "Waterway Movement",
-            tagline: "Monitors city canals, sea tides, and stormwater drainage lines.",
-            desc: "Watches how water travels through underground pipes, open city canals, and river outfall gates, accounting for ocean high tides that push seawater back into neighborhood drains.",
-            img: "/static/images/dibakar-roy-P7Z3HwNWPeQ-unsplash.jpg",
-            benefits: ["Underground pipe capacity checks", "Tide and river backflow tracking", "Canal blockage detection", "Gate opening advisories"],
-            tag: "Hydrodynamics"
+            title: "What the drains can carry",
+            badge: "Drainage",
+            tagline: "Rain that falls faster than drains can clear it becomes surface water.",
+            desc: "Each city is given a drainage rate in millimetres per hour, and rain above that rate becomes runoff. The rate is a published design figure, not a measurement of the drains as they are today. Blocked drains and high tides are not modelled.",
+            img: "/static/images/dibakar-roy-P7Z3HwNWPeQ-unsplash.webp",
+            alt: "Water flowing along an urban drainage channel",
+            benefits: ["Drain capacity per city, in mm per hour", "Paved share sets how much rain runs off", "Tide and river backflow not modelled yet", "SWMM simulation planned for a faster model"],
+            status: "Estimate",
+            statusNote: "Design figures, not measured capacity",
         },
         {
             num: "04",
-            title: "Instant Street Flood Depth Alerts",
-            badge: "Real-Time Depth",
-            tagline: "Calculates standing water depth across every neighborhood in milliseconds.",
-            desc: "Instead of waiting hours for slow simulations, our smart predictive model calculates whether a street will have 5 cm or 45 cm of water in milliseconds as rain falls.",
-            img: "/static/images/hero-aerial-drone.jpg",
-            benefits: ["Instant depth forecasts in cm", "Door-to-door street accuracy", "Clear vehicle safety limits", "Fast response advisories"],
-            tag: "Surrogate Intelligence"
-        }
+            title: "How deep the water gets",
+            badge: "Depth",
+            tagline: "Turns the excess rain into a depth for the wettest part of a ward.",
+            desc: "The water the drains cannot take is pooled over the lowest part of the ward to give a depth in centimetres, then translated into whether you can walk, ride or drive through. It is an estimate for the ward, not a reading for your street.",
+            img: "/static/images/hero-aerial-drone.webp",
+            alt: "Aerial view of a flooded neighbourhood",
+            benefits: ["Depth in centimetres, with the working shown", "Advice for walking, riding and driving", "Not yet validated against observed floods", "Not an official IMD or NDMA warning"],
+            status: "Estimate",
+            statusNote: "Rational method, not a trained model",
+        },
     ];
 
-    const currentArt = ARTWORKS[activeArtworkIdx] || ARTWORKS[0];
 
     return (
         <div className="min-h-screen bg-white text-slate-900 flex flex-col items-center justify-start p-0 m-0 font-sans antialiased w-full overflow-x-hidden selection:bg-emerald-600 selection:text-white">
@@ -288,12 +298,12 @@ function HeroView({ ward, wardData, onEnter, onSelectCity, onOpenMap, pushToast 
                         loop
                         muted
                         playsInline
-                        preload="auto"
-                        poster="/static/images/rain-video-poster.jpg"
-                        className="w-full h-full object-cover scale-[1.01] transition-transform duration-1000"
+                        preload={showBackgroundVideo ? "metadata" : "none"}
+                        poster="/static/images/rain-video-poster.webp"
+                        aria-hidden="true"
+                        className="w-full h-full object-cover scale-[1.01]"
                     >
-                        <source src="/static/VEDIO/RAIN.mp4" type="video/mp4" />
-                        <source src="https://strvid.nyc3.cdn.digitaloceanspaces.com/motionsite/nature-sunset.mp4" type="video/mp4" />
+                        {showBackgroundVideo && <source src="/static/VEDIO/RAIN.mp4" type="video/mp4" />}
                     </video>
                     {/* Linear Top-to-Bottom Gradient */}
                     <div className="absolute inset-0 bg-gradient-to-b from-black/75 via-black/30 to-black/85 pointer-events-none" />
@@ -365,9 +375,9 @@ function HeroView({ ward, wardData, onEnter, onSelectCity, onOpenMap, pushToast 
                                 if (onOpenMap) onOpenMap(ward, "Chennai");
                                 else onEnter();
                             }}
-                            className="px-6 py-2.5 rounded-full border border-white/80 text-white text-[11px] font-semibold tracking-[0.2em] uppercase transition-all duration-300 hover:bg-white hover:text-black active:scale-95 cursor-pointer"
+                            className="min-h-[44px] px-6 rounded-full border border-white/80 text-white text-sm font-semibold transition-colors hover:bg-white hover:text-black cursor-pointer"
                         >
-                            VIEW LIVE MAP
+                            Open the map
                         </button>
                     </div>
 
@@ -403,9 +413,9 @@ function HeroView({ ward, wardData, onEnter, onSelectCity, onOpenMap, pushToast 
                                     if (onOpenMap) onOpenMap(ward, "Chennai");
                                     else onEnter();
                                 }}
-                                className="w-full text-center py-3 rounded-full border border-white/80 text-white text-xs font-semibold tracking-[0.2em] uppercase hover:bg-white hover:text-black transition-all"
+                                className="w-full text-center min-h-[48px] rounded-full border border-white/80 text-white text-base font-semibold hover:bg-white hover:text-black transition-colors"
                             >
-                                VIEW LIVE MAP
+                                Open the map
                             </button>
                         </div>
                     </div>
@@ -414,28 +424,49 @@ function HeroView({ ward, wardData, onEnter, onSelectCity, onOpenMap, pushToast 
                 {/* 3. Main Hero Core Content */}
                 <div className="relative z-10 w-full max-w-7xl mx-auto px-6 sm:px-10 lg:px-14 my-auto pb-16 sm:pb-20">
                     <div className="max-w-3xl">
-                        {/* Serif Headline with Cormorant Garamond */}
-                        <h1 className="font-editorial text-5xl sm:text-6xl md:text-7xl lg:text-[95px] leading-[0.95] tracking-[-0.01em] font-bold text-white text-glow">
-                            Predict Floods.<br />Protect Cities.
+                        <h1 className="font-editorial text-5xl sm:text-6xl md:text-7xl lg:text-[88px] leading-[0.98] tracking-[-0.01em] font-bold text-white text-glow">
+                            Is my street<br />going to flood?
                         </h1>
 
-                        {/* Subtitle */}
-                        <p className="mt-4 sm:mt-6 text-base sm:text-lg md:text-xl text-white/90 font-medium max-w-lg leading-relaxed text-glow">
-                            Real-time street water level alerts, storm drain tracking, and safe evacuation routes before floodwaters rise.
+                        <p className="mt-4 sm:mt-6 text-base sm:text-lg md:text-xl text-white/90 font-medium max-w-xl leading-relaxed text-glow">
+                            Pick your city to see the estimated water depth in your ward, and whether you can
+                            get through on foot, on a two-wheeler or by car.
                         </p>
 
-                        {/* CTA Action (Clean Single Pill Button Without Video Play Button) */}
-                        <div className="mt-7 sm:mt-9 flex items-center">
-                            <button
-                                type="button"
-                                onClick={() => {
-                                    if (onOpenMap) onOpenMap(ward, "Chennai");
-                                    else onEnter();
-                                }}
-                                className="inline-flex items-center justify-center px-8 py-4 bg-white text-black font-semibold text-xs sm:text-sm tracking-[0.18em] uppercase rounded-md shadow-xl transition-all duration-300 hover:bg-white/90 hover:scale-105 hover:shadow-2xl hover:shadow-white/20 active:scale-95 cursor-pointer"
-                            >
-                                EXPLORE LIVE NOWCAST
-                            </button>
+                        {/*
+                          Primary action, placed above everything else on the page. A citizen
+                          deciding whether to set out should not have to scroll past a video
+                          hero and a carousel to find out.
+                        */}
+                        <div className="mt-7 sm:mt-9">
+                            <p className="text-sm font-semibold text-white/80 mb-2.5" id="city-picker-label">
+                                Check my street
+                            </p>
+                            <div className="flex flex-wrap gap-2.5" role="group" aria-labelledby="city-picker-label">
+                                {["Chennai", "Mumbai", "Delhi"].map((city) => (
+                                    <button
+                                        key={city}
+                                        type="button"
+                                        onClick={() => {
+                                            if (onOpenMap) onOpenMap(ward, city);
+                                            else onEnter();
+                                        }}
+                                        className="inline-flex items-center justify-center min-h-[48px] px-6 bg-white text-slate-900 font-bold text-base rounded-lg shadow-xl transition-colors hover:bg-slate-100 active:scale-[0.98] cursor-pointer"
+                                    >
+                                        {city}
+                                    </button>
+                                ))}
+                                <button
+                                    type="button"
+                                    onClick={() => scrollTo("coverage")}
+                                    className="inline-flex items-center justify-center min-h-[48px] px-6 border-2 border-white/80 text-white font-semibold text-base rounded-lg transition-colors hover:bg-white/15 cursor-pointer"
+                                >
+                                    Other cities
+                                </button>
+                            </div>
+                            <p className="mt-3.5 text-sm font-medium text-white max-w-lg text-glow">
+                                Estimates from rainfall forecasts. Not an official IMD or NDMA warning.
+                            </p>
                         </div>
                     </div>
                 </div>
@@ -454,79 +485,53 @@ function HeroView({ ward, wardData, onEnter, onSelectCity, onOpenMap, pushToast 
                         <path d="M12 15C12 11.134 15.134 8 19 8C19 11.866 15.866 15 12 15Z"></path>
                     </svg>
                     <div className="flex items-center gap-2 sm:gap-3 text-[10px] sm:text-xs font-semibold tracking-[0.2em] uppercase text-black">
-                        <span className="hover:text-emerald-700 transition-colors">REAL-TIME RADAR</span>
+                        <span>HOURLY RAINFALL FORECAST</span>
                         <span className="text-black/40">•</span>
-                        <span className="hover:text-emerald-700 transition-colors">ZERO FLOOD DELAYS</span>
+                        <span>WARD-LEVEL DEPTH ESTIMATES</span>
                         <span className="text-black/40">•</span>
-                        <span className="hover:text-emerald-700 transition-colors">6 INDIAN BASINS</span>
+                        <span>6 INDIAN CITIES</span>
                     </div>
                 </div>
 
             </section>
 
             {/* ========================================================================= */}
-            {/* EDITORIAL GIS CAROUSEL SECTION — Dark Card Filmstrip                      */}
+            {/* Ways in: a filmstrip of four real destinations                            */}
             {/* ========================================================================= */}
             <section
-                className="w-full bg-white border-t border-neutral-200 text-neutral-900 font-sans"
-                style={{ paddingTop: '96px', paddingBottom: '0' }}
+                aria-roledescription="carousel"
+                aria-labelledby="ways-in-title"
+                className="w-full bg-white border-t border-slate-200 text-slate-900 font-sans pt-20 sm:pt-24"
+                onFocus={() => setIsCarouselFocused(true)}
+                onBlur={(event) => {
+                    if (!event.currentTarget.contains(event.relatedTarget)) setIsCarouselFocused(false);
+                }}
             >
-                {/* ── Header (constrained) ── */}
-                <div className="relative w-full max-w-7xl mx-auto px-6 sm:px-10 lg:px-14 mb-12">
-                    {/* "OUR FOCUS AREAS" label with flanking lines */}
-                    <div className="flex items-center justify-center gap-4 mb-4">
-                        <span style={{ flex: '0 0 60px', height: '1px', background: '#93c5fd' }} />
-                        <span
-                            className="font-bebas uppercase tracking-[0.35em] text-sky-500"
-                            style={{ fontSize: '13px', letterSpacing: '0.3em' }}
-                        >
-                            OUR FOCUS AREAS
-                        </span>
-                        <span style={{ flex: '0 0 60px', height: '1px', background: '#93c5fd' }} />
-                    </div>
-
-                    {/* Main title — centred */}
+                <div className="w-full max-w-3xl mx-auto px-6 sm:px-10 text-center">
                     <h2
-                        className="font-bebas text-center text-neutral-950 uppercase leading-[0.9] tracking-wide"
-                        style={{ fontSize: 'clamp(28px, 5.5vw, 80px)', marginBottom: '12px', letterSpacing: '0.02em' }}
+                        id="ways-in-title"
+                        className="font-editorial text-4xl sm:text-5xl lg:text-6xl font-semibold text-slate-900 leading-[1.05] tracking-[-0.01em]"
+                        style={{ textWrap: 'balance' }}
                     >
-                        DATA-DRIVEN SOLUTIONS FOR SAFER CITIES
+                        Four ways into the estimate
                     </h2>
-
-                    {/* Subtitle — centred */}
-                    <p
-                        className="font-bebas text-center text-neutral-500 uppercase tracking-[0.18em]"
-                        style={{ fontSize: '12px', marginBottom: '0' }}
-                    >
-                        EXPLORE KEY USE CASES WHERE REAL-TIME GEOSPATIAL DATA AND FORECASTING CREATE MEASURABLE IMPACT.
+                    <p className="mt-4 text-base sm:text-lg text-slate-600 leading-relaxed" style={{ textWrap: 'pretty' }}>
+                        Check whether you can get through, open a city's map, or see how the depth
+                        figure is worked out.
                     </p>
-
-                    {/* VIEW ALL PROJECTS — absolute top-right */}
                     <button
                         type="button"
-                        onClick={() => {
-                            const el = document.getElementById('cities');
-                            if (el) el.scrollIntoView({ behavior: 'smooth' });
-                        }}
-                        className="font-bebas uppercase tracking-widest text-neutral-900 hover:bg-neutral-100 transition-colors cursor-pointer"
-                        style={{
-                            position: 'absolute',
-                            top: '0',
-                            right: '56px',
-                            fontSize: '12px',
-                            letterSpacing: '0.12em',
-                            border: '1.5px solid #737373',
-                            borderRadius: '999px',
-                            padding: '8px 20px',
-                        }}
+                        onClick={() => scrollTo('coverage')}
+                        className="mt-6 inline-flex items-center gap-2 min-h-[44px] px-5 rounded-full border border-slate-300 text-sm font-semibold text-slate-800 hover:bg-slate-50 hover:border-slate-400 transition-colors cursor-pointer"
                     >
-                        VIEW ALL PROJECTS
+                        See all six cities
+                        <ArrowRight className="w-4 h-4" aria-hidden="true" />
                     </button>
                 </div>
 
-                {/* ── Full-bleed Filmstrip Stage ── */}
+                {/* Filmstrip */}
                 <div
-                    className="w-full select-none"
+                    className="w-full select-none mt-10"
                     style={{ overflow: 'hidden', paddingTop: '28px', paddingBottom: '16px', minHeight: '490px' }}
                     onMouseEnter={() => setIsCarouselHovered(true)}
                     onMouseLeave={() => setIsCarouselHovered(false)}
@@ -537,44 +542,57 @@ function HeroView({ ward, wardData, onEnter, onSelectCity, onOpenMap, pushToast 
                             alignItems: 'flex-end',
                             gap: `${carouselGap}px`,
                             transform: `translate3d(${translateX}px, 0, 0)`,
-                            transition: isTransitioning
-                                ? 'transform 750ms cubic-bezier(0.25, 1, 0.5, 1)'
+                            transition: isTransitioning && !prefersReducedMotion
+                                ? 'transform 750ms cubic-bezier(0.22, 1, 0.36, 1)'
                                 : 'none',
                             willChange: 'transform',
                         }}
                     >
                         {EXTENDED_SLIDES.map((art, idx) => {
                             const isCurrent = idx === slideIndex;
+                            const position = (idx % ARTWORKS.length) + 1;
                             return (
                                 <div
-                                    key={`${art.num}-${idx}`}
+                                    key={`${art.key}-${idx}`}
+                                    role="group"
+                                    aria-roledescription="slide"
+                                    aria-label={`${position} of ${ARTWORKS.length}: ${art.title}`}
+                                    // The track holds three copies for the infinite loop. Only the
+                                    // current card is exposed, so a screen reader hears four
+                                    // slides, not twelve.
+                                    aria-hidden={!isCurrent}
                                     onClick={() => {
+                                        if (isCurrent) return;
                                         setIsTransitioning(true);
                                         setSlideIndex(idx);
                                     }}
                                     style={{
                                         position: 'relative',
                                         flexShrink: '0',
-                                        cursor: 'pointer',
-                                        borderRadius: '16px',
+                                        cursor: isCurrent ? 'default' : 'pointer',
+                                        background: '#0f172a',
+                                        borderRadius: '18px',
                                         overflow: 'hidden',
                                         boxShadow: isCurrent
-                                            ? '0 24px 64px rgba(0,0,0,0.38)'
-                                            : '0 8px 24px rgba(0,0,0,0.16)',
+                                            ? '0 28px 60px -18px rgba(15,23,42,0.55)'
+                                            : '0 10px 24px -12px rgba(15,23,42,0.35)',
                                         width: `${isCurrent ? cardWidthActive : cardWidthInactive}px`,
                                         height: isCurrent ? '430px' : '350px',
                                         transform: isCurrent ? 'translateY(-16px)' : 'translateY(0)',
-                                        opacity: isCurrent ? 1 : 0.72,
-                                        transition: isTransitioning
-                                            ? 'width 750ms cubic-bezier(0.25, 1, 0.5, 1), height 750ms cubic-bezier(0.25, 1, 0.5, 1), transform 750ms cubic-bezier(0.25, 1, 0.5, 1), opacity 750ms ease, box-shadow 750ms ease'
+                                        opacity: isCurrent ? 1 : 0.7,
+                                        transition: isTransitioning && !prefersReducedMotion
+                                            ? 'width 750ms cubic-bezier(0.22, 1, 0.36, 1), height 750ms cubic-bezier(0.22, 1, 0.36, 1), transform 750ms cubic-bezier(0.22, 1, 0.36, 1), opacity 600ms ease-out, box-shadow 600ms ease-out'
                                             : 'none',
                                         willChange: 'transform, width',
                                     }}
                                 >
-                                    {/* Full-card background image */}
                                     <img
+                                        loading="lazy"
+                                        decoding="async"
                                         src={art.img}
-                                        alt={art.title}
+                                        alt={isCurrent ? art.alt : ''}
+                                        width="1600"
+                                        height="1067"
                                         style={{
                                             position: 'absolute',
                                             inset: '0',
@@ -586,159 +604,53 @@ function HeroView({ ward, wardData, onEnter, onSelectCity, onOpenMap, pushToast 
                                         }}
                                     />
 
-                                    {/* Dark gradient overlay — stronger at bottom */}
                                     <div
+                                        aria-hidden="true"
                                         style={{
                                             position: 'absolute',
                                             inset: '0',
                                             background: isCurrent
-                                                ? 'linear-gradient(to top, rgba(0,0,0,0.85) 0%, rgba(0,0,0,0.25) 55%, rgba(0,0,0,0.15) 100%)'
-                                                : 'linear-gradient(to top, rgba(0,0,0,0.75) 0%, rgba(0,0,0,0.35) 50%, rgba(0,0,0,0.2) 100%)',
+                                                ? 'linear-gradient(to top, rgba(2,6,23,0.92) 0%, rgba(2,6,23,0.55) 42%, rgba(2,6,23,0.05) 78%)'
+                                                : 'linear-gradient(to top, rgba(2,6,23,0.85) 0%, rgba(2,6,23,0.35) 55%, rgba(2,6,23,0.15) 100%)',
                                         }}
                                     />
 
-                                    {/* Top label row: "02 — COASTAL DYNAMICS" */}
-                                    <div
-                                        style={{
-                                            position: 'absolute',
-                                            top: '18px',
-                                            left: '18px',
-                                            right: '18px',
-                                            display: 'flex',
-                                            alignItems: 'center',
-                                            gap: '10px',
-                                        }}
+                                    <span
+                                        className="absolute top-4 left-4 inline-flex items-center rounded-full bg-white/95 px-3 py-1 text-xs font-semibold text-slate-900"
                                     >
-                                        <span
-                                            className="font-bebas text-white"
-                                            style={{ fontSize: '14px', letterSpacing: '0.12em', opacity: 0.9 }}
-                                        >
-                                            {art.num}
-                                        </span>
-                                        <span
-                                            style={{
-                                                width: '24px',
-                                                height: '1px',
-                                                background: 'rgba(255,255,255,0.5)',
-                                                flexShrink: '0',
-                                            }}
-                                        />
-                                        <span
-                                            className="font-bebas text-white uppercase"
-                                            style={{ fontSize: '11px', letterSpacing: '0.22em', opacity: 0.75 }}
-                                        >
-                                            {art.tag}
-                                        </span>
-                                    </div>
+                                        {art.tag}
+                                    </span>
 
-                                    {/* Bottom content area */}
-                                    <div
-                                        style={{
-                                            position: 'absolute',
-                                            bottom: '0',
-                                            left: '0',
-                                            right: '0',
-                                            padding: isCurrent ? '28px' : '16px 18px',
-                                        }}
-                                    >
-                                        {/* Category label (inactive only — shown in small) */}
-                                        {!isCurrent && (
-                                            <span
-                                                className="font-bebas text-white uppercase block"
-                                                style={{
-                                                    fontSize: '9px',
-                                                    letterSpacing: '0.2em',
-                                                    opacity: 0.6,
-                                                    marginBottom: '4px',
-                                                }}
-                                            >
-                                                {art.tag}
-                                            </span>
-                                        )}
-
-                                        {/* Title */}
+                                    <div className={`absolute inset-x-0 bottom-0 ${isCurrent ? 'p-6 sm:p-8' : 'p-4'}`}>
                                         <h3
-                                            className="font-bebas text-white uppercase leading-[0.95]"
-                                            style={{
-                                                fontSize: isCurrent
-                                                    ? 'clamp(24px, 3vw, 44px)'
-                                                    : 'clamp(13px, 1.5vw, 20px)',
-                                                marginBottom: isCurrent ? '6px' : '0',
-                                            }}
+                                            className={`font-editorial font-semibold text-white leading-[1.02] ${
+                                                isCurrent ? 'text-3xl sm:text-4xl lg:text-[2.75rem]' : 'text-xl'
+                                            }`}
+                                            style={{ textWrap: 'balance' }}
                                         >
                                             {art.title}
                                         </h3>
 
-                                        {/* Active-only: subtitle + progress + button */}
                                         {isCurrent && (
                                             <>
-                                                <p
-                                                    className="font-bebas text-white uppercase"
-                                                    style={{
-                                                        fontSize: '11px',
-                                                        letterSpacing: '0.15em',
-                                                        opacity: 0.65,
-                                                        marginBottom: '20px',
-                                                    }}
-                                                >
+                                                <p className="mt-2 text-sm font-semibold text-white/85">
                                                     {art.subtitle}
                                                 </p>
-                                                <div
-                                                    style={{
-                                                        display: 'flex',
-                                                        alignItems: 'center',
-                                                        justifyContent: 'space-between',
+                                                <p className="mt-3 max-w-[52ch] text-sm sm:text-base leading-relaxed text-white/90" style={{ textWrap: 'pretty' }}>
+                                                    {art.desc}
+                                                </p>
+                                                <button
+                                                    type="button"
+                                                    onClick={(event) => {
+                                                        event.stopPropagation();
+                                                        art.onAction();
                                                     }}
+                                                    className="mt-5 inline-flex items-center gap-2 min-h-[44px] px-5 rounded-full bg-white text-slate-900 text-sm font-bold hover:bg-sky-50 transition-colors cursor-pointer"
                                                 >
-                                                    <button
-                                                        type="button"
-                                                        onClick={(e) => {
-                                                            e.stopPropagation();
-                                                            setModalArtworkIdx(
-                                                                art.num === '01' ? 0 :
-                                                                art.num === '02' ? 1 :
-                                                                art.num === '03' ? 2 : 3
-                                                            );
-                                                            setShowreelModalOpen(true);
-                                                        }}
-                                                        className="font-bebas text-white uppercase hover:bg-white hover:text-black transition-all cursor-pointer"
-                                                        style={{
-                                                            fontSize: '12px',
-                                                            letterSpacing: '0.15em',
-                                                            border: '1.5px solid rgba(255,255,255,0.7)',
-                                                            borderRadius: '999px',
-                                                            padding: '7px 20px',
-                                                        }}
-                                                    >
-                                                        EXPLORE PROJECT
-                                                    </button>
-                                                    <span
-                                                        className="font-bebas text-white"
-                                                        style={{
-                                                            fontSize: '13px',
-                                                            letterSpacing: '0.1em',
-                                                            opacity: 0.45,
-                                                        }}
-                                                    >
-                                                        {art.num} / 04
-                                                    </span>
-                                                </div>
+                                                    {art.actionLabel}
+                                                    <ArrowRight className="w-4 h-4" aria-hidden="true" />
+                                                </button>
                                             </>
-                                        )}
-
-                                        {/* Inactive slide: slide number / 04 */}
-                                        {!isCurrent && (
-                                            <span
-                                                className="font-bebas text-white block"
-                                                style={{
-                                                    fontSize: '10px',
-                                                    letterSpacing: '0.12em',
-                                                    opacity: 0.4,
-                                                    marginTop: '4px',
-                                                }}
-                                            >
-                                                {art.num} / 04
-                                            </span>
                                         )}
                                     </div>
                                 </div>
@@ -747,118 +659,61 @@ function HeroView({ ward, wardData, onEnter, onSelectCity, onOpenMap, pushToast 
                     </div>
                 </div>
 
-                {/* ── Dot Pagination ── */}
-                <div
-                    style={{
-                        display: 'flex',
-                        justifyContent: 'center',
-                        alignItems: 'center',
-                        gap: '8px',
-                        marginTop: '20px',
-                        marginBottom: '20px',
-                    }}
-                >
+                {/* Position, plus a pause control that works without a mouse */}
+                <div className="flex items-center justify-center gap-1 mt-4 mb-6">
+                    <button
+                        type="button"
+                        onClick={() => setIsCarouselPaused((paused) => !paused)}
+                        aria-label={isCarouselPaused ? 'Resume slides' : 'Pause slides'}
+                        aria-pressed={isCarouselPaused}
+                        className="inline-flex items-center justify-center w-11 h-11 rounded-full text-slate-700 hover:bg-slate-100 transition-colors cursor-pointer"
+                    >
+                        {isCarouselPaused || prefersReducedMotion
+                            ? <Play className="w-3.5 h-3.5" aria-hidden="true" />
+                            : <Pause className="w-3.5 h-3.5" aria-hidden="true" />}
+                    </button>
                     {ARTWORKS.map((art, idx) => {
                         const isActive = idx === activeProjectIdx;
                         return (
                             <button
-                                key={art.num}
+                                key={art.key}
                                 type="button"
                                 onClick={() => handleDotClick(idx)}
-                                aria-label={`Go to slide ${art.num}`}
-                                style={{
-                                    width: isActive ? '28px' : '8px',
-                                    height: '8px',
-                                    borderRadius: '999px',
-                                    background: isActive ? '#2563eb' : '#d1d5db',
-                                    border: 'none',
-                                    padding: '0',
-                                    cursor: 'pointer',
-                                    transition: 'width 300ms ease, background 300ms ease',
-                                }}
-                            />
+                                aria-label={`Show slide ${idx + 1}: ${art.title}`}
+                                aria-current={isActive ? 'true' : undefined}
+                                // 44 px hit area; the visible dot stays small.
+                                className="inline-flex items-center justify-center w-11 h-11 rounded-full cursor-pointer group"
+                            >
+                                <span
+                                    aria-hidden="true"
+                                    className={`block h-2 rounded-full transition-all duration-300 ${
+                                        isActive ? 'w-7 bg-sky-700' : 'w-2 bg-slate-300 group-hover:bg-slate-400'
+                                    }`}
+                                />
+                            </button>
                         );
                     })}
                 </div>
+                <p className="sr-only" aria-live={isCarouselStill ? 'polite' : 'off'}>
+                    {`Slide ${activeProjectIdx + 1} of ${ARTWORKS.length}: ${ARTWORKS[activeProjectIdx].title}`}
+                </p>
 
-                {/* ── Bottom Tagline Strip ── */}
-                <div
-                    className="w-full max-w-7xl mx-auto"
-                    style={{
-                        display: 'flex',
-                        alignItems: 'center',
-                        justifyContent: 'space-between',
-                        border: '1px solid #e5e7eb',
-                        borderRadius: '999px',
-                        padding: '14px 32px',
-                        marginLeft: 'auto',
-                        marginRight: 'auto',
-                        marginBottom: '0',
-                        background: '#fafafa',
-                        maxWidth: '1280px',
-                        width: 'calc(100% - 48px)',
-                    }}
-                >
-                    <p
-                        className="font-bebas text-neutral-500 uppercase"
-                        style={{ fontSize: '11px', letterSpacing: '0.18em' }}
-                    >
-                        FROM RIVERS TO COASTLINES TO URBAN STREETS — TURNING REAL-TIME DATA INTO SAFER, MORE RESILIENT CITIES.
+                <div className="mx-auto mb-10 flex max-w-5xl flex-col items-start gap-3 rounded-2xl border border-slate-200 bg-slate-50 px-6 py-4 sm:flex-row sm:items-center sm:justify-between" style={{ width: 'calc(100% - 48px)' }}>
+                    <p className="text-sm text-slate-700">
+                        Every figure on this site says where it came from: live forecast, estimate or sample.
                     </p>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '20px', flexShrink: '0' }}>
-                        <span style={{ width: '1px', height: '18px', background: '#d1d5db' }} />
-                        <button
-                            type="button"
-                            onClick={() => {
-                                const el = document.getElementById('cities');
-                                if (el) el.scrollIntoView({ behavior: 'smooth' });
-                            }}
-                            className="font-bebas text-sky-600 uppercase hover:text-sky-800 transition-colors cursor-pointer"
-                            style={{ fontSize: '11px', letterSpacing: '0.18em', background: 'none', border: 'none', padding: '0' }}
-                        >
-                            LEARN MORE
-                        </button>
-                    </div>
+                    <button
+                        type="button"
+                        onClick={() => scrollTo('data')}
+                        className="inline-flex shrink-0 items-center gap-1.5 min-h-[44px] text-sm font-bold text-sky-800 hover:text-sky-900 cursor-pointer"
+                    >
+                        How the estimate works
+                        <ArrowRight className="w-4 h-4" aria-hidden="true" />
+                    </button>
                 </div>
-                <div style={{ height: '32px' }} />
             </section>
 
 
-            {/* ========================================================================= */}
-            {/* FULLSCREEN NATURE VIDEO MODAL POPUP                                       */}
-            {/* ========================================================================= */}
-            {showreelModalOpen && (
-                <div 
-                    className="fixed inset-0 bg-black/90 z-50 flex items-center justify-center p-4 sm:p-10 transition-opacity duration-500"
-                    onClick={() => setShowreelModalOpen(false)}
-                >
-                    <div 
-                        className="relative w-full max-w-4xl aspect-video bg-black rounded-xl overflow-hidden shadow-2xl border border-white/20"
-                        onClick={(e) => e.stopPropagation()}
-                    >
-                        <button 
-                            onClick={() => setShowreelModalOpen(false)}
-                            aria-label="Close modal" 
-                            className="absolute top-4 right-4 z-10 px-4 py-2 rounded bg-black/80 text-white font-bebas text-sm tracking-widest hover:bg-white hover:text-black transition-all cursor-pointer"
-                        >
-                            CLOSE
-                        </button>
-                        <video 
-                            id="modal-video" 
-                            controls 
-                            autoPlay 
-                            playsInline 
-                            className="w-full h-full object-cover"
-                            poster={ARTWORKS[modalArtworkIdx ?? activeProjectIdx]?.img}
-                        >
-                            <source src="/static/VEDIO/RAIN.mp4" type="video/mp4" />
-                            <source src="https://strvid.nyc3.cdn.digitaloceanspaces.com/motionsite/nature-sunset.mp4" type="video/mp4" />
-                        </video>
-                    </div>
-                </div>
-            )}
-
-            {/* ========================================================================= */}
             {/* ========================================================================= */}
             {/* BELOW-SLIDESHOW CONTAINER: Light Architectural Environmental Dashboard    */}
             {/* ========================================================================= */}
@@ -870,30 +725,24 @@ function HeroView({ ward, wardData, onEnter, onSelectCity, onOpenMap, pushToast 
                     {/* SECTION 01: PILLARS — Visual Environmental Intelligence (4 Pillars)       */}
                     {/* ========================================================================= */}
                     <section id="data" className="relative py-20 sm:py-28 w-full flex flex-col gap-10 sm:gap-12 border-b border-[#9DC6DA]">
-                        {/* Section Header */}
                         <div className="flex flex-col lg:flex-row lg:items-end justify-between gap-8 border-b border-[#9DC6DA] pb-8 sm:pb-10">
-                            <div className="max-w-4xl">
-                                <div className="inline-flex items-center gap-2.5 px-3.5 py-1.5 rounded-md bg-sky-100/90 border border-sky-300 text-sky-900 font-mono text-xs font-bold tracking-wider uppercase shadow-xs">
-                                    <Layers className="w-3.5 h-3.5 text-sky-700" />
-                                    <span>SYSTEM PILLARS // 01</span>
-                                </div>
-                                <h2 className="font-editorial text-4xl sm:text-5xl lg:text-6xl font-normal text-slate-900 mt-4 tracking-tight leading-[1.12]">
-                                    How RainDrop Sees &amp; Understands Urban Rainfall
+                            <div className="max-w-3xl">
+                                <h2 className="font-editorial text-4xl sm:text-5xl lg:text-6xl font-semibold text-slate-900 tracking-[-0.01em] leading-[1.05]" style={{ textWrap: 'balance' }}>
+                                    How the estimate is made
                                 </h2>
-                                <p className="text-slate-700 text-lg sm:text-xl lg:text-2xl mt-4 leading-relaxed font-sans font-light">
-                                    From high-accuracy street terrain heights to real-time weather radar, four integrated intelligence layers predict street runoff before storm centers peak.
+                                <p className="text-slate-700 text-lg sm:text-xl mt-4 leading-relaxed font-sans" style={{ textWrap: 'pretty' }}>
+                                    Four steps, from the shape of the ground to the depth of the water. Each one
+                                    says what it is based on and what it cannot see.
                                 </p>
                             </div>
 
                             <button
-                                onClick={() => {
-                                    if (window._openGisSpecsModal) window._openGisSpecsModal();
-                                    else if (pushToast) pushToast("Opening Data Specifications");
-                                }}
-                                className="flex items-center gap-2.5 px-7 py-3.5 rounded-xl bg-sky-700 hover:bg-sky-800 text-white text-sm font-bold tracking-wide uppercase transition-all duration-200 shadow-md hover:shadow-lg cursor-pointer shrink-0"
+                                type="button"
+                                onClick={() => onOpenMap(null, "Chennai")}
+                                className="inline-flex items-center gap-2 min-h-[44px] px-6 rounded-xl bg-sky-700 hover:bg-sky-800 text-white text-sm font-bold transition-colors cursor-pointer shrink-0"
                             >
-                                <Sliders className="w-4 h-4 text-sky-200" />
-                                <span>Inspect Data Layers</span>
+                                See it on the map
+                                <ArrowRight className="w-4 h-4" aria-hidden="true" />
                             </button>
                         </div>
 
@@ -949,73 +798,70 @@ function HeroView({ ward, wardData, onEnter, onSelectCity, onOpenMap, pushToast 
                             {/* Left: Large Photography Viewport (7 Cols) */}
                             <div className="lg:col-span-7 relative min-h-[340px] sm:min-h-[420px] lg:min-h-[460px] rounded-2xl overflow-hidden bg-slate-950 border border-[#B3D6E6] group shadow-inner">
                                 <img
+                                    loading="lazy"
+                                    decoding="async"
                                     src={GIS_PILLARS[activePillarTab].img}
-                                    alt={GIS_PILLARS[activePillarTab].title}
-                                    className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700 ease-out"
+                                    alt={GIS_PILLARS[activePillarTab].alt}
+                                    className="absolute inset-0 w-full h-full object-cover"
                                 />
-                                <div className="absolute inset-0 bg-gradient-to-t from-slate-950/85 via-slate-950/20 to-transparent" />
+                                <div className="absolute inset-0 bg-gradient-to-t from-slate-950/85 via-slate-950/20 to-transparent" aria-hidden="true" />
 
-                                {/* High-Tech Top Overlay Badge */}
-                                <div className="absolute top-4 left-4 right-4 flex items-center justify-between pointer-events-none">
-                                    <div className="flex items-center gap-2 bg-white/90 backdrop-blur-md border border-slate-200 px-3.5 py-1.5 rounded-md font-mono text-xs text-sky-950 font-bold uppercase tracking-wider shadow-xs">
-                                        <Activity className="w-3.5 h-3.5 text-sky-700 animate-pulse" />
-                                        <span>SENSOR STREAM: {GIS_PILLARS[activePillarTab].tag}</span>
-                                    </div>
-                                    <div className="hidden sm:block font-mono text-xs text-slate-700 bg-white/90 backdrop-blur-md px-3 py-1.5 rounded-md border border-slate-200 font-semibold shadow-xs">
-                                        FPS: 60 · LATENCY: 11.2ms
-                                    </div>
-                                </div>
+                                <span className="absolute top-4 left-4 inline-flex items-center rounded-full bg-white/95 px-3 py-1 text-xs font-semibold text-slate-900">
+                                    Step {activePillarTab + 1} of 4: {GIS_PILLARS[activePillarTab].badge}
+                                </span>
 
-                                {/* Bottom Image Info */}
-                                <div className="absolute bottom-5 left-5 right-5 sm:bottom-6 sm:left-6 sm:right-6">
-                                    <span className="font-mono text-xs uppercase tracking-widest text-sky-400 font-bold block mb-1">
-                                        LIVE ENVIRONMENTAL OBSERVATION
-                                    </span>
-                                    <h4 className="text-2xl sm:text-3xl font-editorial text-white">
-                                        {GIS_PILLARS[activePillarTab].title}
-                                    </h4>
-                                </div>
+                                <h3 className="absolute bottom-5 left-5 right-5 sm:bottom-6 sm:left-6 sm:right-6 text-3xl sm:text-4xl font-editorial font-semibold text-white leading-[1.05]" style={{ textWrap: 'balance' }}>
+                                    {GIS_PILLARS[activePillarTab].title}
+                                </h3>
                             </div>
 
-                            {/* Right: Technical Telemetry Readout (5 Cols) */}
+                            {/* Right: what this step does, and how much to trust it */}
                             <div className="lg:col-span-5 flex flex-col justify-between gap-6 sm:gap-8">
                                 <div>
-                                    <div className="flex items-center justify-between border-b border-[#B3D6E6] pb-3 mb-5">
-                                        <span className="font-mono text-xs uppercase tracking-widest text-slate-500 font-bold">
-                                            LAYER ANALYSIS // SPEC 0{activePillarTab + 1}
+                                    <div className="flex flex-wrap items-center gap-x-3 gap-y-1 border-b border-[#B3D6E6] pb-3 mb-5">
+                                        <span className={`inline-flex items-center gap-1.5 rounded-full border px-2.5 py-0.5 text-xs font-bold ${
+                                            GIS_PILLARS[activePillarTab].status === "Live"
+                                                ? "border-emerald-300 bg-emerald-50 text-emerald-900"
+                                                : "border-sky-300 bg-sky-50 text-sky-900"
+                                        }`}>
+                                            <span aria-hidden="true" className={`h-1.5 w-1.5 rounded-full ${
+                                                GIS_PILLARS[activePillarTab].status === "Live" ? "bg-emerald-600" : "bg-sky-600"
+                                            }`} />
+                                            {GIS_PILLARS[activePillarTab].status}
                                         </span>
-                                        <span className="font-mono text-xs text-sky-700 font-bold">
-                                            REAL-TIME DATA READY
+                                        <span className="text-sm text-slate-700">
+                                            {GIS_PILLARS[activePillarTab].statusNote}
                                         </span>
                                     </div>
 
-                                    <p className="text-base sm:text-lg text-slate-800 leading-relaxed font-sans">
+                                    <p className="text-base sm:text-lg text-slate-800 leading-relaxed font-sans max-w-[60ch]" style={{ textWrap: 'pretty' }}>
                                         {GIS_PILLARS[activePillarTab].desc}
                                     </p>
 
-                                    <div className="mt-6 sm:mt-7 space-y-3.5">
-                                        <span className="font-mono text-xs uppercase tracking-widest text-slate-500 font-bold block">
-                                            OPERATIONAL CAPABILITIES
-                                        </span>
+                                    <h4 className="mt-6 sm:mt-7 text-sm font-bold text-slate-900">
+                                        What it does today
+                                    </h4>
+                                    <ul className="mt-3 space-y-3">
                                         {GIS_PILLARS[activePillarTab].benefits.map((benefit) => (
-                                            <div key={benefit} className="flex items-start gap-3 text-base text-slate-800 font-medium">
-                                                <div className="w-2.5 h-2.5 rounded-full bg-sky-600 mt-1.5 shrink-0" />
+                                            <li key={benefit} className="flex items-start gap-3 text-base text-slate-800">
+                                                <span aria-hidden="true" className="w-2 h-2 rounded-full bg-sky-600 mt-2 shrink-0" />
                                                 <span>{benefit}</span>
-                                            </div>
+                                            </li>
                                         ))}
-                                    </div>
+                                    </ul>
                                 </div>
 
-                                <div className="pt-5 border-t border-[#B3D6E6] flex items-center justify-between">
-                                    <div className="font-mono text-xs text-slate-600">
-                                        UPDATE CADENCE: <strong className="text-slate-900">EVERY 60 SEC</strong>
-                                    </div>
+                                <div className="pt-5 border-t border-[#B3D6E6] flex flex-wrap items-center justify-between gap-3">
+                                    <p className="text-sm text-slate-700">
+                                        Rainfall updates hourly. Depths recompute with it.
+                                    </p>
                                     <button
-                                        onClick={() => onOpenMap(ward, "Chennai")}
-                                        className="flex items-center gap-1.5 font-sans text-sm font-bold text-sky-700 hover:text-sky-800 transition-colors cursor-pointer"
+                                        type="button"
+                                        onClick={() => onOpenMap(null, "Chennai")}
+                                        className="inline-flex items-center gap-1.5 min-h-[44px] font-sans text-sm font-bold text-sky-800 hover:text-sky-900 transition-colors cursor-pointer"
                                     >
-                                        <span>Open City Map</span>
-                                        <ArrowRight className="w-4 h-4" />
+                                        Open the map
+                                        <ArrowRight className="w-4 h-4" aria-hidden="true" />
                                     </button>
                                 </div>
                             </div>
@@ -1028,257 +874,269 @@ function HeroView({ ward, wardData, onEnter, onSelectCity, onOpenMap, pushToast 
                     <section id="coverage" className="relative py-20 sm:py-28 w-full flex flex-col gap-10 sm:gap-12 border-b border-[#9DC6DA]">
                         <div className="flex flex-col lg:flex-row lg:items-end justify-between gap-8 border-b border-[#9DC6DA] pb-8 sm:pb-10">
                             <div className="max-w-4xl">
-                                <div className="inline-flex items-center gap-2.5 px-3.5 py-1.5 rounded-md bg-sky-100/90 border border-sky-300 text-sky-900 font-mono text-xs font-bold tracking-wider uppercase shadow-xs">
-                                    <Waves className="w-3.5 h-3.5 text-sky-700" />
-                                    <span>URBAN BASIN MATRIX // 02</span>
-                                </div>
-                                <h2 className="font-editorial text-4xl sm:text-5xl lg:text-6xl font-normal text-slate-900 mt-4 tracking-tight leading-[1.12]">
-                                    Live City Waterways Across 6 Indian Metros
+                                <h2 className="font-editorial text-4xl sm:text-5xl lg:text-6xl font-semibold text-slate-900 tracking-[-0.01em] leading-[1.05]" style={{ textWrap: 'balance' }}>
+                                    Flood estimates for six Indian cities
                                 </h2>
                                 <p className="text-slate-700 text-lg sm:text-xl lg:text-2xl mt-4 leading-relaxed font-sans font-light">
-                                    Continuous 24/7 water monitoring across India's premier coastal and river basins. Select any metro to load real-time municipal diagnostics.
+                                    Rainfall forecasts refreshed through the day for six Indian cities, turned into
+                                    ward-level flood depth estimates. Chennai, Mumbai and Delhi are the best covered.
+                                    Select a city to see the current estimate and how it was produced.
                                 </p>
                             </div>
 
                             <button
+                                type="button"
                                 onClick={onEnter}
-                                className="flex items-center gap-2 px-7 py-3.5 rounded-xl bg-slate-900 hover:bg-slate-800 text-white text-sm font-bold uppercase tracking-wider transition-all duration-200 shadow-md hover:shadow-lg cursor-pointer shrink-0"
+                                className="inline-flex items-center gap-2 min-h-[44px] px-6 rounded-xl bg-slate-900 hover:bg-slate-800 text-white text-sm font-bold transition-colors cursor-pointer shrink-0"
                             >
-                                <span>Explore All Metros</span>
-                                <ArrowRight className="w-4 h-4 text-sky-400" />
+                                Compare all cities
+                                <ArrowRight className="w-4 h-4" aria-hidden="true" />
                             </button>
                         </div>
 
                         {/* 6 City Cards Grid with Pleasant Spacing */}
                         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 sm:gap-8">
-                            {cityCards.map((item) => (
-                                <div
+                            {cityCards.map((item) => {
+                                const wardCount = Object.values(WARDS_DATA).filter((ward) => ward.city === item.city).length;
+                                return (
+                                <button
                                     key={item.city}
+                                    type="button"
                                     onClick={() => {
                                         if (onSelectCity) onSelectCity(item.city);
                                         else onEnter();
                                     }}
-                                    className="group relative rounded-2xl bg-white/95 border border-[#9DC6DA] hover:border-sky-600 shadow-sm hover:shadow-xl transition-all duration-300 ease-out cursor-pointer flex flex-col justify-between hover:-translate-y-1.5 overflow-hidden"
+                                    className="group relative text-left rounded-2xl bg-white border border-[#9DC6DA] hover:border-sky-600 shadow-sm hover:shadow-lg transition-[border-color,box-shadow,transform] duration-300 ease-out cursor-pointer flex flex-col justify-between hover:-translate-y-1 overflow-hidden"
                                 >
-                                    {/* City Photo Header */}
                                     <div className="relative h-64 sm:h-72 w-full overflow-hidden bg-slate-900">
                                         <img
+                                            loading="lazy"
+                                            decoding="async"
                                             src={item.img}
-                                            alt={`${item.city} Skyline and Waterway`}
-                                            className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700 ease-out"
+                                            alt=""
+                                            width="1600"
+                                            height="1067"
+                                            className="w-full h-full object-cover group-hover:scale-[1.03] transition-transform duration-700 ease-out"
                                         />
-                                        <div className="absolute inset-0 bg-gradient-to-t from-slate-950/85 via-slate-950/20 to-transparent" />
-                                        
-                                        {/* Risk Badge */}
-                                        <div className="absolute top-4 right-4">
-                                            <span className={`px-3 py-1 rounded-sm text-xs font-bold uppercase tracking-wider ${
-                                                item.riskType === "high"
-                                                    ? "bg-rose-100 text-rose-900 border border-rose-300"
-                                                    : "bg-amber-100 text-amber-900 border border-amber-300"
-                                            }`}>
-                                                {item.risk}
-                                            </span>
-                                        </div>
+                                        <div className="absolute inset-0 bg-gradient-to-t from-slate-950/85 via-slate-950/20 to-transparent" aria-hidden="true" />
+
+                                        {/* Coverage, not risk. A risk badge here was hardcoded and
+                                            never reflected the weather. */}
+                                        <span className={`absolute top-4 right-4 rounded-full px-3 py-1 text-xs font-semibold border ${
+                                            item.focusCity
+                                                ? "bg-white text-slate-900 border-white"
+                                                : "bg-slate-900/70 text-white border-white/30"
+                                        }`}>
+                                            {item.focusCity ? "Focus city" : "Less calibrated"}
+                                        </span>
 
                                         <div className="absolute bottom-4 left-6 right-6">
-                                            <span className="font-mono text-xs text-sky-300 font-bold uppercase tracking-widest">{item.state}</span>
-                                            <h3 className="font-editorial text-3xl sm:text-4xl text-white group-hover:text-sky-300 transition-colors mt-0.5">
+                                            <span className="text-sm font-semibold text-sky-200">{item.state}</span>
+                                            <h3 className="font-editorial font-semibold text-4xl text-white leading-none mt-1">
                                                 {item.city}
                                             </h3>
                                         </div>
                                     </div>
 
-                                    {/* Body Specs in Layman Terms */}
-                                    <div className="p-6 sm:p-8 flex flex-col justify-between flex-1">
-                                        <div className="space-y-3.5 text-base text-slate-700 font-sans">
-                                            <div className="flex items-center justify-between border-b border-[#B3D6E6]/70 pb-3">
-                                                <span className="text-slate-500 font-mono text-xs uppercase tracking-wider">Primary Waterway</span>
-                                                <span className="font-bold text-slate-900">{item.river}</span>
+                                    <div className="p-6 sm:p-7 flex flex-col justify-between flex-1">
+                                        <dl className="space-y-3 text-base text-slate-700 font-sans">
+                                            <div className="flex flex-col gap-0.5 border-b border-[#B3D6E6]/70 pb-3">
+                                                <dt className="text-sm text-slate-600">Main waterway</dt>
+                                                <dd className="font-semibold text-slate-900">{item.river}</dd>
                                             </div>
-                                            <div className="flex items-center justify-between border-b border-[#B3D6E6]/70 pb-3">
-                                                <span className="text-slate-500 font-mono text-xs uppercase tracking-wider">Key Focus</span>
-                                                <span className="text-slate-800 font-medium">{item.focus}</span>
+                                            <div className="flex flex-col gap-0.5 border-b border-[#B3D6E6]/70 pb-3">
+                                                <dt className="text-sm text-slate-600">Floods first at</dt>
+                                                <dd className="text-slate-900">{item.focus}</dd>
                                             </div>
-                                            <div className="flex items-center justify-between">
-                                                <span className="text-slate-500 font-mono text-xs uppercase tracking-wider">Elevation Profile</span>
-                                                <span className="text-sky-800 font-mono text-sm font-semibold">{item.elevation}</span>
+                                            <div className="flex flex-col gap-0.5">
+                                                <dt className="text-sm text-slate-600">Ground</dt>
+                                                <dd className="text-slate-900">{item.elevation}</dd>
                                             </div>
-                                        </div>
+                                        </dl>
 
-                                        {/* Card Footer */}
-                                        <div className="mt-7 pt-5 border-t border-[#B3D6E6] flex items-center justify-between">
-                                            <div>
-                                                <span className="text-base font-bold text-slate-900 block">
-                                                    {item.pumps}
-                                                </span>
-                                                <span className="text-xs text-slate-500 block">
-                                                    Drainage Pumps Ready
-                                                </span>
-                                            </div>
-
-                                            <div className="flex items-center gap-1.5 text-base font-bold text-sky-700 group-hover:text-sky-800 transition-colors">
-                                                <span>Open City Map</span>
-                                                <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
-                                            </div>
+                                        <div className="mt-6 pt-5 border-t border-[#B3D6E6] flex flex-wrap items-center justify-between gap-x-4 gap-y-2">
+                                            <span className="text-sm text-slate-700 whitespace-nowrap">
+                                                {wardCount} {wardCount === 1 ? "ward" : "wards"} on the map
+                                            </span>
+                                            <span className="inline-flex items-center gap-1.5 text-base font-bold text-sky-800 whitespace-nowrap">
+                                                Open {item.city}
+                                                <ArrowRight className="w-4 h-4 group-hover:translate-x-0.5 transition-transform" aria-hidden="true" />
+                                            </span>
                                         </div>
                                     </div>
-                                </div>
-                            ))}
+                                </button>
+                                );
+                            })}
                         </div>
                     </section>
 
                     {/* ========================================================================= */}
-                    {/* SECTION 03: CITIZEN IMPACT & TRANSIT SAFETY (4 Pictorial Cards)            */}
+                    {/* What the estimate helps with                                              */}
                     {/* ========================================================================= */}
                     <section id="solutions" className="relative py-20 sm:py-28 w-full flex flex-col gap-10 sm:gap-12">
-                        <div className="flex flex-col lg:flex-row lg:items-end justify-between gap-8 border-b border-[#9DC6DA] pb-8 sm:pb-10">
-                            <div className="max-w-4xl">
-                                <div className="inline-flex items-center gap-2.5 px-3.5 py-1.5 rounded-md bg-sky-100/90 border border-sky-300 text-sky-900 font-mono text-xs font-bold tracking-wider uppercase shadow-xs">
-                                    <ShieldCheck className="w-3.5 h-3.5 text-sky-700" />
-                                    <span>CIVIL PROTECTION &amp; CITIZEN SAFETY // 03</span>
-                                </div>
-                                <h2 className="font-editorial text-4xl sm:text-5xl lg:text-6xl font-normal text-slate-900 mt-4 tracking-tight leading-[1.12]">
-                                    Real Problems Citizens Face — And How We Solve Them
-                                </h2>
-                                <p className="text-slate-700 text-lg sm:text-xl lg:text-2xl mt-4 leading-relaxed font-sans font-light">
-                                    Monsoon deluges shouldn't cause flooded vehicles, stranded commuters, or waterlogged neighborhoods. Here is how real-time insights protect daily life.
-                                </p>
-                            </div>
-
-                            <button
-                                onClick={onEnter}
-                                className="flex items-center gap-1.5 text-base font-bold text-sky-800 hover:text-sky-900 transition-colors cursor-pointer shrink-0"
-                            >
-                                <span>Explore All Hotspots</span>
-                                <ArrowRight className="w-4 h-4" />
-                            </button>
+                        <div className="max-w-3xl border-b border-[#9DC6DA] pb-8 sm:pb-10">
+                            <h2 className="font-editorial text-4xl sm:text-5xl lg:text-6xl font-semibold text-slate-900 tracking-[-0.01em] leading-[1.05]" style={{ textWrap: 'balance' }}>
+                                What the estimate helps with
+                            </h2>
+                            <p className="text-slate-700 text-lg sm:text-xl mt-4 leading-relaxed font-sans" style={{ textWrap: 'pretty' }}>
+                                Four everyday decisions during a heavy monsoon, and what RainDrop can and
+                                cannot tell you about each.
+                            </p>
                         </div>
 
-                        {/* 4 Large Pictorial Impact Cards with Pleasant Gaps */}
-                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 sm:gap-8">
-                            {/* Card 1: Monsoon Bus Splash */}
-                            <div 
-                                onClick={() => { if (onSelectCity) onSelectCity("Kolkata"); else onEnter(); }}
-                                className="group rounded-2xl bg-white/95 border border-[#9DC6DA] hover:border-sky-600 transition-all duration-300 ease-out overflow-hidden flex flex-col cursor-pointer hover:-translate-y-1.5 shadow-sm hover:shadow-xl"
+                        <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-6 sm:gap-7">
+                            <button
+                                type="button"
+                                onClick={onEnter}
+                                className="group text-left rounded-2xl bg-white border border-[#9DC6DA] hover:border-sky-600 transition-[border-color,box-shadow,transform] duration-300 ease-out overflow-hidden flex flex-col cursor-pointer hover:-translate-y-1 shadow-sm hover:shadow-lg"
                             >
-                                <div className="relative h-64 sm:h-72 overflow-hidden bg-slate-900">
+                                <div className="relative h-56 sm:h-64 w-full overflow-hidden bg-slate-900">
                                     <img
-                                        src="/static/images/hero-monsoon-bus-splash.jpg"
-                                        alt="City Bus moving through heavy rainwater"
-                                        className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700 ease-out"
+                                        loading="lazy"
+                                        decoding="async"
+                                        src="/static/images/hero-monsoon-bus-splash.webp"
+                                        alt=""
+                                        width="1600"
+                                        height="1067"
+                                        className="w-full h-full object-cover group-hover:scale-[1.03] transition-transform duration-700 ease-out"
                                     />
-                                    <div className="absolute top-4 left-4 bg-white/95 text-slate-900 text-xs font-bold px-3 py-1 rounded-sm border border-slate-200 shadow-xs">
-                                        Public Transit
-                                    </div>
+                                    <span className="absolute top-4 left-4 rounded-full bg-white/95 px-3 py-1 text-xs font-semibold text-slate-900">
+                                        Commuting
+                                    </span>
                                 </div>
-                                <div className="p-6 sm:p-8 flex flex-col justify-between flex-1">
+                                <div className="p-6 sm:p-7 flex flex-col justify-between flex-1">
                                     <div>
-                                        <h3 className="font-sans font-bold text-slate-900 text-xl group-hover:text-sky-700 transition-colors">
-                                            Keeping Public Buses Moving
+                                        <h3 className="font-sans font-bold text-slate-900 text-xl" style={{ textWrap: 'balance' }}>
+                                            Planning around flooded roads
                                         </h3>
-                                        <p className="text-base text-slate-700 mt-3.5 leading-relaxed font-sans">
-                                            Routes city buses away from submerged lowlands onto dry flyover bypasses before main arterial roads flood.
+                                        <p className="text-base text-slate-700 mt-3 leading-relaxed font-sans" style={{ textWrap: 'pretty' }}>
+                                            See which wards are likely to flood over the next few hours, so commuters and transit crews can avoid the worst stretches. Routes are not planned for you.
                                         </p>
                                     </div>
-                                    <div className="mt-7 flex items-center justify-between text-sm border-t border-[#B3D6E6] pt-4">
-                                        <span className="font-bold text-sky-800">✓ Zero Stranded Commuters</span>
-                                        <span className="text-sky-700 font-bold group-hover:translate-x-1 transition-transform">See Live →</span>
+                                    <div className="mt-6 flex flex-wrap items-center justify-between gap-2 border-t border-[#B3D6E6] pt-4">
+                                        <span className="text-sm text-slate-600">Ward estimates, refreshed hourly</span>
+                                        <span className="inline-flex items-center gap-1.5 text-sm font-bold text-sky-800">
+                                            Compare wards
+                                            <ArrowRight className="w-4 h-4 group-hover:translate-x-0.5 transition-transform" aria-hidden="true" />
+                                        </span>
                                     </div>
                                 </div>
-                            </div>
+                            </button>
 
-                            {/* Card 2: Vehicle Engine Protection */}
-                            <div 
-                                onClick={() => { if (onSelectCity) onSelectCity("Kolkata"); else onEnter(); }}
-                                className="group rounded-2xl bg-white/95 border border-[#9DC6DA] hover:border-amber-600 transition-all duration-300 ease-out overflow-hidden flex flex-col cursor-pointer hover:-translate-y-1.5 shadow-sm hover:shadow-xl"
+                            <button
+                                type="button"
+                                onClick={() => (onCheckRoute ? onCheckRoute("Chennai") : onOpenMap(null, "Chennai"))}
+                                className="group text-left rounded-2xl bg-white border border-[#9DC6DA] hover:border-sky-600 transition-[border-color,box-shadow,transform] duration-300 ease-out overflow-hidden flex flex-col cursor-pointer hover:-translate-y-1 shadow-sm hover:shadow-lg"
                             >
-                                <div className="relative h-64 sm:h-72 overflow-hidden bg-slate-900">
+                                <div className="relative h-56 sm:h-64 w-full overflow-hidden bg-slate-900">
                                     <img
-                                        src="/static/images/pexels-dibakar-roy-2432543-18192646.jpg"
-                                        alt="Car driving through rain street reflection"
-                                        className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700 ease-out"
+                                        loading="lazy"
+                                        decoding="async"
+                                        src="/static/images/pexels-dibakar-roy-2432543-18192646.webp"
+                                        alt=""
+                                        width="1600"
+                                        height="1067"
+                                        className="w-full h-full object-cover group-hover:scale-[1.03] transition-transform duration-700 ease-out"
                                     />
-                                    <div className="absolute top-4 left-4 bg-white/95 text-amber-900 text-xs font-bold px-3 py-1 rounded-sm border border-amber-200 shadow-xs">
-                                        Vehicle Safety
-                                    </div>
+                                    <span className="absolute top-4 left-4 rounded-full bg-white/95 px-3 py-1 text-xs font-semibold text-slate-900">
+                                        Driving
+                                    </span>
                                 </div>
-                                <div className="p-6 sm:p-8 flex flex-col justify-between flex-1">
+                                <div className="p-6 sm:p-7 flex flex-col justify-between flex-1">
                                     <div>
-                                        <h3 className="font-sans font-bold text-slate-900 text-xl group-hover:text-amber-800 transition-colors">
-                                            Preventing Engine Damage
+                                        <h3 className="font-sans font-bold text-slate-900 text-xl" style={{ textWrap: 'balance' }}>
+                                            Before you drive in
                                         </h3>
-                                        <p className="text-base text-slate-700 mt-3.5 leading-relaxed font-sans">
-                                            Flags exact street puddle depths before you drive in, preventing engine water intake and expensive vehicle repairs.
+                                        <p className="text-base text-slate-700 mt-3 leading-relaxed font-sans" style={{ textWrap: 'pretty' }}>
+                                            Enter the depth you can see and get a plain answer for a two-wheeler, a car or a bus. Moving water is more dangerous than any number suggests.
                                         </p>
                                     </div>
-                                    <div className="mt-7 flex items-center justify-between text-sm border-t border-[#B3D6E6] pt-4">
-                                        <span className="font-bold text-amber-800">✓ 100% Engine Safety</span>
-                                        <span className="text-sky-700 font-bold group-hover:translate-x-1 transition-transform">See Live →</span>
+                                    <div className="mt-6 flex flex-wrap items-center justify-between gap-2 border-t border-[#B3D6E6] pt-4">
+                                        <span className="text-sm text-slate-600">Advice per vehicle, not a guarantee</span>
+                                        <span className="inline-flex items-center gap-1.5 text-sm font-bold text-sky-800">
+                                            Check a depth
+                                            <ArrowRight className="w-4 h-4 group-hover:translate-x-0.5 transition-transform" aria-hidden="true" />
+                                        </span>
                                     </div>
                                 </div>
-                            </div>
+                            </button>
 
-                            {/* Card 3: Riverside Community Safety */}
-                            <div 
-                                onClick={() => { if (onSelectCity) onSelectCity("Delhi"); else onEnter(); }}
-                                className="group rounded-2xl bg-white/95 border border-[#9DC6DA] hover:border-teal-600 transition-all duration-300 ease-out overflow-hidden flex flex-col cursor-pointer hover:-translate-y-1.5 shadow-sm hover:shadow-xl"
+                            <button
+                                type="button"
+                                onClick={() => onOpenMap(null, "Delhi")}
+                                className="group text-left rounded-2xl bg-white border border-[#9DC6DA] hover:border-sky-600 transition-[border-color,box-shadow,transform] duration-300 ease-out overflow-hidden flex flex-col cursor-pointer hover:-translate-y-1 shadow-sm hover:shadow-lg"
                             >
-                                <div className="relative h-64 sm:h-72 overflow-hidden bg-slate-900">
+                                <div className="relative h-56 sm:h-64 w-full overflow-hidden bg-slate-900">
                                     <img
-                                        src="/static/images/hero-river-ghats-aerial-hd.jpg"
-                                        alt="Riverside community and riverfront view"
-                                        className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700 ease-out"
+                                        loading="lazy"
+                                        decoding="async"
+                                        src="/static/images/hero-river-ghats-aerial-hd.webp"
+                                        alt=""
+                                        width="1600"
+                                        height="1067"
+                                        className="w-full h-full object-cover group-hover:scale-[1.03] transition-transform duration-700 ease-out"
                                     />
-                                    <div className="absolute top-4 left-4 bg-white/95 text-teal-900 text-xs font-bold px-3 py-1 rounded-sm border border-teal-200 shadow-xs">
-                                        River Safety
-                                    </div>
+                                    <span className="absolute top-4 left-4 rounded-full bg-white/95 px-3 py-1 text-xs font-semibold text-slate-900">
+                                        Near a river
+                                    </span>
                                 </div>
-                                <div className="p-6 sm:p-8 flex flex-col justify-between flex-1">
+                                <div className="p-6 sm:p-7 flex flex-col justify-between flex-1">
                                     <div>
-                                        <h3 className="font-sans font-bold text-slate-900 text-xl group-hover:text-teal-800 transition-colors">
-                                            Protecting Riverside Areas
+                                        <h3 className="font-sans font-bold text-slate-900 text-xl" style={{ textWrap: 'balance' }}>
+                                            Living near a river
                                         </h3>
-                                        <p className="text-base text-slate-700 mt-3.5 leading-relaxed font-sans">
-                                            Continuous river gauges upstream give residents and authorities up to 6 hours of advance notice before river levels peak.
+                                        <p className="text-base text-slate-700 mt-3 leading-relaxed font-sans" style={{ textWrap: 'pretty' }}>
+                                            Shows how close each ward's river is to its danger level. The level is estimated from rainfall, because no river gauge is connected yet.
                                         </p>
                                     </div>
-                                    <div className="mt-7 flex items-center justify-between text-sm border-t border-[#B3D6E6] pt-4">
-                                        <span className="font-bold text-teal-800">✓ 6h Advance Surge Notice</span>
-                                        <span className="text-sky-700 font-bold group-hover:translate-x-1 transition-transform">See Live →</span>
+                                    <div className="mt-6 flex flex-wrap items-center justify-between gap-2 border-t border-[#B3D6E6] pt-4">
+                                        <span className="text-sm text-slate-600">Estimated, not gauged</span>
+                                        <span className="inline-flex items-center gap-1.5 text-sm font-bold text-sky-800">
+                                            Open Delhi
+                                            <ArrowRight className="w-4 h-4 group-hover:translate-x-0.5 transition-transform" aria-hidden="true" />
+                                        </span>
                                     </div>
                                 </div>
-                            </div>
+                            </button>
 
-                            {/* Card 4: Proactive Pump Station Dewatering */}
-                            <div 
-                                onClick={() => { if (onSelectCity) onSelectCity("Chennai"); else onEnter(); }}
-                                className="group rounded-2xl bg-white/95 border border-[#9DC6DA] hover:border-sky-600 transition-all duration-300 ease-out overflow-hidden flex flex-col cursor-pointer hover:-translate-y-1.5 shadow-sm hover:shadow-xl"
+                            <button
+                                type="button"
+                                onClick={() => onOpenMap(null, "Chennai")}
+                                className="group text-left rounded-2xl bg-white border border-[#9DC6DA] hover:border-sky-600 transition-[border-color,box-shadow,transform] duration-300 ease-out overflow-hidden flex flex-col cursor-pointer hover:-translate-y-1 shadow-sm hover:shadow-lg"
                             >
-                                <div className="relative h-64 sm:h-72 overflow-hidden bg-slate-900">
+                                <div className="relative h-56 sm:h-64 w-full overflow-hidden bg-slate-900">
                                     <img
-                                        src="/static/images/pexels-dibakar-roy-2432543-19391751.jpg"
-                                        alt="Drainage canal pumps in action"
-                                        className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700 ease-out"
+                                        loading="lazy"
+                                        decoding="async"
+                                        src="/static/images/pexels-dibakar-roy-2432543-19391751.webp"
+                                        alt=""
+                                        width="1600"
+                                        height="1067"
+                                        className="w-full h-full object-cover group-hover:scale-[1.03] transition-transform duration-700 ease-out"
                                     />
-                                    <div className="absolute top-4 left-4 bg-white/95 text-sky-900 text-xs font-bold px-3 py-1 rounded-sm border border-sky-200 shadow-xs">
-                                        Pump Activation
-                                    </div>
+                                    <span className="absolute top-4 left-4 rounded-full bg-white/95 px-3 py-1 text-xs font-semibold text-slate-900">
+                                        Control rooms
+                                    </span>
                                 </div>
-                                <div className="p-6 sm:p-8 flex flex-col justify-between flex-1">
+                                <div className="p-6 sm:p-7 flex flex-col justify-between flex-1">
                                     <div>
-                                        <h3 className="font-sans font-bold text-slate-900 text-xl group-hover:text-sky-700 transition-colors">
-                                            Proactive Pump Activation
+                                        <h3 className="font-sans font-bold text-slate-900 text-xl" style={{ textWrap: 'balance' }}>
+                                            Deciding where to send pumps
                                         </h3>
-                                        <p className="text-base text-slate-700 mt-3.5 leading-relaxed font-sans">
-                                            Alerts municipal drainage teams where stormwater will pool so heavy pumps start draining sumps well before water overflows.
+                                        <p className="text-base text-slate-700 mt-3 leading-relaxed font-sans" style={{ textWrap: 'pretty' }}>
+                                            Operators sign in to see which sectors are likely to pond first. Pump running status is not connected, so availability is confirmed with the ward office.
                                         </p>
                                     </div>
-                                    <div className="mt-7 flex items-center justify-between text-sm border-t border-[#B3D6E6] pt-4">
-                                        <span className="font-bold text-sky-800">✓ Automated Sump Clearing</span>
-                                        <span className="text-sky-700 font-bold group-hover:translate-x-1 transition-transform">See Live →</span>
+                                    <div className="mt-6 flex flex-wrap items-center justify-between gap-2 border-t border-[#B3D6E6] pt-4">
+                                        <span className="text-sm text-slate-600">Operator sign-in required</span>
+                                        <span className="inline-flex items-center gap-1.5 text-sm font-bold text-sky-800">
+                                            Open the control room
+                                            <ArrowRight className="w-4 h-4 group-hover:translate-x-0.5 transition-transform" aria-hidden="true" />
+                                        </span>
                                     </div>
                                 </div>
-                            </div>
+                            </button>
+
                         </div>
                     </section>
                 </div>

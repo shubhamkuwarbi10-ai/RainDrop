@@ -27,7 +27,9 @@ def build_frontend():
     if src_dir.exists() and (src_dir / "App.jsx").exists():
         module_order = [
             src_dir / "icons" / "IconSvgRegistry.js",
+            src_dir / "lib" / "riskScale.js",
             src_dir / "data" / "mockData.js",
+            src_dir / "components" / "auth" / "OperatorAuth.jsx",
             src_dir / "components" / "common" / "CommonUI.jsx",
             src_dir / "components" / "dashboard" / "CityWardOverview.jsx",
             src_dir / "components" / "dashboard" / "TopNavbar.jsx",
@@ -38,9 +40,16 @@ def build_frontend():
         ]
         
         bundle_parts = []
+        missing_mods = []
         for mod in module_order:
-            if mod.exists():
+            if not mod.exists():
+                missing_mods.append(str(mod.relative_to(root)))
+            else:
                 bundle_parts.append(f"// --- MODULE: {mod.relative_to(root).as_posix()} ---\n" + mod.read_text(encoding="utf-8"))
+        
+        if missing_mods:
+            print(f"Error: Missing required frontend modules:\n  - " + "\n  - ".join(missing_mods))
+            sys.exit(1)
         
         full_jsx = "\n\n".join(bundle_parts)
         jsx_file.write_text(full_jsx, encoding="utf-8")

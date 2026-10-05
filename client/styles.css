@@ -2,14 +2,23 @@
 @tailwind components;
 @tailwind utilities;
 
-.font-bebas {
-    font-family: 'Bebas Neue', sans-serif;
-    letter-spacing: 0.03em;
+/* Display face: Cormorant Garamond, self-hosted.
+   Served from this origin, so it loads under the CSP (font-src 'self'), keeps
+   working when a control room is cut off from Google's CDN, and costs one
+   37 KB request. Weights 600-700 come from a single variable file. */
+@font-face {
+    font-family: 'Cormorant Garamond';
+    font-style: normal;
+    font-weight: 600 700;
+    font-display: swap;
+    src: url('/static/fonts/cormorant-garamond-latin.woff2') format('woff2');
+    unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
 }
 
 .font-editorial {
-    font-family: 'Cormorant Garamond', Georgia, serif;
+    font-family: 'Cormorant Garamond', Georgia, 'Times New Roman', serif;
     font-weight: 600;
+    font-optical-sizing: auto;
 }
 
 .text-glow {
@@ -449,58 +458,7 @@ code, .font-mono { font-family: 'JetBrains Mono', ui-monospace, monospace; }
     display: none !important;
 }
 
-/* ============================================================
-   Editorial Hero Page Design System (Playfair Display + Inter)
-   ============================================================ */
-.hero-title {
-    font-family: "Playfair Display", Georgia, serif !important;
-    font-size: 68px !important;
-    line-height: 0.98 !important;
-    font-weight: 600 !important;
-    letter-spacing: -0.03em !important;
-}
 
-.hero-title em {
-    font-style: italic !important;
-    font-weight: 500 !important;
-    color: #1D68BD !important;
-}
-
-.section-title {
-    font-family: "Playfair Display", Georgia, serif !important;
-    font-size: 42px !important;
-    line-height: 1.15 !important;
-    font-weight: 600 !important;
-    letter-spacing: -0.02em !important;
-}
-
-.card-title-inter {
-    font-family: "Inter", sans-serif !important;
-    font-size: 17px !important;
-    font-weight: 600 !important;
-    line-height: 1.35 !important;
-}
-
-.body-inter {
-    font-family: "Inter", sans-serif !important;
-    font-size: 16px !important;
-    line-height: 1.6 !important;
-}
-
-.nav-inter {
-    font-family: "Inter", sans-serif !important;
-    font-size: 14px !important;
-    font-weight: 500 !important;
-}
-
-.metric-serif {
-    font-family: "Playfair Display", Georgia, serif !important;
-    font-size: 32px !important;
-    font-weight: 600 !important;
-    line-height: 1.1 !important;
-    letter-spacing: -0.01em !important;
-    white-space: nowrap !important;
-}
 
 .badge-label-inter {
     font-family: "Inter", sans-serif !important;
@@ -534,3 +492,104 @@ code, .font-mono { font-family: 'JetBrains Mono', ui-monospace, monospace; }
 
 
 
+
+
+/* ============================================================
+   Accessibility baseline
+   ============================================================ */
+
+/*
+  Visible keyboard focus. The app had zero focus-visible styles on buttons, so
+  a keyboard or switch user had no idea where they were. :focus-visible only
+  paints for keyboard navigation, so mouse users see nothing new.
+*/
+:focus-visible {
+    outline: 3px solid #1d4ed8;
+    outline-offset: 2px;
+    border-radius: 4px;
+}
+
+/* Against a dark background the blue ring disappears; add a white halo. */
+.bg-slate-900 :focus-visible,
+.bg-slate-950 :focus-visible,
+[data-dark] :focus-visible {
+    outline-color: #ffffff;
+    box-shadow: 0 0 0 5px rgba(29, 78, 216, 0.65);
+}
+
+/*
+  Minimum readable size. 143 places used 9-11px text. 12px is the floor, and
+  secondary text uses slate-600 (4.54:1 on white) rather than slate-400
+  (2.56:1), which failed WCAG AA at any size.
+*/
+.text-\[9px\],
+.text-\[9\.5px\],
+.text-\[10px\],
+.text-\[11px\],
+.text-\[11\.5px\] {
+    font-size: 12px !important;
+}
+
+.text-slate-400 {
+    color: #475569 !important; /* slate-600 */
+}
+
+/* Tap targets. 24px controls are below the 44px minimum for touch. */
+button,
+[role="button"],
+a.btn {
+    min-height: 44px;
+}
+
+/* Inline text links and chips inside dense toolbars are exempt. */
+button.inline-link,
+button.chip {
+    min-height: 0;
+}
+
+/*
+  Respect a request for reduced motion. The page had pulsing dots, pinging
+  rings, sliding toasts, a looping background video and a carousel, none of
+  which were gated.
+*/
+@media (prefers-reduced-motion: reduce) {
+    *,
+    *::before,
+    *::after {
+        animation-duration: 0.01ms !important;
+        animation-iteration-count: 1 !important;
+        transition-duration: 0.01ms !important;
+        scroll-behavior: auto !important;
+    }
+}
+
+/* Screen-reader-only text, for table captions and icon-button labels. */
+.sr-only {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    padding: 0;
+    margin: -1px;
+    overflow: hidden;
+    clip: rect(0, 0, 0, 0);
+    white-space: nowrap;
+    border-width: 0;
+}
+
+/* Skip link, revealed on focus. */
+.skip-link {
+    position: absolute;
+    left: -9999px;
+    top: 0;
+    z-index: 200;
+    padding: 12px 20px;
+    background: #ffffff;
+    color: #0f172a;
+    font-weight: 700;
+    border: 2px solid #1d4ed8;
+    border-radius: 0 0 8px 0;
+}
+
+.skip-link:focus {
+    left: 0;
+}

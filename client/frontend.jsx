@@ -5,6 +5,23 @@
 const { useState, useEffect, useMemo, useRef, useCallback } = React;
 
 const ICON_SVGS = {
+    // Drawn from lucide-static 0.460.0 (ISC). These names were declared below
+    // but had no drawing, so they rendered as a placeholder circle.
+    AlertOctagon: <g><path d="M12 16h.01" /> <path d="M12 8v4" /> <path d="M15.312 2a2 2 0 0 1 1.414.586l4.688 4.688A2 2 0 0 1 22 8.688v6.624a2 2 0 0 1-.586 1.414l-4.688 4.688a2 2 0 0 1-1.414.586H8.688a2 2 0 0 1-1.414-.586l-4.688-4.688A2 2 0 0 1 2 15.312V8.688a2 2 0 0 1 .586-1.414l4.688-4.688A2 2 0 0 1 8.688 2z" /></g>,
+    Bell: <g><path d="M6 8a6 6 0 0 1 12 0c0 7 3 9 3 9H3s3-2 3-9" /> <path d="M10.3 21a1.94 1.94 0 0 0 3.4 0" /></g>,
+    Car: <g><path d="M19 17h2c.6 0 1-.4 1-1v-3c0-.9-.7-1.7-1.5-1.9C18.7 10.6 16 10 16 10s-1.3-1.4-2.2-2.3c-.5-.4-1.1-.7-1.8-.7H5c-.6 0-1.1.4-1.4.9l-1.4 2.9A3.7 3.7 0 0 0 2 12v4c0 .6.4 1 1 1h2" /> <circle cx="7" cy="17" r="2" /> <path d="M9 17h6" /> <circle cx="17" cy="17" r="2" /></g>,
+    CloudRain: <g><path d="M4 14.899A7 7 0 1 1 15.71 8h1.79a4.5 4.5 0 0 1 2.5 8.242" /> <path d="M16 14v6" /> <path d="M8 14v6" /> <path d="M12 16v6" /></g>,
+    Copy: <g><rect width="14" height="14" x="8" y="8" rx="2" ry="2" /> <path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2" /></g>,
+    Crosshair: <g><circle cx="12" cy="12" r="10" /> <line x1="22" x2="18" y1="12" y2="12" /> <line x1="6" x2="2" y1="12" y2="12" /> <line x1="12" x2="12" y1="6" y2="2" /> <line x1="12" x2="12" y1="22" y2="18" /></g>,
+    Minus: <g><path d="M5 12h14" /></g>,
+    Plus: <g><path d="M5 12h14" /> <path d="M12 5v14" /></g>,
+    Power: <g><path d="M12 2v10" /> <path d="M18.4 6.6a9 9 0 1 1-12.77.04" /></g>,
+    Printer: <g><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2" /> <path d="M6 9V3a1 1 0 0 1 1-1h10a1 1 0 0 1 1 1v6" /> <rect x="6" y="14" width="12" height="8" rx="1" /></g>,
+    Send: <g><path d="M14.536 21.686a.5.5 0 0 0 .937-.024l6.5-19a.496.496 0 0 0-.635-.635l-19 6.5a.5.5 0 0 0-.024.937l7.93 3.18a2 2 0 0 1 1.112 1.11z" /> <path d="m21.854 2.147-10.94 10.939" /></g>,
+    Server: <g><rect width="20" height="8" x="2" y="2" rx="2" ry="2" /> <rect width="20" height="8" x="2" y="14" rx="2" ry="2" /> <line x1="6" x2="6.01" y1="6" y2="6" /> <line x1="6" x2="6.01" y1="18" y2="18" /></g>,
+    Volume2: <g><path d="M11 4.702a.705.705 0 0 0-1.203-.498L6.413 7.587A1.4 1.4 0 0 1 5.416 8H3a1 1 0 0 0-1 1v6a1 1 0 0 0 1 1h2.416a1.4 1.4 0 0 1 .997.413l3.383 3.384A.705.705 0 0 0 11 19.298z" /> <path d="M16 9a5 5 0 0 1 0 6" /> <path d="M19.364 18.364a9 9 0 0 0 0-12.728" /></g>,
+    VolumeX: <g><path d="M11 4.702a.705.705 0 0 0-1.203-.498L6.413 7.587A1.4 1.4 0 0 1 5.416 8H3a1 1 0 0 0-1 1v6a1 1 0 0 0 1 1h2.416a1.4 1.4 0 0 1 .997.413l3.383 3.384A.705.705 0 0 0 11 19.298z" /> <line x1="22" x2="16" y1="9" y2="15" /> <line x1="16" x2="22" y1="9" y2="15" /></g>,
+    Zap: <g><path d="M4 14a1 1 0 0 1-.78-1.63l9.9-10.2a.5.5 0 0 1 .86.46l-1.92 6.02A1 1 0 0 0 13 10h7a1 1 0 0 1 .78 1.63l-9.9 10.2a.5.5 0 0 1-.86-.46l1.92-6.02A1 1 0 0 0 11 14z" /></g>,
     ArrowRight: <g><path d="M5 12h14"/><path d="m12 5 7 7-7 7"/></g>,
     ArrowLeft: <g><path d="m12 19-7-7 7-7"/><path d="M19 12H5"/></g>,
     Play: <polygon points="6 3 20 12 6 21 6 3" fill="currentColor" stroke="none" />,
@@ -141,6 +158,232 @@ const ChevronRight = getIcon("ChevronRight");
 // ============================================================================
 // Static Configuration & Data
 // ============================================================================
+
+
+// --- MODULE: client/src/lib/riskScale.js ---
+/* @jsx React.createElement */
+// ============================================================================
+// One risk scale, one place.
+//
+// Before this file the 15-30 cm band was blue on the map and amber in the
+// popup, "Critical" shared a colour with "High", and flood polygons were
+// distinguished by colour alone. There were 73 distinct hex colours and four
+// greys across the app.
+//
+// The scale below is ordered and monotonic in lightness, so it survives
+// greyscale printing and the common colour-vision deficiencies. Every band also
+// carries a short text label and a hatch pattern id, because colour must never
+// be the only carrier of meaning (WCAG 1.4.1).
+// ============================================================================
+
+const RISK_BANDS = [
+    {
+        key: "dry",
+        maxDepthCm: 5,
+        label: "Dry",
+        plain: "Road is clear",
+        depthText: "under 5 cm",
+        hex: "#6b7280",          // grey-500
+        fill: "#9ca3af",
+        text: "#374151",
+        bg: "#f3f4f6",
+        border: "#d1d5db",
+        hatch: "none",
+        order: 0,
+    },
+    {
+        key: "shallow",
+        maxDepthCm: 15,
+        label: "Shallow",
+        plain: "Ankle deep",
+        depthText: "5 to 15 cm",
+        hex: "#eab308",          // yellow-500
+        fill: "#fde047",
+        text: "#854d0e",
+        bg: "#fefce8",
+        border: "#fde047",
+        hatch: "dots",
+        order: 1,
+    },
+    {
+        key: "moderate",
+        maxDepthCm: 30,
+        label: "Moderate",
+        plain: "Ankle to shin deep",
+        depthText: "15 to 30 cm",
+        hex: "#f97316",          // orange-500
+        fill: "#fb923c",
+        text: "#9a3412",
+        bg: "#fff7ed",
+        border: "#fdba74",
+        hatch: "diagonal",
+        order: 2,
+    },
+    {
+        key: "deep",
+        maxDepthCm: 60,
+        label: "Deep",
+        plain: "Knee to waist deep",
+        depthText: "30 to 60 cm",
+        hex: "#dc2626",          // red-600
+        fill: "#ef4444",
+        text: "#991b1b",
+        bg: "#fef2f2",
+        border: "#fca5a5",
+        hatch: "crosshatch",
+        order: 3,
+    },
+    {
+        key: "severe",
+        maxDepthCm: Infinity,
+        label: "Severe",
+        plain: "Waist deep or more",
+        depthText: "over 60 cm",
+        hex: "#7f1d1d",          // red-900
+        fill: "#991b1b",
+        text: "#7f1d1d",
+        bg: "#fef2f2",
+        border: "#991b1b",
+        hatch: "solid",
+        order: 4,
+    },
+];
+
+/** Band for a water depth in centimetres. */
+function bandForDepth(depthCm) {
+    const depth = Number.isFinite(depthCm) ? Math.max(0, depthCm) : 0;
+    return RISK_BANDS.find((band) => depth < band.maxDepthCm) || RISK_BANDS[RISK_BANDS.length - 1];
+}
+
+// Backend risk names map onto the same ordered scale, so a risk level and a
+// depth never disagree about which colour to use.
+const RISK_LEVEL_TO_BAND = {
+    NONE: "dry",
+    LOW: "shallow",
+    MODERATE: "moderate",
+    HIGH: "deep",
+    SEVERE: "severe",
+    UNKNOWN: "dry",
+};
+
+function bandForRiskLevel(riskLevel) {
+    const key = RISK_LEVEL_TO_BAND[String(riskLevel || "").toUpperCase().trim()] || "dry";
+    return RISK_BANDS.find((band) => band.key === key) || RISK_BANDS[0];
+}
+
+/** Tailwind classes for a badge, derived from one band so they cannot drift. */
+function bandBadgeClass(band) {
+    return {
+        dry: "text-slate-700 bg-slate-100 border-slate-300",
+        shallow: "text-yellow-900 bg-yellow-50 border-yellow-400",
+        moderate: "text-orange-900 bg-orange-50 border-orange-400",
+        deep: "text-red-900 bg-red-50 border-red-400",
+        severe: "text-red-50 bg-red-900 border-red-900",
+    }[band.key];
+}
+
+// ============================================================================
+// Data provenance
+// ============================================================================
+
+const DATA_STATUS_META = {
+    live: {
+        label: "Live",
+        plain: "Updated from the weather provider just now.",
+        dot: "bg-emerald-600",
+        chip: "text-emerald-900 bg-emerald-50 border-emerald-300",
+    },
+    heuristic: {
+        label: "Estimate",
+        plain: "Calculated from a formula, not a validated model.",
+        dot: "bg-sky-600",
+        chip: "text-sky-900 bg-sky-50 border-sky-300",
+    },
+    demo: {
+        label: "Demo",
+        plain: "Sample content. Not derived from live data.",
+        dot: "bg-violet-600",
+        chip: "text-violet-900 bg-violet-50 border-violet-300",
+    },
+    unavailable: {
+        label: "No data",
+        plain: "No trustworthy value is available.",
+        dot: "bg-slate-500",
+        chip: "text-slate-700 bg-slate-100 border-slate-300",
+    },
+    stale: {
+        label: "Stale",
+        plain: "The last successful update is more than 10 minutes old.",
+        dot: "bg-amber-600",
+        chip: "text-amber-900 bg-amber-50 border-amber-400",
+    },
+    offline: {
+        label: "Offline",
+        plain: "The server cannot be reached. Figures on screen are not current.",
+        dot: "bg-red-700",
+        chip: "text-red-50 bg-red-700 border-red-800",
+    },
+};
+
+function statusMeta(status) {
+    return DATA_STATUS_META[String(status || "unavailable").toLowerCase()] || DATA_STATUS_META.unavailable;
+}
+
+/**
+ * Feed state from the fetch result, not from the wall clock.
+ *
+ * The old badge showed a ticking clock and stayed green whether or not data
+ * had arrived, so an operator could dispatch pumps from stale or mock numbers
+ * and never know.
+ */
+const STALE_AFTER_MS = 10 * 60 * 1000;
+
+function feedState({ lastSuccessAt, lastErrorAt, serverStatus }) {
+    if (!lastSuccessAt) return "offline";
+    const age = Date.now() - lastSuccessAt;
+    if (lastErrorAt && lastErrorAt > lastSuccessAt && age > STALE_AFTER_MS) return "offline";
+    if (age > STALE_AFTER_MS) return "stale";
+    if (lastErrorAt && lastErrorAt > lastSuccessAt) return "stale";
+    return serverStatus || "live";
+}
+
+/** "14:52" for a timestamp, or a dash when there is nothing to show. */
+function clockLabel(timestamp) {
+    if (!timestamp) return "--:--";
+    const date = typeof timestamp === "number" ? new Date(timestamp) : new Date(String(timestamp));
+    if (Number.isNaN(date.getTime())) return "--:--";
+    return date.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
+}
+
+/** "4 min ago", for showing the age of the data rather than the current time. */
+function ageLabel(timestamp) {
+    if (!timestamp) return "never";
+    const seconds = Math.max(0, Math.round((Date.now() - new Date(timestamp).getTime()) / 1000));
+    if (seconds < 60) return `${seconds}s ago`;
+    const minutes = Math.round(seconds / 60);
+    if (minutes < 60) return `${minutes} min ago`;
+    return `${Math.round(minutes / 60)} h ago`;
+}
+
+// ============================================================================
+// Safety
+// ============================================================================
+
+/**
+ * Escape a value for interpolation into a Leaflet popup.
+ *
+ * Popups are built as HTML strings. Today the names come from a local table, so
+ * nothing is injectable; the moment they come from the API or a citizen report,
+ * an unescaped name is stored XSS. Escaping now costs nothing.
+ */
+function escapeHtml(value) {
+    return String(value === null || value === undefined ? "" : value)
+        .replace(/&/g, "&amp;")
+        .replace(/</g, "&lt;")
+        .replace(/>/g, "&gt;")
+        .replace(/"/g, "&quot;")
+        .replace(/'/g, "&#39;");
+}
 
 
 // --- MODULE: client/src/data/mockData.js ---
@@ -976,28 +1219,363 @@ const CITY_PROFILES = {
 };
 
 const CITY_HERO_BACKDROPS = {
-    "Chennai": "/static/Landing Page images/zoshua-colah-1fradOPdjBM-unsplash.jpg",
-    "Mumbai": "/static/Landing Page images/hero-mumbai-harbor-boats.jpg",
-    "Delhi": "/static/Landing Page images/pexels-dibakar-roy-2432543-18192646.jpg",
-    "Bengaluru": "/static/Landing Page images/pexels-wanderinglenses-13670217.jpg",
-    "Kolkata": "/static/Landing Page images/hero-kolkata-taxi-reflection.jpg",
-    "Hyderabad": "/static/Landing Page images/hero-river-ghats-aerial-hd.jpg",
+    "Chennai": "/static/images/zoshua-colah-1fradOPdjBM-unsplash.webp",
+    "Mumbai": "/static/images/hero-mumbai-harbor-boats.webp",
+    "Delhi": "/static/images/pexels-dibakar-roy-2432543-18192646.webp",
+    "Bengaluru": "/static/images/pexels-wanderinglenses-13670217.webp",
+    "Kolkata": "/static/images/hero-kolkata-taxi-reflection.webp",
+    "Hyderabad": "/static/images/hero-river-ghats-aerial-hd.webp",
 };
 
 
-// --- MODULE: client/src/components/common/CommonUI.jsx ---
-function ToastStack({ toasts }) {
+// --- MODULE: client/src/components/auth/OperatorAuth.jsx ---
+/* @jsx React.createElement */
+// ============================================================================
+// Operator sign-in.
+//
+// Citizens never see this. It gates the control-room actions that commit
+// municipal resources: dispatching pumps, diverting traffic, running pipelines.
+// ============================================================================
+
+/** Focus trap + Escape handling, shared by every modal in the app. */
+function useDialogBehaviour(open, onClose) {
+    const dialogRef = useRef(null);
+
+    useEffect(() => {
+        if (!open) return undefined;
+
+        const previouslyFocused = document.activeElement;
+        const node = dialogRef.current;
+        const selector = 'a[href], button:not([disabled]), input:not([disabled]), select, textarea, [tabindex]:not([tabindex="-1"])';
+
+        const focusables = () => Array.from(node ? node.querySelectorAll(selector) : []);
+        const first = focusables()[0];
+        if (first) first.focus();
+
+        const onKeyDown = (event) => {
+            if (event.key === "Escape") {
+                event.stopPropagation();
+                onClose();
+                return;
+            }
+            if (event.key !== "Tab") return;
+            const items = focusables();
+            if (items.length === 0) return;
+            const firstItem = items[0];
+            const lastItem = items[items.length - 1];
+            if (event.shiftKey && document.activeElement === firstItem) {
+                event.preventDefault();
+                lastItem.focus();
+            } else if (!event.shiftKey && document.activeElement === lastItem) {
+                event.preventDefault();
+                firstItem.focus();
+            }
+        };
+
+        document.addEventListener("keydown", onKeyDown, true);
+        return () => {
+            document.removeEventListener("keydown", onKeyDown, true);
+            if (previouslyFocused && previouslyFocused.focus) previouslyFocused.focus();
+        };
+    }, [open, onClose]);
+
+    return dialogRef;
+}
+
+/** Accessible modal shell: role, label, backdrop, Escape, focus return. */
+function Dialog({ open, onClose, title, description, children, labelledById }) {
+    const dialogRef = useDialogBehaviour(open, onClose);
+    if (!open) return null;
+
+    const titleId = labelledById || `dialog-title-${title.replace(/\W+/g, "-").toLowerCase()}`;
+    const descriptionId = `${titleId}-description`;
+
     return (
-        <div className="fixed bottom-5 right-5 z-[80] flex flex-col gap-2 items-end pointer-events-none">
+        <div className="fixed inset-0 z-[950] flex items-center justify-center p-4">
+            <div
+                className="absolute inset-0 bg-slate-900/60 backdrop-blur-sm"
+                onClick={onClose}
+                aria-hidden="true"
+            />
+            <div
+                ref={dialogRef}
+                role="dialog"
+                aria-modal="true"
+                aria-labelledby={titleId}
+                aria-describedby={description ? descriptionId : undefined}
+                className="relative w-full max-w-md rounded-2xl bg-white shadow-2xl border border-slate-200 p-6"
+            >
+                <h2 id={titleId} className="text-lg font-bold text-slate-900">{title}</h2>
+                {description && (
+                    <p id={descriptionId} className="mt-1.5 text-sm text-slate-600 leading-relaxed">
+                        {description}
+                    </p>
+                )}
+                <div className="mt-4">{children}</div>
+            </div>
+        </div>
+    );
+}
+
+/**
+ * Confirmation step for anything that commits resources.
+ *
+ * "Send pump" and "Divert traffic" used to fire on a single tap with no undo.
+ */
+function ConfirmDialog({ request, onCancel, onConfirm }) {
+    return (
+        <Dialog
+            open={Boolean(request)}
+            onClose={onCancel}
+            title={request ? request.title : ""}
+            description={request ? request.description : ""}
+        >
+            {request && (
+                <div>
+                    <dl className="rounded-xl bg-slate-50 border border-slate-200 p-3 text-sm space-y-1.5">
+                        {(request.details || []).map((row) => (
+                            <div key={row.label} className="flex justify-between gap-4">
+                                <dt className="text-slate-600">{row.label}</dt>
+                                <dd className="font-semibold text-slate-900 text-right">{row.value}</dd>
+                            </div>
+                        ))}
+                    </dl>
+                    <p className="mt-3 text-sm text-amber-900 bg-amber-50 border border-amber-300 rounded-xl p-3">
+                        This action cannot be undone from this screen.
+                    </p>
+                    <div className="mt-5 flex items-center justify-end gap-3">
+                        <button
+                            type="button"
+                            onClick={onCancel}
+                            className="min-h-[44px] px-4 rounded-xl border border-slate-300 text-sm font-semibold text-slate-700 hover:bg-slate-50 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-slate-900"
+                        >
+                            Cancel
+                        </button>
+                        <button
+                            type="button"
+                            onClick={onConfirm}
+                            className="min-h-[44px] px-5 rounded-xl bg-red-700 hover:bg-red-800 text-white text-sm font-bold focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-red-900"
+                        >
+                            {request.confirmLabel || "Confirm"}
+                        </button>
+                    </div>
+                </div>
+            )}
+        </Dialog>
+    );
+}
+
+/** Sign-in form. Credentials go straight to the API; nothing is stored here. */
+function OperatorLoginDialog({ open, onClose, onSignedIn }) {
+    const [username, setUsername] = useState("");
+    const [password, setPassword] = useState("");
+    const [error, setError] = useState(null);
+    const [busy, setBusy] = useState(false);
+
+    const submit = async (event) => {
+        event.preventDefault();
+        setBusy(true);
+        setError(null);
+        try {
+            const response = await fetch("/api/auth/login", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                credentials: "same-origin",
+                body: JSON.stringify({ username, password }),
+            });
+            const body = await response.json().catch(() => ({}));
+            if (!response.ok) {
+                setError(body.detail || "Sign-in failed. Check your credentials.");
+                return;
+            }
+            setUsername("");
+            setPassword("");
+            onSignedIn(body.operator);
+            onClose();
+        } catch (_) {
+            setError("Could not reach the server. Check your connection and try again.");
+        } finally {
+            setBusy(false);
+        }
+    };
+
+    return (
+        <Dialog
+            open={open}
+            onClose={onClose}
+            title="Control room sign-in"
+            description="For municipal operators. Citizens do not need an account to check flood conditions."
+        >
+            <form onSubmit={submit} className="space-y-4">
+                <div>
+                    <label htmlFor="operator-username" className="block text-sm font-semibold text-slate-700">
+                        Username
+                    </label>
+                    <input
+                        id="operator-username"
+                        name="username"
+                        type="text"
+                        autoComplete="username"
+                        required
+                        value={username}
+                        onChange={(event) => setUsername(event.target.value)}
+                        className="mt-1 w-full min-h-[44px] rounded-xl border border-slate-300 px-3 text-base text-slate-900 focus-visible:outline-2 focus-visible:outline-offset-1 focus-visible:outline-blue-700"
+                    />
+                </div>
+                <div>
+                    <label htmlFor="operator-password" className="block text-sm font-semibold text-slate-700">
+                        Password
+                    </label>
+                    <input
+                        id="operator-password"
+                        name="password"
+                        type="password"
+                        autoComplete="current-password"
+                        required
+                        value={password}
+                        onChange={(event) => setPassword(event.target.value)}
+                        className="mt-1 w-full min-h-[44px] rounded-xl border border-slate-300 px-3 text-base text-slate-900 focus-visible:outline-2 focus-visible:outline-offset-1 focus-visible:outline-blue-700"
+                    />
+                </div>
+
+                {error && (
+                    <p role="alert" className="text-sm font-medium text-red-800 bg-red-50 border border-red-300 rounded-xl p-3">
+                        {error}
+                    </p>
+                )}
+
+                <div className="flex items-center justify-end gap-3 pt-1">
+                    <button
+                        type="button"
+                        onClick={onClose}
+                        className="min-h-[44px] px-4 rounded-xl border border-slate-300 text-sm font-semibold text-slate-700 hover:bg-slate-50 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-slate-900"
+                    >
+                        Cancel
+                    </button>
+                    <button
+                        type="submit"
+                        disabled={busy}
+                        className="min-h-[44px] px-5 rounded-xl bg-blue-700 hover:bg-blue-800 disabled:opacity-60 text-white text-sm font-bold focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue-900"
+                    >
+                        {busy ? "Signing in…" : "Sign in"}
+                    </button>
+                </div>
+            </form>
+        </Dialog>
+    );
+}
+
+/** Header control: shows who is signed in, or offers sign-in. */
+function OperatorBadge({ operator, onSignIn, onSignOut }) {
+    if (!operator) {
+        return (
+            <button
+                type="button"
+                onClick={onSignIn}
+                className="min-h-[40px] px-3.5 rounded-full border border-slate-300 bg-white text-xs font-semibold text-slate-700 hover:bg-slate-50 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-slate-900"
+            >
+                Operator sign-in
+            </button>
+        );
+    }
+    return (
+        <div className="flex items-center gap-2">
+            <span className="px-3 py-1.5 rounded-full bg-slate-100 border border-slate-300 text-xs font-semibold text-slate-800">
+                {operator.display_name}
+            </span>
+            <button
+                type="button"
+                onClick={onSignOut}
+                className="min-h-[40px] px-3 rounded-full border border-slate-300 bg-white text-xs font-semibold text-slate-700 hover:bg-slate-50 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-slate-900"
+            >
+                Sign out
+            </button>
+        </div>
+    );
+}
+
+/** Session state, restored on load so a refresh does not sign you out. */
+function useOperatorSession() {
+    const [operator, setOperator] = useState(null);
+    const [checked, setChecked] = useState(false);
+
+    useEffect(() => {
+        let cancelled = false;
+        fetch("/api/auth/status", { credentials: "same-origin" })
+            .then((response) => (response.ok ? response.json() : null))
+            .then((body) => {
+                if (cancelled || !body) return;
+                setOperator(body.operator || null);
+            })
+            .catch(() => {})
+            .finally(() => {
+                if (!cancelled) setChecked(true);
+            });
+        return () => { cancelled = true; };
+    }, []);
+
+    const signOut = useCallback(async () => {
+        try {
+            await fetch("/api/auth/logout", { method: "POST", credentials: "same-origin" });
+        } catch (_) {
+            // Clearing local state is still correct if the request failed.
+        }
+        setOperator(null);
+    }, []);
+
+    return { operator, setOperator, signOut, checked };
+}
+
+
+// --- MODULE: client/src/components/common/CommonUI.jsx ---
+// Toasts are announced to screen readers. Errors use role="alert" (assertive),
+// everything else role="status" (polite), so a failed dispatch interrupts and a
+// routine confirmation does not.
+function ToastStack({ toasts }) {
+    const toneClass = {
+        error: "border-red-300 bg-red-50 text-red-900",
+        success: "border-emerald-300 bg-emerald-50 text-emerald-900",
+        info: "border-slate-300 bg-white text-slate-900",
+    };
+    return (
+        <div className="fixed bottom-5 right-5 z-[960] flex flex-col gap-2 items-end max-w-[min(92vw,26rem)]">
             {toasts.map((t) => (
                 <div
                     key={t.id}
-                    className="flex items-center gap-2.5 rounded-xl border border-indigo-500/30 bg-[#161a29]/95 backdrop-blur-md px-4 py-2.5 shadow-2xl shadow-indigo-950/60 text-slate-100 animate-in fade-in slide-in-from-bottom-3 duration-200"
+                    role={t.tone === "error" ? "alert" : "status"}
+                    aria-live={t.tone === "error" ? "assertive" : "polite"}
+                    className={`flex items-start gap-2.5 rounded-xl border px-4 py-3 shadow-lg animate-in fade-in slide-in-from-bottom-3 duration-200 ${toneClass[t.tone] || toneClass.info}`}
                 >
-                    <div className="w-2 h-2 rounded-full bg-indigo-400 animate-ping shrink-0" />
-                    <span className="text-xs font-medium">{t.msg}</span>
+                    <span className="text-sm font-medium leading-snug">{t.msg}</span>
                 </div>
             ))}
+        </div>
+    );
+}
+
+/**
+ * The one depth legend, driven by the shared risk scale.
+ *
+ * Each band shows its colour, its hatch pattern and its words, so the map is
+ * readable without colour vision and in greyscale.
+ */
+function RiskLegend({ className = "" }) {
+    return (
+        <div className={`rounded-xl border border-slate-300 bg-white/95 p-2.5 ${className}`}>
+            <h3 className="text-xs font-bold text-slate-900 mb-1.5">Water depth on the road</h3>
+            <ul className="space-y-1">
+                {RISK_BANDS.map((band) => (
+                    <li key={band.key} className="flex items-center gap-2 text-xs text-slate-800">
+                        <span
+                            className="w-4 h-4 rounded border border-slate-400 shrink-0"
+                            style={{ backgroundColor: band.fill }}
+                            aria-hidden="true"
+                        />
+                        <span className="font-semibold">{band.label}</span>
+                        <span className="text-slate-600">{band.depthText} · {band.plain}</span>
+                    </li>
+                ))}
+            </ul>
         </div>
     );
 }
@@ -2032,23 +2610,51 @@ function TopNavbar(props) {
 
 
 // --- MODULE: client/src/components/hero/HeroView.jsx ---
-function HeroView({ ward, wardData, onEnter, onSelectCity, onOpenMap, pushToast }) {
-    const [activeRailStep, setActiveRailStep] = useState(0); // 0: DATA, 1: COVERAGE, 2: IMPACT, 3: FUTURE
+/**
+ * Should we download the 46 MB background video?
+ *
+ * Only on a wide screen, over a connection that has not asked us to save data,
+ * for someone who has not asked for reduced motion. Everyone else gets the
+ * 204 KB poster, which carries the same meaning. During the monsoon, on a
+ * phone, on a congested network, this is the difference between a page that
+ * loads and one that does not.
+ */
+function useBackgroundVideo() {
+    const [shouldLoad, setShouldLoad] = useState(false);
+
+    useEffect(() => {
+        const connection = navigator.connection || {};
+        const wantsLessData = connection.saveData === true ||
+            /^(slow-2g|2g|3g)$/.test(connection.effectiveType || "");
+        const wantsLessMotion = window.matchMedia &&
+            window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+        const isWideScreen = window.matchMedia &&
+            window.matchMedia("(min-width: 1024px)").matches;
+
+        setShouldLoad(Boolean(isWideScreen && !wantsLessData && !wantsLessMotion));
+    }, []);
+
+    return shouldLoad;
+}
+
+function HeroView({ ward, wardData, onEnter, onSelectCity, onOpenMap, onCheckRoute, pushToast }) {
+    const showBackgroundVideo = useBackgroundVideo();
     const [activePillarTab, setActivePillarTab] = useState(0);
-    const [scenarioRain, setScenarioRain] = useState(45); // mm/hr
-    const [scenarioTide, setScenarioTide] = useState(0.4); // meters
-    const [scenarioPumps, setScenarioPumps] = useState(90); // %
-    const [routeSimProgress, setRouteSimProgress] = useState(0);
-    const [isSimulatingRoute, setIsSimulatingRoute] = useState(false);
 
     // CreativaX Studio State & Filmstrip Slideshow Track State
     const [slideIndex, setSlideIndex] = useState(4); // Starts at index 4 (Real 01 in middle set)
-    const [activeArtworkIdx, setActiveArtworkIdx] = useState(0);
     const [isTransitioning, setIsTransitioning] = useState(true);
     const [isCarouselHovered, setIsCarouselHovered] = useState(false);
-    const [showreelModalOpen, setShowreelModalOpen] = useState(false);
+    // WCAG 2.2.2: auto-moving content needs a way to stop it that does not
+    // depend on a mouse. Hover alone fails keyboard and touch users.
+    const [isCarouselPaused, setIsCarouselPaused] = useState(false);
+    const [isCarouselFocused, setIsCarouselFocused] = useState(false);
+    const prefersReducedMotion = useMemo(
+        () => typeof window !== "undefined" && window.matchMedia &&
+            window.matchMedia("(prefers-reduced-motion: reduce)").matches,
+        []
+    );
     const [mobileDrawerOpen, setMobileDrawerOpen] = useState(false);
-    const [modalArtworkIdx, setModalArtworkIdx] = useState(0);
 
     // Responsive viewport tracking for mathematically exact slide centering
     const [viewportWidth, setViewportWidth] = useState(
@@ -2063,41 +2669,49 @@ function HeroView({ ward, wardData, onEnter, onSelectCity, onOpenMap, pushToast 
 
     const ARTWORKS = [
         {
-            num: "01",
-            title: "Historic River City Ghats",
-            subtitle: "Varanasi Riverfront Topography",
-            desc: "High-resolution spatial elevation models mapping riverbank gradient steps and sacred hydrological corridors.",
-            img: "/static/images/hero-river-ghats-aerial-hd.jpg",
-            tag: "RIVER TOPOGRAPHY",
-            stats: "25.3176° N, 82.8739° E"
+            key: "route",
+            title: "Can I get through?",
+            subtitle: "Walking, two-wheeler, car or bus",
+            desc: "Enter the depth you can see and get advice for each way of travelling, plus the elevated road on file for your city.",
+            img: "/static/images/hero-monsoon-bus-splash.webp",
+            alt: "A city bus driving through deep standing water",
+            tag: "Getting through",
+            actionLabel: "Check a route",
+            onAction: () => (onCheckRoute ? onCheckRoute("Chennai") : onOpenMap(ward, "Chennai")),
         },
         {
-            num: "02",
-            title: "Harbor Tides & Coastal Fleets",
-            subtitle: "Mumbai Harbor Tidal Basin",
-            desc: "Coastal surge modeling and astronomical high-tide boundary conditions for peninsular megacities.",
-            img: "/static/images/hero-mumbai-harbor-boats.jpg",
-            tag: "COASTAL DYNAMICS",
-            stats: "18.9220° N, 72.8347° E"
+            key: "mumbai",
+            title: "Mumbai, where the tide meets the drains",
+            subtitle: "Mithi river and Mahim Bay",
+            desc: "Low wards along the Mithi flood first. High tide can lock the outfalls, which the estimate does not model yet, so read it as a lower bound at high tide.",
+            img: "/static/images/hero-mumbai-harbor-boats.webp",
+            alt: "Fishing boats moored in Mumbai harbour with the skyline behind",
+            tag: "Focus city",
+            actionLabel: "Open Mumbai",
+            onAction: () => onOpenMap(null, "Mumbai"),
         },
         {
-            num: "03",
-            title: "Urban Monsoons & Street Reflections",
-            subtitle: "Kolkata Metropolitan Grid",
-            desc: "Street-level micro-inundation nowcasting tracking waterlogged taxi avenues and low-elevation sumps.",
-            img: "/static/images/hero-kolkata-taxi-reflection.jpg",
-            tag: "URBAN INUNDATION",
-            stats: "22.5726° N, 88.3639° E"
+            key: "kolkata",
+            title: "Kolkata, flat ground and slow drains",
+            subtitle: "Hooghly river and city canals",
+            desc: "Much of the city sits only a few metres above sea level, so rain has nowhere to run. Covered, but less closely calibrated than the focus cities.",
+            img: "/static/images/hero-kolkata-taxi-reflection.webp",
+            alt: "A yellow Kolkata taxi on a wet street after rain",
+            tag: "Covered city",
+            actionLabel: "Open Kolkata",
+            onAction: () => onOpenMap(null, "Kolkata"),
         },
         {
-            num: "04",
-            title: "Highway Drainage & Storm Surges",
-            subtitle: "Corridor Transit Bypass",
-            desc: "Dual-corridor safe elevation routing bypassing flooded underpasses and high-velocity stormwater splash zones.",
-            img: "/static/images/hero-monsoon-bus-splash.jpg",
-            tag: "TRANSIT RESILIENCE",
-            stats: "22.6200° N, 88.4200° E"
-        }
+            key: "method",
+            title: "The ground decides where water collects",
+            subtitle: "How the depth figure is worked out",
+            desc: "Forecast rain, minus what the drains can carry, pooled into the lowest ground. Every number on the map shows its method and its limits.",
+            img: "/static/images/hero-river-ghats-aerial-hd.webp",
+            alt: "Aerial view of riverside steps and buildings along a river",
+            tag: "How it works",
+            actionLabel: "See how it works",
+            onAction: () => scrollTo("data"),
+        },
     ];
 
     // 3 complete sets of ARTWORKS (indices 0..3, 4..7, 8..11) for true infinite forward/backward track sliding
@@ -2119,17 +2733,19 @@ function HeroView({ ward, wardData, onEnter, onSelectCity, onOpenMap, pushToast 
     const translateX = centerOffset - (slideIndex * slideStep);
 
     // Automatic slide progression every 1.75 seconds with smooth 750ms glide
+    const isCarouselStill = isCarouselHovered || isCarouselFocused || isCarouselPaused || prefersReducedMotion;
+
     useEffect(() => {
-        if (isCarouselHovered) return;
+        if (isCarouselStill) return;
         const timer = setInterval(() => {
             setIsTransitioning(true);
             setSlideIndex((prev) => {
                 if (prev >= 8) return 5;
                 return prev + 1;
             });
-        }, 1750);
+        }, 6000);
         return () => clearInterval(timer);
-    }, [isCarouselHovered]);
+    }, [isCarouselStill]);
 
     // Rock-solid infinite loop normalization:
     // When transitioning past index 7 to index 8 (Slide 01 in Set 2), wait for the 750ms transition
@@ -2154,9 +2770,6 @@ function HeroView({ ward, wardData, onEnter, onSelectCity, onOpenMap, pushToast 
     // Calculate active project index (0, 1, 2, 3) and sync activeArtworkIdx
     const activeProjectIdx = ((slideIndex % 4) + 4) % 4;
 
-    useEffect(() => {
-        setActiveArtworkIdx(activeProjectIdx);
-    }, [activeProjectIdx]);
 
     const handleDotClick = (targetIdx) => {
         setIsTransitioning(true);
@@ -2165,31 +2778,11 @@ function HeroView({ ward, wardData, onEnter, onSelectCity, onOpenMap, pushToast 
 
 
 
-    // Dynamic calculation for the What-If sandbox
-    const computedDepthCm = Math.max(0, Math.round((scenarioRain * 0.45) + (scenarioTide * 12) - ((scenarioPumps / 100) * 16)));
-    const computedClearanceHours = Math.max(0.5, Number(((computedDepthCm * 0.12) / (scenarioPumps / 100)).toFixed(1)));
-
     const scrollTo = (id) => {
         const el = document.getElementById(id);
         if (el) {
             el.scrollIntoView({ behavior: "smooth" });
         }
-    };
-
-    const handleRunRouteSim = () => {
-        setIsSimulatingRoute(true);
-        setRouteSimProgress(0);
-        const timer = setInterval(() => {
-            setRouteSimProgress((prev) => {
-                if (prev >= 100) {
-                    clearInterval(timer);
-                    setIsSimulatingRoute(false);
-                    if (pushToast) pushToast("Dual-Corridor: Emergency vehicle successfully routed via elevated bypass!");
-                    return 100;
-                }
-                return prev + 10;
-            });
-        }, 120);
     };
 
     const cityCards = [
@@ -2198,113 +2791,108 @@ function HeroView({ ward, wardData, onEnter, onSelectCity, onOpenMap, pushToast 
             state: "Tamil Nadu",
             river: "Adyar & Cooum Basin",
             focus: "Coastal Storm Canals",
-            risk: "High Watch",
-            riskType: "high",
-            pumps: "49 / 54 Active",
+            focusCity: true,
             elevation: "Sea Level Basin",
-            img: "/static/images/pexels-wanderinglenses-13670217.jpg"
+            img: "/static/images/pexels-wanderinglenses-13670217.webp"
         },
         {
             city: "Mumbai",
             state: "Maharashtra",
             river: "Mithi River & Mahim Bay",
             focus: "Tidal Creek Outfalls",
-            risk: "High Watch",
-            riskType: "high",
-            pumps: "51 / 58 Active",
+            focusCity: true,
             elevation: "Coastal Lowland",
-            img: "/static/images/zoshua-colah-1fradOPdjBM-unsplash.jpg"
+            img: "/static/images/zoshua-colah-1fradOPdjBM-unsplash.webp"
         },
         {
             city: "Delhi",
             state: "NCR",
             river: "Yamuna River Basin",
             focus: "Ring Road Underpasses",
-            risk: "High Watch",
-            riskType: "high",
-            pumps: "62 / 69 Active",
+            focusCity: true,
             elevation: "River Floodplain",
-            img: "/static/images/dibakar-roy-KbG3OsDKkCM-unsplash.jpg"
+            img: "/static/images/dibakar-roy-KbG3OsDKkCM-unsplash.webp"
         },
         {
             city: "Kolkata",
             state: "West Bengal",
             river: "Hooghly River & Canals",
             focus: "Historic Sump Stations",
-            risk: "High Watch",
-            riskType: "high",
-            pumps: "44 / 50 Active",
+            focusCity: false,
             elevation: "Delta Lowland",
-            img: "/static/images/hero-kolkata-taxi-reflection.jpg"
+            img: "/static/images/hero-kolkata-taxi-reflection.webp"
         },
         {
             city: "Bengaluru",
             state: "Karnataka",
             river: "Bellandur & Vrishabhavathi",
             focus: "Valley Storm Drains",
-            risk: "Moderate",
-            riskType: "mod",
-            pumps: "38 / 42 Active",
+            focusCity: false,
             elevation: "Elevated Plateau",
-            img: "/static/images/hero-aerial-drone.jpg"
+            img: "/static/images/hero-aerial-drone.webp"
         },
         {
             city: "Hyderabad",
             state: "Telangana",
             river: "Musi River & Hussain Sagar",
             focus: "Storm Culvert Runoff",
-            risk: "Moderate",
-            riskType: "mod",
-            pumps: "34 / 38 Active",
+            focusCity: false,
             elevation: "Deccan Basin",
-            img: "/static/images/dibakar-roy-aby-GGLtD-A-unsplash.jpg"
+            img: "/static/images/dibakar-roy-aby-GGLtD-A-unsplash.webp"
         }
     ];
 
     const GIS_PILLARS = [
         {
             num: "01",
-            title: "3D Street Elevation Mapping",
-            badge: "Terrain Heights",
-            tagline: "Pinpoints low road dips and hollows where stormwater gathers first.",
-            desc: "By reading high-accuracy satellite terrain heights across every street, RainDrop reveals exactly which intersections, underpasses, and neighborhood lanes sit in natural low points.",
-            img: "/static/images/dibakar-roy-FbOchRlXaPs-unsplash.jpg",
-            benefits: ["Sub-meter street height precision", "Highlights deep road hollows", "Calculates downhill water flow", "Flags trapped water pockets"],
-            tag: "Elevation Topography"
+            title: "Where the ground is low",
+            badge: "Terrain",
+            tagline: "Finds the dips and hollows where rain water collects first.",
+            desc: "A 30 m elevation model is filled, routed and turned into slope and flow lines, so each ward has a measure of how readily water pools there. Until a city's elevation tiles are processed, city-wide averages stand in, and the dashboard says so.",
+            img: "/static/images/dibakar-roy-FbOchRlXaPs-unsplash.webp",
+            alt: "Rain falling on a low-lying city street",
+            benefits: ["Depression filling and flow routing", "Slope measured on a metre grid", "Sets the share of each ward that ponds", "Marked as an average until real tiles load"],
+            status: "Estimate",
+            statusNote: "City-wide averages until elevation tiles are processed",
         },
         {
             num: "02",
-            title: "Live Rainstorm Radar Tracking",
-            badge: "Weather Radar",
-            tagline: "Follows heavy cloudbursts minute-by-minute hours before rainfall peaks.",
-            desc: "Streams live weather radar across every metropolitan area. It tracks storm clouds in motion so residents and municipal crews know exactly when and where heavy downpours will hit.",
-            img: "/static/images/dibakar-roy-DccG84ivd3k-unsplash.jpg",
-            benefits: ["Live radar precipitation feed", "Storm direction and speed tracking", "5-minute cloud updates", "Up to 6 hours advance warning"],
-            tag: "Radar Telemetry"
+            title: "How much rain, and how fast",
+            badge: "Rainfall",
+            tagline: "Hourly forecast rainfall for each ward, from the current hour.",
+            desc: "Hourly rainfall forecasts from Open-Meteo, refreshed through the day and checked for age. Intensity matters more than the daily total: 100 mm in three hours floods streets that 100 mm spread over a day does not.",
+            img: "/static/images/dibakar-roy-DccG84ivd3k-unsplash.webp",
+            alt: "Heavy monsoon rain over a city",
+            benefits: ["Next 12 hours, hour by hour", "Peak intensity, not just totals", "Marked stale or offline when it lapses", "No radar feed connected yet"],
+            status: "Live",
+            statusNote: "Open-Meteo hourly forecast",
         },
         {
             num: "03",
-            title: "Canals & Drainage Water Flow",
-            badge: "Waterway Movement",
-            tagline: "Monitors city canals, sea tides, and stormwater drainage lines.",
-            desc: "Watches how water travels through underground pipes, open city canals, and river outfall gates, accounting for ocean high tides that push seawater back into neighborhood drains.",
-            img: "/static/images/dibakar-roy-P7Z3HwNWPeQ-unsplash.jpg",
-            benefits: ["Underground pipe capacity checks", "Tide and river backflow tracking", "Canal blockage detection", "Gate opening advisories"],
-            tag: "Hydrodynamics"
+            title: "What the drains can carry",
+            badge: "Drainage",
+            tagline: "Rain that falls faster than drains can clear it becomes surface water.",
+            desc: "Each city is given a drainage rate in millimetres per hour, and rain above that rate becomes runoff. The rate is a published design figure, not a measurement of the drains as they are today. Blocked drains and high tides are not modelled.",
+            img: "/static/images/dibakar-roy-P7Z3HwNWPeQ-unsplash.webp",
+            alt: "Water flowing along an urban drainage channel",
+            benefits: ["Drain capacity per city, in mm per hour", "Paved share sets how much rain runs off", "Tide and river backflow not modelled yet", "SWMM simulation planned for a faster model"],
+            status: "Estimate",
+            statusNote: "Design figures, not measured capacity",
         },
         {
             num: "04",
-            title: "Instant Street Flood Depth Alerts",
-            badge: "Real-Time Depth",
-            tagline: "Calculates standing water depth across every neighborhood in milliseconds.",
-            desc: "Instead of waiting hours for slow simulations, our smart predictive model calculates whether a street will have 5 cm or 45 cm of water in milliseconds as rain falls.",
-            img: "/static/images/hero-aerial-drone.jpg",
-            benefits: ["Instant depth forecasts in cm", "Door-to-door street accuracy", "Clear vehicle safety limits", "Fast response advisories"],
-            tag: "Surrogate Intelligence"
-        }
+            title: "How deep the water gets",
+            badge: "Depth",
+            tagline: "Turns the excess rain into a depth for the wettest part of a ward.",
+            desc: "The water the drains cannot take is pooled over the lowest part of the ward to give a depth in centimetres, then translated into whether you can walk, ride or drive through. It is an estimate for the ward, not a reading for your street.",
+            img: "/static/images/hero-aerial-drone.webp",
+            alt: "Aerial view of a flooded neighbourhood",
+            benefits: ["Depth in centimetres, with the working shown", "Advice for walking, riding and driving", "Not yet validated against observed floods", "Not an official IMD or NDMA warning"],
+            status: "Estimate",
+            statusNote: "Rational method, not a trained model",
+        },
     ];
 
-    const currentArt = ARTWORKS[activeArtworkIdx] || ARTWORKS[0];
 
     return (
         <div className="min-h-screen bg-white text-slate-900 flex flex-col items-center justify-start p-0 m-0 font-sans antialiased w-full overflow-x-hidden selection:bg-emerald-600 selection:text-white">
@@ -2322,12 +2910,12 @@ function HeroView({ ward, wardData, onEnter, onSelectCity, onOpenMap, pushToast 
                         loop
                         muted
                         playsInline
-                        preload="auto"
-                        poster="/static/images/rain-video-poster.jpg"
-                        className="w-full h-full object-cover scale-[1.01] transition-transform duration-1000"
+                        preload={showBackgroundVideo ? "metadata" : "none"}
+                        poster="/static/images/rain-video-poster.webp"
+                        aria-hidden="true"
+                        className="w-full h-full object-cover scale-[1.01]"
                     >
-                        <source src="/static/VEDIO/RAIN.mp4" type="video/mp4" />
-                        <source src="https://strvid.nyc3.cdn.digitaloceanspaces.com/motionsite/nature-sunset.mp4" type="video/mp4" />
+                        {showBackgroundVideo && <source src="/static/VEDIO/RAIN.mp4" type="video/mp4" />}
                     </video>
                     {/* Linear Top-to-Bottom Gradient */}
                     <div className="absolute inset-0 bg-gradient-to-b from-black/75 via-black/30 to-black/85 pointer-events-none" />
@@ -2399,9 +2987,9 @@ function HeroView({ ward, wardData, onEnter, onSelectCity, onOpenMap, pushToast 
                                 if (onOpenMap) onOpenMap(ward, "Chennai");
                                 else onEnter();
                             }}
-                            className="px-6 py-2.5 rounded-full border border-white/80 text-white text-[11px] font-semibold tracking-[0.2em] uppercase transition-all duration-300 hover:bg-white hover:text-black active:scale-95 cursor-pointer"
+                            className="min-h-[44px] px-6 rounded-full border border-white/80 text-white text-sm font-semibold transition-colors hover:bg-white hover:text-black cursor-pointer"
                         >
-                            VIEW LIVE MAP
+                            Open the map
                         </button>
                     </div>
 
@@ -2437,9 +3025,9 @@ function HeroView({ ward, wardData, onEnter, onSelectCity, onOpenMap, pushToast 
                                     if (onOpenMap) onOpenMap(ward, "Chennai");
                                     else onEnter();
                                 }}
-                                className="w-full text-center py-3 rounded-full border border-white/80 text-white text-xs font-semibold tracking-[0.2em] uppercase hover:bg-white hover:text-black transition-all"
+                                className="w-full text-center min-h-[48px] rounded-full border border-white/80 text-white text-base font-semibold hover:bg-white hover:text-black transition-colors"
                             >
-                                VIEW LIVE MAP
+                                Open the map
                             </button>
                         </div>
                     </div>
@@ -2448,28 +3036,49 @@ function HeroView({ ward, wardData, onEnter, onSelectCity, onOpenMap, pushToast 
                 {/* 3. Main Hero Core Content */}
                 <div className="relative z-10 w-full max-w-7xl mx-auto px-6 sm:px-10 lg:px-14 my-auto pb-16 sm:pb-20">
                     <div className="max-w-3xl">
-                        {/* Serif Headline with Cormorant Garamond */}
-                        <h1 className="font-editorial text-5xl sm:text-6xl md:text-7xl lg:text-[95px] leading-[0.95] tracking-[-0.01em] font-bold text-white text-glow">
-                            Predict Floods.<br />Protect Cities.
+                        <h1 className="font-editorial text-5xl sm:text-6xl md:text-7xl lg:text-[88px] leading-[0.98] tracking-[-0.01em] font-bold text-white text-glow">
+                            Is my street<br />going to flood?
                         </h1>
 
-                        {/* Subtitle */}
-                        <p className="mt-4 sm:mt-6 text-base sm:text-lg md:text-xl text-white/90 font-medium max-w-lg leading-relaxed text-glow">
-                            Real-time street water level alerts, storm drain tracking, and safe evacuation routes before floodwaters rise.
+                        <p className="mt-4 sm:mt-6 text-base sm:text-lg md:text-xl text-white/90 font-medium max-w-xl leading-relaxed text-glow">
+                            Pick your city to see the estimated water depth in your ward, and whether you can
+                            get through on foot, on a two-wheeler or by car.
                         </p>
 
-                        {/* CTA Action (Clean Single Pill Button Without Video Play Button) */}
-                        <div className="mt-7 sm:mt-9 flex items-center">
-                            <button
-                                type="button"
-                                onClick={() => {
-                                    if (onOpenMap) onOpenMap(ward, "Chennai");
-                                    else onEnter();
-                                }}
-                                className="inline-flex items-center justify-center px-8 py-4 bg-white text-black font-semibold text-xs sm:text-sm tracking-[0.18em] uppercase rounded-md shadow-xl transition-all duration-300 hover:bg-white/90 hover:scale-105 hover:shadow-2xl hover:shadow-white/20 active:scale-95 cursor-pointer"
-                            >
-                                EXPLORE LIVE NOWCAST
-                            </button>
+                        {/*
+                          Primary action, placed above everything else on the page. A citizen
+                          deciding whether to set out should not have to scroll past a video
+                          hero and a carousel to find out.
+                        */}
+                        <div className="mt-7 sm:mt-9">
+                            <p className="text-sm font-semibold text-white/80 mb-2.5" id="city-picker-label">
+                                Check my street
+                            </p>
+                            <div className="flex flex-wrap gap-2.5" role="group" aria-labelledby="city-picker-label">
+                                {["Chennai", "Mumbai", "Delhi"].map((city) => (
+                                    <button
+                                        key={city}
+                                        type="button"
+                                        onClick={() => {
+                                            if (onOpenMap) onOpenMap(ward, city);
+                                            else onEnter();
+                                        }}
+                                        className="inline-flex items-center justify-center min-h-[48px] px-6 bg-white text-slate-900 font-bold text-base rounded-lg shadow-xl transition-colors hover:bg-slate-100 active:scale-[0.98] cursor-pointer"
+                                    >
+                                        {city}
+                                    </button>
+                                ))}
+                                <button
+                                    type="button"
+                                    onClick={() => scrollTo("coverage")}
+                                    className="inline-flex items-center justify-center min-h-[48px] px-6 border-2 border-white/80 text-white font-semibold text-base rounded-lg transition-colors hover:bg-white/15 cursor-pointer"
+                                >
+                                    Other cities
+                                </button>
+                            </div>
+                            <p className="mt-3.5 text-sm font-medium text-white max-w-lg text-glow">
+                                Estimates from rainfall forecasts. Not an official IMD or NDMA warning.
+                            </p>
                         </div>
                     </div>
                 </div>
@@ -2488,79 +3097,53 @@ function HeroView({ ward, wardData, onEnter, onSelectCity, onOpenMap, pushToast 
                         <path d="M12 15C12 11.134 15.134 8 19 8C19 11.866 15.866 15 12 15Z"></path>
                     </svg>
                     <div className="flex items-center gap-2 sm:gap-3 text-[10px] sm:text-xs font-semibold tracking-[0.2em] uppercase text-black">
-                        <span className="hover:text-emerald-700 transition-colors">REAL-TIME RADAR</span>
+                        <span>HOURLY RAINFALL FORECAST</span>
                         <span className="text-black/40">•</span>
-                        <span className="hover:text-emerald-700 transition-colors">ZERO FLOOD DELAYS</span>
+                        <span>WARD-LEVEL DEPTH ESTIMATES</span>
                         <span className="text-black/40">•</span>
-                        <span className="hover:text-emerald-700 transition-colors">6 INDIAN BASINS</span>
+                        <span>6 INDIAN CITIES</span>
                     </div>
                 </div>
 
             </section>
 
             {/* ========================================================================= */}
-            {/* EDITORIAL GIS CAROUSEL SECTION — Dark Card Filmstrip                      */}
+            {/* Ways in: a filmstrip of four real destinations                            */}
             {/* ========================================================================= */}
             <section
-                className="w-full bg-white border-t border-neutral-200 text-neutral-900 font-sans"
-                style={{ paddingTop: '96px', paddingBottom: '0' }}
+                aria-roledescription="carousel"
+                aria-labelledby="ways-in-title"
+                className="w-full bg-white border-t border-slate-200 text-slate-900 font-sans pt-20 sm:pt-24"
+                onFocus={() => setIsCarouselFocused(true)}
+                onBlur={(event) => {
+                    if (!event.currentTarget.contains(event.relatedTarget)) setIsCarouselFocused(false);
+                }}
             >
-                {/* ── Header (constrained) ── */}
-                <div className="relative w-full max-w-7xl mx-auto px-6 sm:px-10 lg:px-14 mb-12">
-                    {/* "OUR FOCUS AREAS" label with flanking lines */}
-                    <div className="flex items-center justify-center gap-4 mb-4">
-                        <span style={{ flex: '0 0 60px', height: '1px', background: '#93c5fd' }} />
-                        <span
-                            className="font-bebas uppercase tracking-[0.35em] text-sky-500"
-                            style={{ fontSize: '13px', letterSpacing: '0.3em' }}
-                        >
-                            OUR FOCUS AREAS
-                        </span>
-                        <span style={{ flex: '0 0 60px', height: '1px', background: '#93c5fd' }} />
-                    </div>
-
-                    {/* Main title — centred */}
+                <div className="w-full max-w-3xl mx-auto px-6 sm:px-10 text-center">
                     <h2
-                        className="font-bebas text-center text-neutral-950 uppercase leading-[0.9] tracking-wide"
-                        style={{ fontSize: 'clamp(28px, 5.5vw, 80px)', marginBottom: '12px', letterSpacing: '0.02em' }}
+                        id="ways-in-title"
+                        className="font-editorial text-4xl sm:text-5xl lg:text-6xl font-semibold text-slate-900 leading-[1.05] tracking-[-0.01em]"
+                        style={{ textWrap: 'balance' }}
                     >
-                        DATA-DRIVEN SOLUTIONS FOR SAFER CITIES
+                        Four ways into the estimate
                     </h2>
-
-                    {/* Subtitle — centred */}
-                    <p
-                        className="font-bebas text-center text-neutral-500 uppercase tracking-[0.18em]"
-                        style={{ fontSize: '12px', marginBottom: '0' }}
-                    >
-                        EXPLORE KEY USE CASES WHERE REAL-TIME GEOSPATIAL DATA AND FORECASTING CREATE MEASURABLE IMPACT.
+                    <p className="mt-4 text-base sm:text-lg text-slate-600 leading-relaxed" style={{ textWrap: 'pretty' }}>
+                        Check whether you can get through, open a city's map, or see how the depth
+                        figure is worked out.
                     </p>
-
-                    {/* VIEW ALL PROJECTS — absolute top-right */}
                     <button
                         type="button"
-                        onClick={() => {
-                            const el = document.getElementById('cities');
-                            if (el) el.scrollIntoView({ behavior: 'smooth' });
-                        }}
-                        className="font-bebas uppercase tracking-widest text-neutral-900 hover:bg-neutral-100 transition-colors cursor-pointer"
-                        style={{
-                            position: 'absolute',
-                            top: '0',
-                            right: '56px',
-                            fontSize: '12px',
-                            letterSpacing: '0.12em',
-                            border: '1.5px solid #737373',
-                            borderRadius: '999px',
-                            padding: '8px 20px',
-                        }}
+                        onClick={() => scrollTo('coverage')}
+                        className="mt-6 inline-flex items-center gap-2 min-h-[44px] px-5 rounded-full border border-slate-300 text-sm font-semibold text-slate-800 hover:bg-slate-50 hover:border-slate-400 transition-colors cursor-pointer"
                     >
-                        VIEW ALL PROJECTS
+                        See all six cities
+                        <ArrowRight className="w-4 h-4" aria-hidden="true" />
                     </button>
                 </div>
 
-                {/* ── Full-bleed Filmstrip Stage ── */}
+                {/* Filmstrip */}
                 <div
-                    className="w-full select-none"
+                    className="w-full select-none mt-10"
                     style={{ overflow: 'hidden', paddingTop: '28px', paddingBottom: '16px', minHeight: '490px' }}
                     onMouseEnter={() => setIsCarouselHovered(true)}
                     onMouseLeave={() => setIsCarouselHovered(false)}
@@ -2571,44 +3154,57 @@ function HeroView({ ward, wardData, onEnter, onSelectCity, onOpenMap, pushToast 
                             alignItems: 'flex-end',
                             gap: `${carouselGap}px`,
                             transform: `translate3d(${translateX}px, 0, 0)`,
-                            transition: isTransitioning
-                                ? 'transform 750ms cubic-bezier(0.25, 1, 0.5, 1)'
+                            transition: isTransitioning && !prefersReducedMotion
+                                ? 'transform 750ms cubic-bezier(0.22, 1, 0.36, 1)'
                                 : 'none',
                             willChange: 'transform',
                         }}
                     >
                         {EXTENDED_SLIDES.map((art, idx) => {
                             const isCurrent = idx === slideIndex;
+                            const position = (idx % ARTWORKS.length) + 1;
                             return (
                                 <div
-                                    key={`${art.num}-${idx}`}
+                                    key={`${art.key}-${idx}`}
+                                    role="group"
+                                    aria-roledescription="slide"
+                                    aria-label={`${position} of ${ARTWORKS.length}: ${art.title}`}
+                                    // The track holds three copies for the infinite loop. Only the
+                                    // current card is exposed, so a screen reader hears four
+                                    // slides, not twelve.
+                                    aria-hidden={!isCurrent}
                                     onClick={() => {
+                                        if (isCurrent) return;
                                         setIsTransitioning(true);
                                         setSlideIndex(idx);
                                     }}
                                     style={{
                                         position: 'relative',
                                         flexShrink: '0',
-                                        cursor: 'pointer',
-                                        borderRadius: '16px',
+                                        cursor: isCurrent ? 'default' : 'pointer',
+                                        background: '#0f172a',
+                                        borderRadius: '18px',
                                         overflow: 'hidden',
                                         boxShadow: isCurrent
-                                            ? '0 24px 64px rgba(0,0,0,0.38)'
-                                            : '0 8px 24px rgba(0,0,0,0.16)',
+                                            ? '0 28px 60px -18px rgba(15,23,42,0.55)'
+                                            : '0 10px 24px -12px rgba(15,23,42,0.35)',
                                         width: `${isCurrent ? cardWidthActive : cardWidthInactive}px`,
                                         height: isCurrent ? '430px' : '350px',
                                         transform: isCurrent ? 'translateY(-16px)' : 'translateY(0)',
-                                        opacity: isCurrent ? 1 : 0.72,
-                                        transition: isTransitioning
-                                            ? 'width 750ms cubic-bezier(0.25, 1, 0.5, 1), height 750ms cubic-bezier(0.25, 1, 0.5, 1), transform 750ms cubic-bezier(0.25, 1, 0.5, 1), opacity 750ms ease, box-shadow 750ms ease'
+                                        opacity: isCurrent ? 1 : 0.7,
+                                        transition: isTransitioning && !prefersReducedMotion
+                                            ? 'width 750ms cubic-bezier(0.22, 1, 0.36, 1), height 750ms cubic-bezier(0.22, 1, 0.36, 1), transform 750ms cubic-bezier(0.22, 1, 0.36, 1), opacity 600ms ease-out, box-shadow 600ms ease-out'
                                             : 'none',
                                         willChange: 'transform, width',
                                     }}
                                 >
-                                    {/* Full-card background image */}
                                     <img
+                                        loading="lazy"
+                                        decoding="async"
                                         src={art.img}
-                                        alt={art.title}
+                                        alt={isCurrent ? art.alt : ''}
+                                        width="1600"
+                                        height="1067"
                                         style={{
                                             position: 'absolute',
                                             inset: '0',
@@ -2620,159 +3216,53 @@ function HeroView({ ward, wardData, onEnter, onSelectCity, onOpenMap, pushToast 
                                         }}
                                     />
 
-                                    {/* Dark gradient overlay — stronger at bottom */}
                                     <div
+                                        aria-hidden="true"
                                         style={{
                                             position: 'absolute',
                                             inset: '0',
                                             background: isCurrent
-                                                ? 'linear-gradient(to top, rgba(0,0,0,0.85) 0%, rgba(0,0,0,0.25) 55%, rgba(0,0,0,0.15) 100%)'
-                                                : 'linear-gradient(to top, rgba(0,0,0,0.75) 0%, rgba(0,0,0,0.35) 50%, rgba(0,0,0,0.2) 100%)',
+                                                ? 'linear-gradient(to top, rgba(2,6,23,0.92) 0%, rgba(2,6,23,0.55) 42%, rgba(2,6,23,0.05) 78%)'
+                                                : 'linear-gradient(to top, rgba(2,6,23,0.85) 0%, rgba(2,6,23,0.35) 55%, rgba(2,6,23,0.15) 100%)',
                                         }}
                                     />
 
-                                    {/* Top label row: "02 — COASTAL DYNAMICS" */}
-                                    <div
-                                        style={{
-                                            position: 'absolute',
-                                            top: '18px',
-                                            left: '18px',
-                                            right: '18px',
-                                            display: 'flex',
-                                            alignItems: 'center',
-                                            gap: '10px',
-                                        }}
+                                    <span
+                                        className="absolute top-4 left-4 inline-flex items-center rounded-full bg-white/95 px-3 py-1 text-xs font-semibold text-slate-900"
                                     >
-                                        <span
-                                            className="font-bebas text-white"
-                                            style={{ fontSize: '14px', letterSpacing: '0.12em', opacity: 0.9 }}
-                                        >
-                                            {art.num}
-                                        </span>
-                                        <span
-                                            style={{
-                                                width: '24px',
-                                                height: '1px',
-                                                background: 'rgba(255,255,255,0.5)',
-                                                flexShrink: '0',
-                                            }}
-                                        />
-                                        <span
-                                            className="font-bebas text-white uppercase"
-                                            style={{ fontSize: '11px', letterSpacing: '0.22em', opacity: 0.75 }}
-                                        >
-                                            {art.tag}
-                                        </span>
-                                    </div>
+                                        {art.tag}
+                                    </span>
 
-                                    {/* Bottom content area */}
-                                    <div
-                                        style={{
-                                            position: 'absolute',
-                                            bottom: '0',
-                                            left: '0',
-                                            right: '0',
-                                            padding: isCurrent ? '28px' : '16px 18px',
-                                        }}
-                                    >
-                                        {/* Category label (inactive only — shown in small) */}
-                                        {!isCurrent && (
-                                            <span
-                                                className="font-bebas text-white uppercase block"
-                                                style={{
-                                                    fontSize: '9px',
-                                                    letterSpacing: '0.2em',
-                                                    opacity: 0.6,
-                                                    marginBottom: '4px',
-                                                }}
-                                            >
-                                                {art.tag}
-                                            </span>
-                                        )}
-
-                                        {/* Title */}
+                                    <div className={`absolute inset-x-0 bottom-0 ${isCurrent ? 'p-6 sm:p-8' : 'p-4'}`}>
                                         <h3
-                                            className="font-bebas text-white uppercase leading-[0.95]"
-                                            style={{
-                                                fontSize: isCurrent
-                                                    ? 'clamp(24px, 3vw, 44px)'
-                                                    : 'clamp(13px, 1.5vw, 20px)',
-                                                marginBottom: isCurrent ? '6px' : '0',
-                                            }}
+                                            className={`font-editorial font-semibold text-white leading-[1.02] ${
+                                                isCurrent ? 'text-3xl sm:text-4xl lg:text-[2.75rem]' : 'text-xl'
+                                            }`}
+                                            style={{ textWrap: 'balance' }}
                                         >
                                             {art.title}
                                         </h3>
 
-                                        {/* Active-only: subtitle + progress + button */}
                                         {isCurrent && (
                                             <>
-                                                <p
-                                                    className="font-bebas text-white uppercase"
-                                                    style={{
-                                                        fontSize: '11px',
-                                                        letterSpacing: '0.15em',
-                                                        opacity: 0.65,
-                                                        marginBottom: '20px',
-                                                    }}
-                                                >
+                                                <p className="mt-2 text-sm font-semibold text-white/85">
                                                     {art.subtitle}
                                                 </p>
-                                                <div
-                                                    style={{
-                                                        display: 'flex',
-                                                        alignItems: 'center',
-                                                        justifyContent: 'space-between',
+                                                <p className="mt-3 max-w-[52ch] text-sm sm:text-base leading-relaxed text-white/90" style={{ textWrap: 'pretty' }}>
+                                                    {art.desc}
+                                                </p>
+                                                <button
+                                                    type="button"
+                                                    onClick={(event) => {
+                                                        event.stopPropagation();
+                                                        art.onAction();
                                                     }}
+                                                    className="mt-5 inline-flex items-center gap-2 min-h-[44px] px-5 rounded-full bg-white text-slate-900 text-sm font-bold hover:bg-sky-50 transition-colors cursor-pointer"
                                                 >
-                                                    <button
-                                                        type="button"
-                                                        onClick={(e) => {
-                                                            e.stopPropagation();
-                                                            setModalArtworkIdx(
-                                                                art.num === '01' ? 0 :
-                                                                art.num === '02' ? 1 :
-                                                                art.num === '03' ? 2 : 3
-                                                            );
-                                                            setShowreelModalOpen(true);
-                                                        }}
-                                                        className="font-bebas text-white uppercase hover:bg-white hover:text-black transition-all cursor-pointer"
-                                                        style={{
-                                                            fontSize: '12px',
-                                                            letterSpacing: '0.15em',
-                                                            border: '1.5px solid rgba(255,255,255,0.7)',
-                                                            borderRadius: '999px',
-                                                            padding: '7px 20px',
-                                                        }}
-                                                    >
-                                                        EXPLORE PROJECT
-                                                    </button>
-                                                    <span
-                                                        className="font-bebas text-white"
-                                                        style={{
-                                                            fontSize: '13px',
-                                                            letterSpacing: '0.1em',
-                                                            opacity: 0.45,
-                                                        }}
-                                                    >
-                                                        {art.num} / 04
-                                                    </span>
-                                                </div>
+                                                    {art.actionLabel}
+                                                    <ArrowRight className="w-4 h-4" aria-hidden="true" />
+                                                </button>
                                             </>
-                                        )}
-
-                                        {/* Inactive slide: slide number / 04 */}
-                                        {!isCurrent && (
-                                            <span
-                                                className="font-bebas text-white block"
-                                                style={{
-                                                    fontSize: '10px',
-                                                    letterSpacing: '0.12em',
-                                                    opacity: 0.4,
-                                                    marginTop: '4px',
-                                                }}
-                                            >
-                                                {art.num} / 04
-                                            </span>
                                         )}
                                     </div>
                                 </div>
@@ -2781,118 +3271,61 @@ function HeroView({ ward, wardData, onEnter, onSelectCity, onOpenMap, pushToast 
                     </div>
                 </div>
 
-                {/* ── Dot Pagination ── */}
-                <div
-                    style={{
-                        display: 'flex',
-                        justifyContent: 'center',
-                        alignItems: 'center',
-                        gap: '8px',
-                        marginTop: '20px',
-                        marginBottom: '20px',
-                    }}
-                >
+                {/* Position, plus a pause control that works without a mouse */}
+                <div className="flex items-center justify-center gap-1 mt-4 mb-6">
+                    <button
+                        type="button"
+                        onClick={() => setIsCarouselPaused((paused) => !paused)}
+                        aria-label={isCarouselPaused ? 'Resume slides' : 'Pause slides'}
+                        aria-pressed={isCarouselPaused}
+                        className="inline-flex items-center justify-center w-11 h-11 rounded-full text-slate-700 hover:bg-slate-100 transition-colors cursor-pointer"
+                    >
+                        {isCarouselPaused || prefersReducedMotion
+                            ? <Play className="w-3.5 h-3.5" aria-hidden="true" />
+                            : <Pause className="w-3.5 h-3.5" aria-hidden="true" />}
+                    </button>
                     {ARTWORKS.map((art, idx) => {
                         const isActive = idx === activeProjectIdx;
                         return (
                             <button
-                                key={art.num}
+                                key={art.key}
                                 type="button"
                                 onClick={() => handleDotClick(idx)}
-                                aria-label={`Go to slide ${art.num}`}
-                                style={{
-                                    width: isActive ? '28px' : '8px',
-                                    height: '8px',
-                                    borderRadius: '999px',
-                                    background: isActive ? '#2563eb' : '#d1d5db',
-                                    border: 'none',
-                                    padding: '0',
-                                    cursor: 'pointer',
-                                    transition: 'width 300ms ease, background 300ms ease',
-                                }}
-                            />
+                                aria-label={`Show slide ${idx + 1}: ${art.title}`}
+                                aria-current={isActive ? 'true' : undefined}
+                                // 44 px hit area; the visible dot stays small.
+                                className="inline-flex items-center justify-center w-11 h-11 rounded-full cursor-pointer group"
+                            >
+                                <span
+                                    aria-hidden="true"
+                                    className={`block h-2 rounded-full transition-all duration-300 ${
+                                        isActive ? 'w-7 bg-sky-700' : 'w-2 bg-slate-300 group-hover:bg-slate-400'
+                                    }`}
+                                />
+                            </button>
                         );
                     })}
                 </div>
+                <p className="sr-only" aria-live={isCarouselStill ? 'polite' : 'off'}>
+                    {`Slide ${activeProjectIdx + 1} of ${ARTWORKS.length}: ${ARTWORKS[activeProjectIdx].title}`}
+                </p>
 
-                {/* ── Bottom Tagline Strip ── */}
-                <div
-                    className="w-full max-w-7xl mx-auto"
-                    style={{
-                        display: 'flex',
-                        alignItems: 'center',
-                        justifyContent: 'space-between',
-                        border: '1px solid #e5e7eb',
-                        borderRadius: '999px',
-                        padding: '14px 32px',
-                        marginLeft: 'auto',
-                        marginRight: 'auto',
-                        marginBottom: '0',
-                        background: '#fafafa',
-                        maxWidth: '1280px',
-                        width: 'calc(100% - 48px)',
-                    }}
-                >
-                    <p
-                        className="font-bebas text-neutral-500 uppercase"
-                        style={{ fontSize: '11px', letterSpacing: '0.18em' }}
-                    >
-                        FROM RIVERS TO COASTLINES TO URBAN STREETS — TURNING REAL-TIME DATA INTO SAFER, MORE RESILIENT CITIES.
+                <div className="mx-auto mb-10 flex max-w-5xl flex-col items-start gap-3 rounded-2xl border border-slate-200 bg-slate-50 px-6 py-4 sm:flex-row sm:items-center sm:justify-between" style={{ width: 'calc(100% - 48px)' }}>
+                    <p className="text-sm text-slate-700">
+                        Every figure on this site says where it came from: live forecast, estimate or sample.
                     </p>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '20px', flexShrink: '0' }}>
-                        <span style={{ width: '1px', height: '18px', background: '#d1d5db' }} />
-                        <button
-                            type="button"
-                            onClick={() => {
-                                const el = document.getElementById('cities');
-                                if (el) el.scrollIntoView({ behavior: 'smooth' });
-                            }}
-                            className="font-bebas text-sky-600 uppercase hover:text-sky-800 transition-colors cursor-pointer"
-                            style={{ fontSize: '11px', letterSpacing: '0.18em', background: 'none', border: 'none', padding: '0' }}
-                        >
-                            LEARN MORE
-                        </button>
-                    </div>
+                    <button
+                        type="button"
+                        onClick={() => scrollTo('data')}
+                        className="inline-flex shrink-0 items-center gap-1.5 min-h-[44px] text-sm font-bold text-sky-800 hover:text-sky-900 cursor-pointer"
+                    >
+                        How the estimate works
+                        <ArrowRight className="w-4 h-4" aria-hidden="true" />
+                    </button>
                 </div>
-                <div style={{ height: '32px' }} />
             </section>
 
 
-            {/* ========================================================================= */}
-            {/* FULLSCREEN NATURE VIDEO MODAL POPUP                                       */}
-            {/* ========================================================================= */}
-            {showreelModalOpen && (
-                <div 
-                    className="fixed inset-0 bg-black/90 z-50 flex items-center justify-center p-4 sm:p-10 transition-opacity duration-500"
-                    onClick={() => setShowreelModalOpen(false)}
-                >
-                    <div 
-                        className="relative w-full max-w-4xl aspect-video bg-black rounded-xl overflow-hidden shadow-2xl border border-white/20"
-                        onClick={(e) => e.stopPropagation()}
-                    >
-                        <button 
-                            onClick={() => setShowreelModalOpen(false)}
-                            aria-label="Close modal" 
-                            className="absolute top-4 right-4 z-10 px-4 py-2 rounded bg-black/80 text-white font-bebas text-sm tracking-widest hover:bg-white hover:text-black transition-all cursor-pointer"
-                        >
-                            CLOSE
-                        </button>
-                        <video 
-                            id="modal-video" 
-                            controls 
-                            autoPlay 
-                            playsInline 
-                            className="w-full h-full object-cover"
-                            poster={ARTWORKS[modalArtworkIdx ?? activeProjectIdx]?.img}
-                        >
-                            <source src="/static/VEDIO/RAIN.mp4" type="video/mp4" />
-                            <source src="https://strvid.nyc3.cdn.digitaloceanspaces.com/motionsite/nature-sunset.mp4" type="video/mp4" />
-                        </video>
-                    </div>
-                </div>
-            )}
-
-            {/* ========================================================================= */}
             {/* ========================================================================= */}
             {/* BELOW-SLIDESHOW CONTAINER: Light Architectural Environmental Dashboard    */}
             {/* ========================================================================= */}
@@ -2904,30 +3337,24 @@ function HeroView({ ward, wardData, onEnter, onSelectCity, onOpenMap, pushToast 
                     {/* SECTION 01: PILLARS — Visual Environmental Intelligence (4 Pillars)       */}
                     {/* ========================================================================= */}
                     <section id="data" className="relative py-20 sm:py-28 w-full flex flex-col gap-10 sm:gap-12 border-b border-[#9DC6DA]">
-                        {/* Section Header */}
                         <div className="flex flex-col lg:flex-row lg:items-end justify-between gap-8 border-b border-[#9DC6DA] pb-8 sm:pb-10">
-                            <div className="max-w-4xl">
-                                <div className="inline-flex items-center gap-2.5 px-3.5 py-1.5 rounded-md bg-sky-100/90 border border-sky-300 text-sky-900 font-mono text-xs font-bold tracking-wider uppercase shadow-xs">
-                                    <Layers className="w-3.5 h-3.5 text-sky-700" />
-                                    <span>SYSTEM PILLARS // 01</span>
-                                </div>
-                                <h2 className="font-editorial text-4xl sm:text-5xl lg:text-6xl font-normal text-slate-900 mt-4 tracking-tight leading-[1.12]">
-                                    How RainDrop Sees &amp; Understands Urban Rainfall
+                            <div className="max-w-3xl">
+                                <h2 className="font-editorial text-4xl sm:text-5xl lg:text-6xl font-semibold text-slate-900 tracking-[-0.01em] leading-[1.05]" style={{ textWrap: 'balance' }}>
+                                    How the estimate is made
                                 </h2>
-                                <p className="text-slate-700 text-lg sm:text-xl lg:text-2xl mt-4 leading-relaxed font-sans font-light">
-                                    From high-accuracy street terrain heights to real-time weather radar, four integrated intelligence layers predict street runoff before storm centers peak.
+                                <p className="text-slate-700 text-lg sm:text-xl mt-4 leading-relaxed font-sans" style={{ textWrap: 'pretty' }}>
+                                    Four steps, from the shape of the ground to the depth of the water. Each one
+                                    says what it is based on and what it cannot see.
                                 </p>
                             </div>
 
                             <button
-                                onClick={() => {
-                                    if (window._openGisSpecsModal) window._openGisSpecsModal();
-                                    else if (pushToast) pushToast("Opening Data Specifications");
-                                }}
-                                className="flex items-center gap-2.5 px-7 py-3.5 rounded-xl bg-sky-700 hover:bg-sky-800 text-white text-sm font-bold tracking-wide uppercase transition-all duration-200 shadow-md hover:shadow-lg cursor-pointer shrink-0"
+                                type="button"
+                                onClick={() => onOpenMap(null, "Chennai")}
+                                className="inline-flex items-center gap-2 min-h-[44px] px-6 rounded-xl bg-sky-700 hover:bg-sky-800 text-white text-sm font-bold transition-colors cursor-pointer shrink-0"
                             >
-                                <Sliders className="w-4 h-4 text-sky-200" />
-                                <span>Inspect Data Layers</span>
+                                See it on the map
+                                <ArrowRight className="w-4 h-4" aria-hidden="true" />
                             </button>
                         </div>
 
@@ -2983,73 +3410,70 @@ function HeroView({ ward, wardData, onEnter, onSelectCity, onOpenMap, pushToast 
                             {/* Left: Large Photography Viewport (7 Cols) */}
                             <div className="lg:col-span-7 relative min-h-[340px] sm:min-h-[420px] lg:min-h-[460px] rounded-2xl overflow-hidden bg-slate-950 border border-[#B3D6E6] group shadow-inner">
                                 <img
+                                    loading="lazy"
+                                    decoding="async"
                                     src={GIS_PILLARS[activePillarTab].img}
-                                    alt={GIS_PILLARS[activePillarTab].title}
-                                    className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700 ease-out"
+                                    alt={GIS_PILLARS[activePillarTab].alt}
+                                    className="absolute inset-0 w-full h-full object-cover"
                                 />
-                                <div className="absolute inset-0 bg-gradient-to-t from-slate-950/85 via-slate-950/20 to-transparent" />
+                                <div className="absolute inset-0 bg-gradient-to-t from-slate-950/85 via-slate-950/20 to-transparent" aria-hidden="true" />
 
-                                {/* High-Tech Top Overlay Badge */}
-                                <div className="absolute top-4 left-4 right-4 flex items-center justify-between pointer-events-none">
-                                    <div className="flex items-center gap-2 bg-white/90 backdrop-blur-md border border-slate-200 px-3.5 py-1.5 rounded-md font-mono text-xs text-sky-950 font-bold uppercase tracking-wider shadow-xs">
-                                        <Activity className="w-3.5 h-3.5 text-sky-700 animate-pulse" />
-                                        <span>SENSOR STREAM: {GIS_PILLARS[activePillarTab].tag}</span>
-                                    </div>
-                                    <div className="hidden sm:block font-mono text-xs text-slate-700 bg-white/90 backdrop-blur-md px-3 py-1.5 rounded-md border border-slate-200 font-semibold shadow-xs">
-                                        FPS: 60 · LATENCY: 11.2ms
-                                    </div>
-                                </div>
+                                <span className="absolute top-4 left-4 inline-flex items-center rounded-full bg-white/95 px-3 py-1 text-xs font-semibold text-slate-900">
+                                    Step {activePillarTab + 1} of 4: {GIS_PILLARS[activePillarTab].badge}
+                                </span>
 
-                                {/* Bottom Image Info */}
-                                <div className="absolute bottom-5 left-5 right-5 sm:bottom-6 sm:left-6 sm:right-6">
-                                    <span className="font-mono text-xs uppercase tracking-widest text-sky-400 font-bold block mb-1">
-                                        LIVE ENVIRONMENTAL OBSERVATION
-                                    </span>
-                                    <h4 className="text-2xl sm:text-3xl font-editorial text-white">
-                                        {GIS_PILLARS[activePillarTab].title}
-                                    </h4>
-                                </div>
+                                <h3 className="absolute bottom-5 left-5 right-5 sm:bottom-6 sm:left-6 sm:right-6 text-3xl sm:text-4xl font-editorial font-semibold text-white leading-[1.05]" style={{ textWrap: 'balance' }}>
+                                    {GIS_PILLARS[activePillarTab].title}
+                                </h3>
                             </div>
 
-                            {/* Right: Technical Telemetry Readout (5 Cols) */}
+                            {/* Right: what this step does, and how much to trust it */}
                             <div className="lg:col-span-5 flex flex-col justify-between gap-6 sm:gap-8">
                                 <div>
-                                    <div className="flex items-center justify-between border-b border-[#B3D6E6] pb-3 mb-5">
-                                        <span className="font-mono text-xs uppercase tracking-widest text-slate-500 font-bold">
-                                            LAYER ANALYSIS // SPEC 0{activePillarTab + 1}
+                                    <div className="flex flex-wrap items-center gap-x-3 gap-y-1 border-b border-[#B3D6E6] pb-3 mb-5">
+                                        <span className={`inline-flex items-center gap-1.5 rounded-full border px-2.5 py-0.5 text-xs font-bold ${
+                                            GIS_PILLARS[activePillarTab].status === "Live"
+                                                ? "border-emerald-300 bg-emerald-50 text-emerald-900"
+                                                : "border-sky-300 bg-sky-50 text-sky-900"
+                                        }`}>
+                                            <span aria-hidden="true" className={`h-1.5 w-1.5 rounded-full ${
+                                                GIS_PILLARS[activePillarTab].status === "Live" ? "bg-emerald-600" : "bg-sky-600"
+                                            }`} />
+                                            {GIS_PILLARS[activePillarTab].status}
                                         </span>
-                                        <span className="font-mono text-xs text-sky-700 font-bold">
-                                            REAL-TIME DATA READY
+                                        <span className="text-sm text-slate-700">
+                                            {GIS_PILLARS[activePillarTab].statusNote}
                                         </span>
                                     </div>
 
-                                    <p className="text-base sm:text-lg text-slate-800 leading-relaxed font-sans">
+                                    <p className="text-base sm:text-lg text-slate-800 leading-relaxed font-sans max-w-[60ch]" style={{ textWrap: 'pretty' }}>
                                         {GIS_PILLARS[activePillarTab].desc}
                                     </p>
 
-                                    <div className="mt-6 sm:mt-7 space-y-3.5">
-                                        <span className="font-mono text-xs uppercase tracking-widest text-slate-500 font-bold block">
-                                            OPERATIONAL CAPABILITIES
-                                        </span>
+                                    <h4 className="mt-6 sm:mt-7 text-sm font-bold text-slate-900">
+                                        What it does today
+                                    </h4>
+                                    <ul className="mt-3 space-y-3">
                                         {GIS_PILLARS[activePillarTab].benefits.map((benefit) => (
-                                            <div key={benefit} className="flex items-start gap-3 text-base text-slate-800 font-medium">
-                                                <div className="w-2.5 h-2.5 rounded-full bg-sky-600 mt-1.5 shrink-0" />
+                                            <li key={benefit} className="flex items-start gap-3 text-base text-slate-800">
+                                                <span aria-hidden="true" className="w-2 h-2 rounded-full bg-sky-600 mt-2 shrink-0" />
                                                 <span>{benefit}</span>
-                                            </div>
+                                            </li>
                                         ))}
-                                    </div>
+                                    </ul>
                                 </div>
 
-                                <div className="pt-5 border-t border-[#B3D6E6] flex items-center justify-between">
-                                    <div className="font-mono text-xs text-slate-600">
-                                        UPDATE CADENCE: <strong className="text-slate-900">EVERY 60 SEC</strong>
-                                    </div>
+                                <div className="pt-5 border-t border-[#B3D6E6] flex flex-wrap items-center justify-between gap-3">
+                                    <p className="text-sm text-slate-700">
+                                        Rainfall updates hourly. Depths recompute with it.
+                                    </p>
                                     <button
-                                        onClick={() => onOpenMap(ward, "Chennai")}
-                                        className="flex items-center gap-1.5 font-sans text-sm font-bold text-sky-700 hover:text-sky-800 transition-colors cursor-pointer"
+                                        type="button"
+                                        onClick={() => onOpenMap(null, "Chennai")}
+                                        className="inline-flex items-center gap-1.5 min-h-[44px] font-sans text-sm font-bold text-sky-800 hover:text-sky-900 transition-colors cursor-pointer"
                                     >
-                                        <span>Open City Map</span>
-                                        <ArrowRight className="w-4 h-4" />
+                                        Open the map
+                                        <ArrowRight className="w-4 h-4" aria-hidden="true" />
                                     </button>
                                 </div>
                             </div>
@@ -3062,257 +3486,269 @@ function HeroView({ ward, wardData, onEnter, onSelectCity, onOpenMap, pushToast 
                     <section id="coverage" className="relative py-20 sm:py-28 w-full flex flex-col gap-10 sm:gap-12 border-b border-[#9DC6DA]">
                         <div className="flex flex-col lg:flex-row lg:items-end justify-between gap-8 border-b border-[#9DC6DA] pb-8 sm:pb-10">
                             <div className="max-w-4xl">
-                                <div className="inline-flex items-center gap-2.5 px-3.5 py-1.5 rounded-md bg-sky-100/90 border border-sky-300 text-sky-900 font-mono text-xs font-bold tracking-wider uppercase shadow-xs">
-                                    <Waves className="w-3.5 h-3.5 text-sky-700" />
-                                    <span>URBAN BASIN MATRIX // 02</span>
-                                </div>
-                                <h2 className="font-editorial text-4xl sm:text-5xl lg:text-6xl font-normal text-slate-900 mt-4 tracking-tight leading-[1.12]">
-                                    Live City Waterways Across 6 Indian Metros
+                                <h2 className="font-editorial text-4xl sm:text-5xl lg:text-6xl font-semibold text-slate-900 tracking-[-0.01em] leading-[1.05]" style={{ textWrap: 'balance' }}>
+                                    Flood estimates for six Indian cities
                                 </h2>
                                 <p className="text-slate-700 text-lg sm:text-xl lg:text-2xl mt-4 leading-relaxed font-sans font-light">
-                                    Continuous 24/7 water monitoring across India's premier coastal and river basins. Select any metro to load real-time municipal diagnostics.
+                                    Rainfall forecasts refreshed through the day for six Indian cities, turned into
+                                    ward-level flood depth estimates. Chennai, Mumbai and Delhi are the best covered.
+                                    Select a city to see the current estimate and how it was produced.
                                 </p>
                             </div>
 
                             <button
+                                type="button"
                                 onClick={onEnter}
-                                className="flex items-center gap-2 px-7 py-3.5 rounded-xl bg-slate-900 hover:bg-slate-800 text-white text-sm font-bold uppercase tracking-wider transition-all duration-200 shadow-md hover:shadow-lg cursor-pointer shrink-0"
+                                className="inline-flex items-center gap-2 min-h-[44px] px-6 rounded-xl bg-slate-900 hover:bg-slate-800 text-white text-sm font-bold transition-colors cursor-pointer shrink-0"
                             >
-                                <span>Explore All Metros</span>
-                                <ArrowRight className="w-4 h-4 text-sky-400" />
+                                Compare all cities
+                                <ArrowRight className="w-4 h-4" aria-hidden="true" />
                             </button>
                         </div>
 
                         {/* 6 City Cards Grid with Pleasant Spacing */}
                         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 sm:gap-8">
-                            {cityCards.map((item) => (
-                                <div
+                            {cityCards.map((item) => {
+                                const wardCount = Object.values(WARDS_DATA).filter((ward) => ward.city === item.city).length;
+                                return (
+                                <button
                                     key={item.city}
+                                    type="button"
                                     onClick={() => {
                                         if (onSelectCity) onSelectCity(item.city);
                                         else onEnter();
                                     }}
-                                    className="group relative rounded-2xl bg-white/95 border border-[#9DC6DA] hover:border-sky-600 shadow-sm hover:shadow-xl transition-all duration-300 ease-out cursor-pointer flex flex-col justify-between hover:-translate-y-1.5 overflow-hidden"
+                                    className="group relative text-left rounded-2xl bg-white border border-[#9DC6DA] hover:border-sky-600 shadow-sm hover:shadow-lg transition-[border-color,box-shadow,transform] duration-300 ease-out cursor-pointer flex flex-col justify-between hover:-translate-y-1 overflow-hidden"
                                 >
-                                    {/* City Photo Header */}
                                     <div className="relative h-64 sm:h-72 w-full overflow-hidden bg-slate-900">
                                         <img
+                                            loading="lazy"
+                                            decoding="async"
                                             src={item.img}
-                                            alt={`${item.city} Skyline and Waterway`}
-                                            className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700 ease-out"
+                                            alt=""
+                                            width="1600"
+                                            height="1067"
+                                            className="w-full h-full object-cover group-hover:scale-[1.03] transition-transform duration-700 ease-out"
                                         />
-                                        <div className="absolute inset-0 bg-gradient-to-t from-slate-950/85 via-slate-950/20 to-transparent" />
-                                        
-                                        {/* Risk Badge */}
-                                        <div className="absolute top-4 right-4">
-                                            <span className={`px-3 py-1 rounded-sm text-xs font-bold uppercase tracking-wider ${
-                                                item.riskType === "high"
-                                                    ? "bg-rose-100 text-rose-900 border border-rose-300"
-                                                    : "bg-amber-100 text-amber-900 border border-amber-300"
-                                            }`}>
-                                                {item.risk}
-                                            </span>
-                                        </div>
+                                        <div className="absolute inset-0 bg-gradient-to-t from-slate-950/85 via-slate-950/20 to-transparent" aria-hidden="true" />
+
+                                        {/* Coverage, not risk. A risk badge here was hardcoded and
+                                            never reflected the weather. */}
+                                        <span className={`absolute top-4 right-4 rounded-full px-3 py-1 text-xs font-semibold border ${
+                                            item.focusCity
+                                                ? "bg-white text-slate-900 border-white"
+                                                : "bg-slate-900/70 text-white border-white/30"
+                                        }`}>
+                                            {item.focusCity ? "Focus city" : "Less calibrated"}
+                                        </span>
 
                                         <div className="absolute bottom-4 left-6 right-6">
-                                            <span className="font-mono text-xs text-sky-300 font-bold uppercase tracking-widest">{item.state}</span>
-                                            <h3 className="font-editorial text-3xl sm:text-4xl text-white group-hover:text-sky-300 transition-colors mt-0.5">
+                                            <span className="text-sm font-semibold text-sky-200">{item.state}</span>
+                                            <h3 className="font-editorial font-semibold text-4xl text-white leading-none mt-1">
                                                 {item.city}
                                             </h3>
                                         </div>
                                     </div>
 
-                                    {/* Body Specs in Layman Terms */}
-                                    <div className="p-6 sm:p-8 flex flex-col justify-between flex-1">
-                                        <div className="space-y-3.5 text-base text-slate-700 font-sans">
-                                            <div className="flex items-center justify-between border-b border-[#B3D6E6]/70 pb-3">
-                                                <span className="text-slate-500 font-mono text-xs uppercase tracking-wider">Primary Waterway</span>
-                                                <span className="font-bold text-slate-900">{item.river}</span>
+                                    <div className="p-6 sm:p-7 flex flex-col justify-between flex-1">
+                                        <dl className="space-y-3 text-base text-slate-700 font-sans">
+                                            <div className="flex flex-col gap-0.5 border-b border-[#B3D6E6]/70 pb-3">
+                                                <dt className="text-sm text-slate-600">Main waterway</dt>
+                                                <dd className="font-semibold text-slate-900">{item.river}</dd>
                                             </div>
-                                            <div className="flex items-center justify-between border-b border-[#B3D6E6]/70 pb-3">
-                                                <span className="text-slate-500 font-mono text-xs uppercase tracking-wider">Key Focus</span>
-                                                <span className="text-slate-800 font-medium">{item.focus}</span>
+                                            <div className="flex flex-col gap-0.5 border-b border-[#B3D6E6]/70 pb-3">
+                                                <dt className="text-sm text-slate-600">Floods first at</dt>
+                                                <dd className="text-slate-900">{item.focus}</dd>
                                             </div>
-                                            <div className="flex items-center justify-between">
-                                                <span className="text-slate-500 font-mono text-xs uppercase tracking-wider">Elevation Profile</span>
-                                                <span className="text-sky-800 font-mono text-sm font-semibold">{item.elevation}</span>
+                                            <div className="flex flex-col gap-0.5">
+                                                <dt className="text-sm text-slate-600">Ground</dt>
+                                                <dd className="text-slate-900">{item.elevation}</dd>
                                             </div>
-                                        </div>
+                                        </dl>
 
-                                        {/* Card Footer */}
-                                        <div className="mt-7 pt-5 border-t border-[#B3D6E6] flex items-center justify-between">
-                                            <div>
-                                                <span className="text-base font-bold text-slate-900 block">
-                                                    {item.pumps}
-                                                </span>
-                                                <span className="text-xs text-slate-500 block">
-                                                    Drainage Pumps Ready
-                                                </span>
-                                            </div>
-
-                                            <div className="flex items-center gap-1.5 text-base font-bold text-sky-700 group-hover:text-sky-800 transition-colors">
-                                                <span>Open City Map</span>
-                                                <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
-                                            </div>
+                                        <div className="mt-6 pt-5 border-t border-[#B3D6E6] flex flex-wrap items-center justify-between gap-x-4 gap-y-2">
+                                            <span className="text-sm text-slate-700 whitespace-nowrap">
+                                                {wardCount} {wardCount === 1 ? "ward" : "wards"} on the map
+                                            </span>
+                                            <span className="inline-flex items-center gap-1.5 text-base font-bold text-sky-800 whitespace-nowrap">
+                                                Open {item.city}
+                                                <ArrowRight className="w-4 h-4 group-hover:translate-x-0.5 transition-transform" aria-hidden="true" />
+                                            </span>
                                         </div>
                                     </div>
-                                </div>
-                            ))}
+                                </button>
+                                );
+                            })}
                         </div>
                     </section>
 
                     {/* ========================================================================= */}
-                    {/* SECTION 03: CITIZEN IMPACT & TRANSIT SAFETY (4 Pictorial Cards)            */}
+                    {/* What the estimate helps with                                              */}
                     {/* ========================================================================= */}
                     <section id="solutions" className="relative py-20 sm:py-28 w-full flex flex-col gap-10 sm:gap-12">
-                        <div className="flex flex-col lg:flex-row lg:items-end justify-between gap-8 border-b border-[#9DC6DA] pb-8 sm:pb-10">
-                            <div className="max-w-4xl">
-                                <div className="inline-flex items-center gap-2.5 px-3.5 py-1.5 rounded-md bg-sky-100/90 border border-sky-300 text-sky-900 font-mono text-xs font-bold tracking-wider uppercase shadow-xs">
-                                    <ShieldCheck className="w-3.5 h-3.5 text-sky-700" />
-                                    <span>CIVIL PROTECTION &amp; CITIZEN SAFETY // 03</span>
-                                </div>
-                                <h2 className="font-editorial text-4xl sm:text-5xl lg:text-6xl font-normal text-slate-900 mt-4 tracking-tight leading-[1.12]">
-                                    Real Problems Citizens Face — And How We Solve Them
-                                </h2>
-                                <p className="text-slate-700 text-lg sm:text-xl lg:text-2xl mt-4 leading-relaxed font-sans font-light">
-                                    Monsoon deluges shouldn't cause flooded vehicles, stranded commuters, or waterlogged neighborhoods. Here is how real-time insights protect daily life.
-                                </p>
-                            </div>
-
-                            <button
-                                onClick={onEnter}
-                                className="flex items-center gap-1.5 text-base font-bold text-sky-800 hover:text-sky-900 transition-colors cursor-pointer shrink-0"
-                            >
-                                <span>Explore All Hotspots</span>
-                                <ArrowRight className="w-4 h-4" />
-                            </button>
+                        <div className="max-w-3xl border-b border-[#9DC6DA] pb-8 sm:pb-10">
+                            <h2 className="font-editorial text-4xl sm:text-5xl lg:text-6xl font-semibold text-slate-900 tracking-[-0.01em] leading-[1.05]" style={{ textWrap: 'balance' }}>
+                                What the estimate helps with
+                            </h2>
+                            <p className="text-slate-700 text-lg sm:text-xl mt-4 leading-relaxed font-sans" style={{ textWrap: 'pretty' }}>
+                                Four everyday decisions during a heavy monsoon, and what RainDrop can and
+                                cannot tell you about each.
+                            </p>
                         </div>
 
-                        {/* 4 Large Pictorial Impact Cards with Pleasant Gaps */}
-                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 sm:gap-8">
-                            {/* Card 1: Monsoon Bus Splash */}
-                            <div 
-                                onClick={() => { if (onSelectCity) onSelectCity("Kolkata"); else onEnter(); }}
-                                className="group rounded-2xl bg-white/95 border border-[#9DC6DA] hover:border-sky-600 transition-all duration-300 ease-out overflow-hidden flex flex-col cursor-pointer hover:-translate-y-1.5 shadow-sm hover:shadow-xl"
+                        <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-6 sm:gap-7">
+                            <button
+                                type="button"
+                                onClick={onEnter}
+                                className="group text-left rounded-2xl bg-white border border-[#9DC6DA] hover:border-sky-600 transition-[border-color,box-shadow,transform] duration-300 ease-out overflow-hidden flex flex-col cursor-pointer hover:-translate-y-1 shadow-sm hover:shadow-lg"
                             >
-                                <div className="relative h-64 sm:h-72 overflow-hidden bg-slate-900">
+                                <div className="relative h-56 sm:h-64 w-full overflow-hidden bg-slate-900">
                                     <img
-                                        src="/static/images/hero-monsoon-bus-splash.jpg"
-                                        alt="City Bus moving through heavy rainwater"
-                                        className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700 ease-out"
+                                        loading="lazy"
+                                        decoding="async"
+                                        src="/static/images/hero-monsoon-bus-splash.webp"
+                                        alt=""
+                                        width="1600"
+                                        height="1067"
+                                        className="w-full h-full object-cover group-hover:scale-[1.03] transition-transform duration-700 ease-out"
                                     />
-                                    <div className="absolute top-4 left-4 bg-white/95 text-slate-900 text-xs font-bold px-3 py-1 rounded-sm border border-slate-200 shadow-xs">
-                                        Public Transit
-                                    </div>
+                                    <span className="absolute top-4 left-4 rounded-full bg-white/95 px-3 py-1 text-xs font-semibold text-slate-900">
+                                        Commuting
+                                    </span>
                                 </div>
-                                <div className="p-6 sm:p-8 flex flex-col justify-between flex-1">
+                                <div className="p-6 sm:p-7 flex flex-col justify-between flex-1">
                                     <div>
-                                        <h3 className="font-sans font-bold text-slate-900 text-xl group-hover:text-sky-700 transition-colors">
-                                            Keeping Public Buses Moving
+                                        <h3 className="font-sans font-bold text-slate-900 text-xl" style={{ textWrap: 'balance' }}>
+                                            Planning around flooded roads
                                         </h3>
-                                        <p className="text-base text-slate-700 mt-3.5 leading-relaxed font-sans">
-                                            Routes city buses away from submerged lowlands onto dry flyover bypasses before main arterial roads flood.
+                                        <p className="text-base text-slate-700 mt-3 leading-relaxed font-sans" style={{ textWrap: 'pretty' }}>
+                                            See which wards are likely to flood over the next few hours, so commuters and transit crews can avoid the worst stretches. Routes are not planned for you.
                                         </p>
                                     </div>
-                                    <div className="mt-7 flex items-center justify-between text-sm border-t border-[#B3D6E6] pt-4">
-                                        <span className="font-bold text-sky-800">✓ Zero Stranded Commuters</span>
-                                        <span className="text-sky-700 font-bold group-hover:translate-x-1 transition-transform">See Live →</span>
+                                    <div className="mt-6 flex flex-wrap items-center justify-between gap-2 border-t border-[#B3D6E6] pt-4">
+                                        <span className="text-sm text-slate-600">Ward estimates, refreshed hourly</span>
+                                        <span className="inline-flex items-center gap-1.5 text-sm font-bold text-sky-800">
+                                            Compare wards
+                                            <ArrowRight className="w-4 h-4 group-hover:translate-x-0.5 transition-transform" aria-hidden="true" />
+                                        </span>
                                     </div>
                                 </div>
-                            </div>
+                            </button>
 
-                            {/* Card 2: Vehicle Engine Protection */}
-                            <div 
-                                onClick={() => { if (onSelectCity) onSelectCity("Kolkata"); else onEnter(); }}
-                                className="group rounded-2xl bg-white/95 border border-[#9DC6DA] hover:border-amber-600 transition-all duration-300 ease-out overflow-hidden flex flex-col cursor-pointer hover:-translate-y-1.5 shadow-sm hover:shadow-xl"
+                            <button
+                                type="button"
+                                onClick={() => (onCheckRoute ? onCheckRoute("Chennai") : onOpenMap(null, "Chennai"))}
+                                className="group text-left rounded-2xl bg-white border border-[#9DC6DA] hover:border-sky-600 transition-[border-color,box-shadow,transform] duration-300 ease-out overflow-hidden flex flex-col cursor-pointer hover:-translate-y-1 shadow-sm hover:shadow-lg"
                             >
-                                <div className="relative h-64 sm:h-72 overflow-hidden bg-slate-900">
+                                <div className="relative h-56 sm:h-64 w-full overflow-hidden bg-slate-900">
                                     <img
-                                        src="/static/images/pexels-dibakar-roy-2432543-18192646.jpg"
-                                        alt="Car driving through rain street reflection"
-                                        className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700 ease-out"
+                                        loading="lazy"
+                                        decoding="async"
+                                        src="/static/images/pexels-dibakar-roy-2432543-18192646.webp"
+                                        alt=""
+                                        width="1600"
+                                        height="1067"
+                                        className="w-full h-full object-cover group-hover:scale-[1.03] transition-transform duration-700 ease-out"
                                     />
-                                    <div className="absolute top-4 left-4 bg-white/95 text-amber-900 text-xs font-bold px-3 py-1 rounded-sm border border-amber-200 shadow-xs">
-                                        Vehicle Safety
-                                    </div>
+                                    <span className="absolute top-4 left-4 rounded-full bg-white/95 px-3 py-1 text-xs font-semibold text-slate-900">
+                                        Driving
+                                    </span>
                                 </div>
-                                <div className="p-6 sm:p-8 flex flex-col justify-between flex-1">
+                                <div className="p-6 sm:p-7 flex flex-col justify-between flex-1">
                                     <div>
-                                        <h3 className="font-sans font-bold text-slate-900 text-xl group-hover:text-amber-800 transition-colors">
-                                            Preventing Engine Damage
+                                        <h3 className="font-sans font-bold text-slate-900 text-xl" style={{ textWrap: 'balance' }}>
+                                            Before you drive in
                                         </h3>
-                                        <p className="text-base text-slate-700 mt-3.5 leading-relaxed font-sans">
-                                            Flags exact street puddle depths before you drive in, preventing engine water intake and expensive vehicle repairs.
+                                        <p className="text-base text-slate-700 mt-3 leading-relaxed font-sans" style={{ textWrap: 'pretty' }}>
+                                            Enter the depth you can see and get a plain answer for a two-wheeler, a car or a bus. Moving water is more dangerous than any number suggests.
                                         </p>
                                     </div>
-                                    <div className="mt-7 flex items-center justify-between text-sm border-t border-[#B3D6E6] pt-4">
-                                        <span className="font-bold text-amber-800">✓ 100% Engine Safety</span>
-                                        <span className="text-sky-700 font-bold group-hover:translate-x-1 transition-transform">See Live →</span>
+                                    <div className="mt-6 flex flex-wrap items-center justify-between gap-2 border-t border-[#B3D6E6] pt-4">
+                                        <span className="text-sm text-slate-600">Advice per vehicle, not a guarantee</span>
+                                        <span className="inline-flex items-center gap-1.5 text-sm font-bold text-sky-800">
+                                            Check a depth
+                                            <ArrowRight className="w-4 h-4 group-hover:translate-x-0.5 transition-transform" aria-hidden="true" />
+                                        </span>
                                     </div>
                                 </div>
-                            </div>
+                            </button>
 
-                            {/* Card 3: Riverside Community Safety */}
-                            <div 
-                                onClick={() => { if (onSelectCity) onSelectCity("Delhi"); else onEnter(); }}
-                                className="group rounded-2xl bg-white/95 border border-[#9DC6DA] hover:border-teal-600 transition-all duration-300 ease-out overflow-hidden flex flex-col cursor-pointer hover:-translate-y-1.5 shadow-sm hover:shadow-xl"
+                            <button
+                                type="button"
+                                onClick={() => onOpenMap(null, "Delhi")}
+                                className="group text-left rounded-2xl bg-white border border-[#9DC6DA] hover:border-sky-600 transition-[border-color,box-shadow,transform] duration-300 ease-out overflow-hidden flex flex-col cursor-pointer hover:-translate-y-1 shadow-sm hover:shadow-lg"
                             >
-                                <div className="relative h-64 sm:h-72 overflow-hidden bg-slate-900">
+                                <div className="relative h-56 sm:h-64 w-full overflow-hidden bg-slate-900">
                                     <img
-                                        src="/static/images/hero-river-ghats-aerial-hd.jpg"
-                                        alt="Riverside community and riverfront view"
-                                        className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700 ease-out"
+                                        loading="lazy"
+                                        decoding="async"
+                                        src="/static/images/hero-river-ghats-aerial-hd.webp"
+                                        alt=""
+                                        width="1600"
+                                        height="1067"
+                                        className="w-full h-full object-cover group-hover:scale-[1.03] transition-transform duration-700 ease-out"
                                     />
-                                    <div className="absolute top-4 left-4 bg-white/95 text-teal-900 text-xs font-bold px-3 py-1 rounded-sm border border-teal-200 shadow-xs">
-                                        River Safety
-                                    </div>
+                                    <span className="absolute top-4 left-4 rounded-full bg-white/95 px-3 py-1 text-xs font-semibold text-slate-900">
+                                        Near a river
+                                    </span>
                                 </div>
-                                <div className="p-6 sm:p-8 flex flex-col justify-between flex-1">
+                                <div className="p-6 sm:p-7 flex flex-col justify-between flex-1">
                                     <div>
-                                        <h3 className="font-sans font-bold text-slate-900 text-xl group-hover:text-teal-800 transition-colors">
-                                            Protecting Riverside Areas
+                                        <h3 className="font-sans font-bold text-slate-900 text-xl" style={{ textWrap: 'balance' }}>
+                                            Living near a river
                                         </h3>
-                                        <p className="text-base text-slate-700 mt-3.5 leading-relaxed font-sans">
-                                            Continuous river gauges upstream give residents and authorities up to 6 hours of advance notice before river levels peak.
+                                        <p className="text-base text-slate-700 mt-3 leading-relaxed font-sans" style={{ textWrap: 'pretty' }}>
+                                            Shows how close each ward's river is to its danger level. The level is estimated from rainfall, because no river gauge is connected yet.
                                         </p>
                                     </div>
-                                    <div className="mt-7 flex items-center justify-between text-sm border-t border-[#B3D6E6] pt-4">
-                                        <span className="font-bold text-teal-800">✓ 6h Advance Surge Notice</span>
-                                        <span className="text-sky-700 font-bold group-hover:translate-x-1 transition-transform">See Live →</span>
+                                    <div className="mt-6 flex flex-wrap items-center justify-between gap-2 border-t border-[#B3D6E6] pt-4">
+                                        <span className="text-sm text-slate-600">Estimated, not gauged</span>
+                                        <span className="inline-flex items-center gap-1.5 text-sm font-bold text-sky-800">
+                                            Open Delhi
+                                            <ArrowRight className="w-4 h-4 group-hover:translate-x-0.5 transition-transform" aria-hidden="true" />
+                                        </span>
                                     </div>
                                 </div>
-                            </div>
+                            </button>
 
-                            {/* Card 4: Proactive Pump Station Dewatering */}
-                            <div 
-                                onClick={() => { if (onSelectCity) onSelectCity("Chennai"); else onEnter(); }}
-                                className="group rounded-2xl bg-white/95 border border-[#9DC6DA] hover:border-sky-600 transition-all duration-300 ease-out overflow-hidden flex flex-col cursor-pointer hover:-translate-y-1.5 shadow-sm hover:shadow-xl"
+                            <button
+                                type="button"
+                                onClick={() => onOpenMap(null, "Chennai")}
+                                className="group text-left rounded-2xl bg-white border border-[#9DC6DA] hover:border-sky-600 transition-[border-color,box-shadow,transform] duration-300 ease-out overflow-hidden flex flex-col cursor-pointer hover:-translate-y-1 shadow-sm hover:shadow-lg"
                             >
-                                <div className="relative h-64 sm:h-72 overflow-hidden bg-slate-900">
+                                <div className="relative h-56 sm:h-64 w-full overflow-hidden bg-slate-900">
                                     <img
-                                        src="/static/images/pexels-dibakar-roy-2432543-19391751.jpg"
-                                        alt="Drainage canal pumps in action"
-                                        className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700 ease-out"
+                                        loading="lazy"
+                                        decoding="async"
+                                        src="/static/images/pexels-dibakar-roy-2432543-19391751.webp"
+                                        alt=""
+                                        width="1600"
+                                        height="1067"
+                                        className="w-full h-full object-cover group-hover:scale-[1.03] transition-transform duration-700 ease-out"
                                     />
-                                    <div className="absolute top-4 left-4 bg-white/95 text-sky-900 text-xs font-bold px-3 py-1 rounded-sm border border-sky-200 shadow-xs">
-                                        Pump Activation
-                                    </div>
+                                    <span className="absolute top-4 left-4 rounded-full bg-white/95 px-3 py-1 text-xs font-semibold text-slate-900">
+                                        Control rooms
+                                    </span>
                                 </div>
-                                <div className="p-6 sm:p-8 flex flex-col justify-between flex-1">
+                                <div className="p-6 sm:p-7 flex flex-col justify-between flex-1">
                                     <div>
-                                        <h3 className="font-sans font-bold text-slate-900 text-xl group-hover:text-sky-700 transition-colors">
-                                            Proactive Pump Activation
+                                        <h3 className="font-sans font-bold text-slate-900 text-xl" style={{ textWrap: 'balance' }}>
+                                            Deciding where to send pumps
                                         </h3>
-                                        <p className="text-base text-slate-700 mt-3.5 leading-relaxed font-sans">
-                                            Alerts municipal drainage teams where stormwater will pool so heavy pumps start draining sumps well before water overflows.
+                                        <p className="text-base text-slate-700 mt-3 leading-relaxed font-sans" style={{ textWrap: 'pretty' }}>
+                                            Operators sign in to see which sectors are likely to pond first. Pump running status is not connected, so availability is confirmed with the ward office.
                                         </p>
                                     </div>
-                                    <div className="mt-7 flex items-center justify-between text-sm border-t border-[#B3D6E6] pt-4">
-                                        <span className="font-bold text-sky-800">✓ Automated Sump Clearing</span>
-                                        <span className="text-sky-700 font-bold group-hover:translate-x-1 transition-transform">See Live →</span>
+                                    <div className="mt-6 flex flex-wrap items-center justify-between gap-2 border-t border-[#B3D6E6] pt-4">
+                                        <span className="text-sm text-slate-600">Operator sign-in required</span>
+                                        <span className="inline-flex items-center gap-1.5 text-sm font-bold text-sky-800">
+                                            Open the control room
+                                            <ArrowRight className="w-4 h-4 group-hover:translate-x-0.5 transition-transform" aria-hidden="true" />
+                                        </span>
                                     </div>
                                 </div>
-                            </div>
+                            </button>
+
                         </div>
                     </section>
                 </div>
@@ -3342,6 +3778,9 @@ function InteractiveVectorMap(props) {
         mapStyle = "Map",
         mapToggles = { hotspots: true, pumps: true, shelters: false, metro: true, boundaries: false },
         timelineStep = 1,
+        // Reference corridor for the selected city, fetched from /api/cities.
+        // Previously the corridor shown here was hardcoded to Mumbai.
+        cityCorridor = null,
     } = props;
 
     const mapRef = useRef(null);
@@ -3433,33 +3872,33 @@ function InteractiveVectorMap(props) {
                 if (coords.length < 2 || isNaN(coords[0]) || isNaN(coords[1])) return;
                 const [lat, lon] = coords;
 
-                let nodeHtml = "";
-                let nodeSize = [28, 28];
-                let anchor = [14, 14];
+                // One ordered risk scale for the marker, the pool and the popup.
+                // These used to disagree: the 15-30 cm band was blue on the map
+                // and amber in the popup, and "Critical" shared its colour with
+                // "High". See client/src/lib/riskScale.js.
+                const band = bandForDepth(depth);
 
-                if (depth >= 30) {
-                    // Critical hotspot: Red circle with white exclamation point & glowing pulse
-                    nodeHtml = `<div style="background:#ef4444; color:#ffffff; width:28px; height:28px; border-radius:50%; display:flex; align-items:center; justify-content:center; font-weight:900; font-size:14px; border:3px solid #ffffff; box-shadow:0 4px 12px rgba(239,68,68,0.6); cursor:pointer; font-family:Inter,sans-serif; transition:transform 0.2s;">!</div>`;
-                } else if (depth >= 15) {
-                    // Caution hotspot: Amber circle with warning triangle
-                    nodeHtml = `<div style="background:#f59e0b; color:#ffffff; width:26px; height:26px; border-radius:50%; display:flex; align-items:center; justify-content:center; font-weight:900; font-size:12px; border:2.5px solid #ffffff; box-shadow:0 3px 8px rgba(245,158,11,0.5); cursor:pointer; font-family:Inter,sans-serif; transition:transform 0.2s;">▲</div>`;
-                    nodeSize = [26, 26];
-                    anchor = [13, 13];
-                } else {
-                    // Clear safe corridor: Emerald circle with checkmark
-                    nodeHtml = `<div style="background:#10b981; color:#ffffff; width:24px; height:24px; border-radius:50%; display:flex; align-items:center; justify-content:center; font-weight:900; font-size:12px; border:2px solid #ffffff; box-shadow:0 3px 8px rgba(16,185,129,0.45); cursor:pointer; font-family:Inter,sans-serif; transition:transform 0.2s;">✓</div>`;
-                    nodeSize = [24, 24];
-                    anchor = [12, 12];
-                }
+                // Shape and glyph vary with the band as well as colour, so the
+                // map is readable in greyscale and with colour-vision deficiency.
+                const glyph = ["", "●", "▲", "!", "!"][band.order] || "●";
+                const nodeSize = [28, 28];
+                const anchor = [14, 14];
+                const nodeHtml =
+                    '<div title="' + escapeHtml(sec.name + ": " + band.label) + '" ' +
+                    'style="background:' + band.hex + '; color:#ffffff; width:28px; height:28px; ' +
+                    'border-radius:50%; display:flex; align-items:center; justify-content:center; ' +
+                    'font-weight:900; font-size:13px; border:3px solid #ffffff; ' +
+                    'box-shadow:0 2px 8px rgba(15,23,42,0.45); cursor:pointer; font-family:Inter,sans-serif;">' +
+                    glyph + '</div>';
 
-                // Inundation radial pool
+                // Inundation pool
                 const circleRadius = Math.max(80, depth * 4.5 + 40);
                 const circle = window.L.circle([lat, lon], {
                     radius: circleRadius,
-                    color: depth >= 30 ? '#f43f5e' : depth >= 15 ? '#fbbf24' : '#34d399',
-                    fillColor: depth >= 30 ? '#ef4444' : depth >= 15 ? '#3b82f6' : '#10b981',
-                    fillOpacity: 0.25,
-                    weight: 1,
+                    color: band.hex,
+                    fillColor: band.fill,
+                    fillOpacity: band.order === 0 ? 0.12 : 0.28,
+                    weight: 1.5,
                 }).addTo(map);
 
                 const icon = window.L.divIcon({
@@ -3469,73 +3908,86 @@ function InteractiveVectorMap(props) {
                     iconAnchor: anchor
                 });
 
-                const marker = window.L.marker([lat, lon], { icon }).addTo(map);
+                const marker = window.L.marker([lat, lon], {
+                    icon,
+                    // Markers were unreachable by keyboard and unnamed to a
+                    // screen reader. Leaflet exposes both through these options.
+                    keyboard: true,
+                    alt: sec.name + ", estimated " + depth.toFixed(0) + " cm, " + band.label,
+                    title: sec.name + ": " + band.label,
+                }).addTo(map);
 
-                // Rich Interactive Leaflet Popup with Full Telemetry
-                const riskBadge = depth >= 30 ? "CRITICAL RISK" : depth >= 15 ? "MODERATE HAZARD" : "SAFE ELEVATION";
-                const riskBg = depth >= 30 ? "#fef2f2" : depth >= 15 ? "#fffbeb" : "#ecfdf5";
-                const riskColor = depth >= 30 ? "#dc2626" : depth >= 15 ? "#d97706" : "#059669";
-                const riskBorder = depth >= 30 ? "#fca5a5" : depth >= 15 ? "#fcd34d" : "#6ee7b7";
+                // Popups are HTML strings, so every interpolated value is escaped.
+                // Nothing here is attacker-controlled today; the moment these names
+                // come from the API or a citizen report, an unescaped one is stored XSS.
+                const passability = depth >= 30
+                    ? 'Do not enter on foot or by vehicle.'
+                    : depth >= 15
+                        ? 'Risky for two-wheelers and cars. Walking is risky if the water is moving.'
+                        : depth >= 5
+                            ? 'Usually passable with care.'
+                            : 'Road is clear.';
 
-                const popupHtml = `
-                <div style="font-family:Inter,sans-serif; min-width:250px; padding:4px 2px;">
-                    <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:8px;">
-                        <span style="font-size:10px; font-weight:800; text-transform:uppercase; letter-spacing:0.04em; background:${riskBg}; color:${riskColor}; border:1px solid ${riskBorder}; padding:2.5px 8px; border-radius:9999px;">
-                            ${riskBadge}
-                        </span>
-                        <span style="font-size:10px; color:#64748b; font-family:monospace;">${sec.elevation}m MSL</span>
-                    </div>
-                    <div style="font-size:14px; font-weight:800; color:#0f172a; line-height:1.25; margin-bottom:3px;">
-                        ${sec.name}
-                    </div>
-                    <div style="font-size:11px; color:#64748b; margin-bottom:10px;">
-                        ${wardData.name} · ${wardData.city} (${wardData.riverName})
-                    </div>
+                const popupHtml =
+                '<div style="font-family:Inter,sans-serif; min-width:250px; padding:4px 2px;">' +
+                    '<div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:8px;">' +
+                        '<span style="font-size:11px; font-weight:800; text-transform:uppercase; letter-spacing:0.04em; ' +
+                        'background:' + band.bg + '; color:' + band.text + '; border:1px solid ' + band.border + '; ' +
+                        'padding:3px 9px; border-radius:9999px;">' + escapeHtml(band.label) + '</span>' +
+                        '<span style="font-size:11px; color:#475569; font-family:monospace;">' +
+                        escapeHtml(sec.elevation) + ' m</span>' +
+                    '</div>' +
 
-                    <div style="display:grid; grid-template-columns:1fr 1fr; gap:6px; margin-bottom:10px;">
-                        <div style="background:#f8fafc; border:1px solid #e2e8f0; border-radius:12px; padding:8px 10px;">
-                            <div style="font-size:9.5px; color:#64748b; font-weight:600;">Water Depth</div>
-                            <div style="font-size:15px; font-weight:800; color:${depth >= 30 ? '#dc2626' : depth >= 15 ? '#d97706' : '#2563eb'}; font-family:monospace;">
-                                ${depth.toFixed(1)} cm
-                            </div>
-                        </div>
-                        <div style="background:#f8fafc; border:1px solid #e2e8f0; border-radius:12px; padding:8px 10px;">
-                            <div style="font-size:9.5px; color:#64748b; font-weight:600;">Flow Velocity</div>
-                            <div style="font-size:15px; font-weight:800; color:#0f172a; font-family:monospace;">
-                                ${(1.1 + depth * 0.02).toFixed(1)} m/s
-                            </div>
-                        </div>
-                    </div>
+                    '<div style="font-size:15px; font-weight:800; color:#0f172a; line-height:1.25; margin-bottom:3px;">' +
+                        escapeHtml(sec.name) +
+                    '</div>' +
+                    '<div style="font-size:12px; color:#475569; margin-bottom:10px;">' +
+                        escapeHtml(wardData.name) + ' · ' + escapeHtml(wardData.city) +
+                    '</div>' +
 
-                    <div style="background:#f8fafc; border:1px solid #e2e8f0; border-radius:12px; padding:8px 10px; margin-bottom:10px; font-size:11px;">
-                        <div style="display:flex; justify-content:space-between; margin-bottom:4px;">
-                            <span style="color:#64748b;">Drainage Culvert:</span>
-                            <span style="font-weight:700; color:${depth >= 30 ? '#dc2626' : '#059669'};">
-                                ${depth >= 30 ? '92% Surcharged' : depth >= 15 ? '64% Flowing' : '28% Free Flow'}
-                            </span>
-                        </div>
-                        <div style="display:flex; justify-content:space-between; margin-bottom:4px;">
-                            <span style="color:#64748b;">Pedestrians:</span>
-                            <span style="font-weight:700; color:${depth >= 15 ? '#dc2626' : '#059669'};">
-                                ${depth >= 15 ? '⛔ Impassable' : '✅ Passable'}
-                            </span>
-                        </div>
-                        <div style="display:flex; justify-content:space-between;">
-                            <span style="color:#64748b;">Vehicles:</span>
-                            <span style="font-weight:700; color:${depth >= 25 ? '#dc2626' : depth >= 15 ? '#d97706' : '#059669'};">
-                                ${depth >= 25 ? '⛔ High Stall Risk' : depth >= 15 ? '⚠️ Caution' : '✅ Clear'}
-                            </span>
-                        </div>
-                    </div>
+                    '<div style="background:#f8fafc; border:1px solid #cbd5e1; border-radius:12px; padding:9px 11px; margin-bottom:9px;">' +
+                        '<div style="font-size:11px; color:#475569; font-weight:600;">Estimated water depth</div>' +
+                        '<div style="font-size:19px; font-weight:800; color:' + band.text + '; font-family:monospace;">' +
+                            escapeHtml(depth.toFixed(0)) + ' cm' +
+                        '</div>' +
+                        '<div style="font-size:11px; color:#475569;">' + escapeHtml(band.plain) + '</div>' +
+                    '</div>' +
 
-                    <button type="button" onclick="window._openSectorDrawer && window._openSectorDrawer(${idx})" style="width:100%; background:#0f2942; color:#ffffff; border:none; padding:8px 12px; border-radius:12px; font-size:11.5px; font-weight:700; cursor:pointer; display:flex; align-items:center; justify-content:center; gap:6px; box-shadow:0 2px 6px rgba(15,41,66,0.2);">
-                        <span>Check Location Safety &rarr;</span>
-                    </button>
-                </div>
-                `;
+                    '<div style="background:#f8fafc; border:1px solid #cbd5e1; border-radius:12px; padding:9px 11px; margin-bottom:9px; font-size:12px; color:#0f172a;">' +
+                        escapeHtml(passability) +
+                    '</div>' +
+
+                    // Flow velocity and drainage-culvert percentages used to appear
+                    // here. Nothing measures either, so they are gone rather than
+                    // fabricated from the depth.
+                    '<div style="font-size:11px; color:#475569; margin-bottom:9px; line-height:1.4;">' +
+                        'Modelled estimate from forecast rainfall and sample ground levels. ' +
+                        'Not a measurement, and not an official warning.' +
+                    '</div>' +
+
+                    '<button type="button" data-open-sector="' + Number(idx) + '" ' +
+                    'style="width:100%; min-height:44px; background:#0f2942; color:#ffffff; border:none; padding:10px 12px; ' +
+                    'border-radius:12px; font-size:13px; font-weight:700; cursor:pointer;">' +
+                        'Open details' +
+                    '</button>' +
+                '</div>';
 
                 marker.bindPopup(popupHtml, { maxWidth: 300, offset: [0, -10] });
                 circle.bindPopup(popupHtml, { maxWidth: 300, offset: [0, -10] });
+
+                // Wire the popup button with a real listener. An inline onclick=
+                // attribute is blocked by the site's CSP (script-src 'self'), so
+                // the button silently did nothing once served through nginx.
+                const wirePopupButton = (event) => {
+                    const root = event.popup && event.popup.getElement();
+                    const button = root && root.querySelector('[data-open-sector]');
+                    if (button && !button.dataset.wired) {
+                        button.dataset.wired = 'true';
+                        button.addEventListener('click', () => onSelectSector(idx));
+                    }
+                };
+                marker.on('popupopen', wirePopupButton);
+                circle.on('popupopen', wirePopupButton);
 
                 const handleNodeClick = () => {
                     onSelectSector(idx);
@@ -3561,7 +4013,12 @@ function InteractiveVectorMap(props) {
                     iconAnchor: [11, 11]
                 });
                 const pMarker = window.L.marker([pt[0] + 0.003, pt[1] - 0.003], { icon: pumpIcon }).addTo(map);
-                pMarker.bindPopup(`<strong>⚡ Stormwater Dewatering Pump #0${i+1}</strong><br><span style="font-size:11px; color:#2563eb;">Status: 100% Active Suction</span>`);
+                // No pump telemetry feed exists, so the popup states the location
+                // and says the running status is unknown rather than asserting one.
+                pMarker.bindPopup(
+                    '<strong>' + escapeHtml('Stormwater pump ' + (i + 1)) + '</strong><br>' +
+                    '<span style="font-size:12px; color:#475569;">Running status unknown: no pump telemetry is connected.</span>'
+                );
                 markersRef.current.push(pMarker);
             });
         }
@@ -3576,7 +4033,10 @@ function InteractiveVectorMap(props) {
                     iconAnchor: [11, 11]
                 });
                 const mMarker = window.L.marker([pt[0] - 0.0035, pt[1] + 0.0035], { icon: metroIcon }).addTo(map);
-                mMarker.bindPopup(`<strong>🚇 Metro Station #M-${i+1}</strong><br><span style="font-size:11px; color:#059669;">Corridor: Elevated Dry Deck</span>`);
+                mMarker.bindPopup(
+                    '<strong>' + escapeHtml('Metro station ' + (i + 1)) + '</strong><br>' +
+                    '<span style="font-size:12px; color:#475569;">Reference location. Service status is not monitored here.</span>'
+                );
                 markersRef.current.push(mMarker);
             });
         }
@@ -3591,7 +4051,12 @@ function InteractiveVectorMap(props) {
                     iconAnchor: [11, 11]
                 });
                 const sMarker = window.L.marker([pt[0] + 0.004, pt[1] + 0.004], { icon: shelterIcon }).addTo(map);
-                sMarker.bindPopup(`<strong>🏠 Emergency Relief Shelter #${i+1}</strong><br><span style="font-size:11px; color:#7c3aed;">Capacity: Available</span>`);
+                // "Capacity: Available" was a constant. Sending someone to a full
+                // shelter during a flood is a real harm, so we do not claim capacity.
+                sMarker.bindPopup(
+                    '<strong>' + escapeHtml('Relief shelter ' + (i + 1)) + '</strong><br>' +
+                    '<span style="font-size:12px; color:#475569;">Reference location. Confirm with the ward office before travelling.</span>'
+                );
                 markersRef.current.push(sMarker);
             });
         }
@@ -3615,8 +4080,12 @@ function InteractiveVectorMap(props) {
             } catch (_) {}
         }
 
-        // Render Safe Corridor & Bypass Route Lines if available
-        if (routeCheckResult && routeCheckResult.standard_route && routeCheckResult.safe_corridor) {
+        // Route polylines are not drawn any more. The coordinates behind them
+        // were generated by offsetting the city centre, so the lines did not
+        // follow roads and the "hazard bottleneck" they crossed was invented.
+        // Reinstate this once a real routing engine (OSRM, Valhalla, GraphHopper)
+        // is wired in against an OSM road graph.
+        if (false && routeCheckResult && routeCheckResult.standard_route && routeCheckResult.safe_corridor) {
             const stdCoords = routeCheckResult.standard_route.coordinates || [];
             const safeCoords = routeCheckResult.safe_corridor.coordinates || [];
 
@@ -3924,8 +4393,18 @@ function SectorDrawer({ sector, depth, wardName, onClose, pushToast }) {
                                     <div className="flex items-start gap-2">
                                         <span className="text-emerald-600 mt-0.5 font-bold">🛣️</span>
                                         <div>
-                                            <strong className="font-bold block">Recommended Dry Alternate Route</strong>
-                                            <span className="text-emerald-800 text-[11px]">Take the Kalina-CST Elevated Bypass. 100% dry (0 cm water), +3 min detour.</span>
+                                            <strong className="font-bold block">Elevated road on file for this city</strong>
+                                            {/*
+                                              This was hardcoded to Mumbai's Kalina-CST bypass and shown to
+                                              users in Chennai and Delhi too, with a "100% dry" guarantee the
+                                              system has no way to make. The corridor now comes from the
+                                              selected city and makes no passability promise.
+                                            */}
+                                            <span className="text-slate-800 text-xs">
+                                                {cityCorridor
+                                                    ? `${cityCorridor.name}. Usually above the surrounding low ground; conditions are not verified.`
+                                                    : "No reference corridor is on file for this city."}
+                                            </span>
                                         </div>
                                     </div>
                                     <button
@@ -4994,14 +5473,18 @@ function SitRepModal({ ward, wardData, floodStats, sectorDepths, timeStep, scena
 - Emergency Shelters: ${data.evacShelters}
 
 ## Incident Commander Directives
-1. Deploy mobile dewatering units to lowest elevation sectors in ${wardName}.
-2. Divert commuter transit along designated Safe Elevation Corridors via Kalina CST Flyover Upper Deck.
-3. Lower subway and underpass gates at critical waterlogged bottlenecks (Bail Bazar & Station West).
-4. Keep all ${data.activePumps} stormwater dewatering stations on continuous suction with auxiliary diesel backup.
+1. Consider dewatering units for the lowest-lying sectors in ${wardName}.
+2. Consider diverting transit to the elevated corridor on file for ${data.city}.
+3. Review underpass and subway gates at the sectors listed above.
+4. Confirm pump availability with the ward office: this system has no pump telemetry.
+
+NOTE: Depth figures are modelled estimates from forecast rainfall and sample
+ground levels, not measurements, and this is not an official IMD or NDMA
+warning. Verify before acting.
 `;
         navigator.clipboard.writeText(text).then(() => {
             if (pushToast) {
-                pushToast("SitRep Copied", "Markdown format ready for municipal dispatch.", "success");
+                pushToast("Situation report copied to the clipboard.", "success");
             }
         });
     };
@@ -5237,6 +5720,20 @@ function RainDrop() {
     const [liveForecast, setLiveForecast] = useState(null);
     const [isFetchingForecast, setIsFetchingForecast] = useState(false);
 
+    // Feed health, derived from fetch outcomes. See lib/riskScale.js.
+    const [feed, setFeed] = useState({
+        lastSuccessAt: null,
+        lastErrorAt: null,
+        error: null,
+        serverStatus: null,
+        observedAt: null,
+    });
+
+    // Operator session. Null means a citizen is using the page.
+    const { operator, setOperator, signOut: signOutOperator } = useOperatorSession();
+    const [loginOpen, setLoginOpen] = useState(false);
+    const [confirmRequest, setConfirmRequest] = useState(null);
+
     // Layer Controls
     const [layers, setLayers] = useState({
         heatmap: true,
@@ -5286,34 +5783,52 @@ function RainDrop() {
     const [routeCheckBusy, setRouteCheckBusy] = useState(false);
     const [routeCheckResult, setRouteCheckResult] = useState(null);
 
-    const pushToast = (msg) => {
+    // Toasts are for operational outcomes and errors only. Routine UI changes
+    // (focus, map view, timeline position) are visible on screen already, and
+    // announcing them trained operators to ignore the toast area entirely.
+    // `tone` drives the aria-live politeness: errors assert, the rest is polite.
+    const pushToast = (msg, tone = "info") => {
         const id = ++toastId.current;
-        setToasts((t) => [...t.slice(-1), { id, msg }]);
-        setTimeout(() => setToasts((t) => t.filter((x) => x.id !== id)), 2200);
+        setToasts((t) => [...t.slice(-2), { id, msg, tone }]);
+        // Errors stay long enough to read and act on; the old 2.2 s was not
+        // enough time to read "backend offline" before it vanished.
+        const lifetime = tone === "error" ? 9000 : 4500;
+        setTimeout(() => setToasts((t) => t.filter((x) => x.id !== id)), lifetime);
     };
 
-    // Fetch Live Real-Time ML Ward Forecast from FastAPI Backend
+    // Fetch the ward forecast. Feed health is derived from what actually
+    // happened to this request, never from the wall clock.
     const loadWardForecast = useCallback(async (targetWard = ward, targetCity = selectedCity) => {
         setIsFetchingForecast(true);
         try {
-            const res = await fetch(`/api/ward_forecast?ward_name=${encodeURIComponent(targetWard)}&city=${encodeURIComponent(targetCity)}`);
-            if (res.ok) {
-                const data = await res.json();
-                setLiveForecast(data);
-                setRadarTime(new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' }));
-                
-                if (data.prediction && data.prediction.timeseries_mm_hr && data.prediction.timeseries_mm_hr.length > 0) {
-                    const newHydro = data.prediction.timeseries_mm_hr.slice(0, 7).map((val, idx) => ({
-                        t: data.prediction.timeseries_labels[idx] || `+${idx}h`,
-                        rain: Math.round(val * 10) / 10,
-                        surge: Number((1.2 + val * 0.05).toFixed(1)),
-                        label: data.prediction.timeseries_labels[idx] || `+${idx}h Forecast`
-                    }));
-                    setHydrograph(newHydro);
-                }
+            const res = await fetch(
+                `/api/ward_forecast?ward_name=${encodeURIComponent(targetWard)}&city=${encodeURIComponent(targetCity)}`,
+                { credentials: "same-origin" }
+            );
+            if (!res.ok) throw new Error(`Server responded ${res.status}`);
+
+            const data = await res.json();
+            setLiveForecast(data);
+            setFeed({
+                lastSuccessAt: Date.now(),
+                lastErrorAt: null,
+                error: null,
+                serverStatus: (data.provenance && data.provenance.data_status) || "heuristic",
+                observedAt: (data.provenance && data.provenance.observed_at) || null,
+            });
+
+            const forecast = data.forecast;
+            if (forecast && forecast.hourly_rainfall_mm && forecast.hourly_rainfall_mm.length > 0) {
+                setHydrograph(forecast.hourly_rainfall_mm.slice(0, 7).map((val, idx) => ({
+                    t: forecast.hourly_labels[idx] || `+${idx}h`,
+                    rain: Math.round(val * 10) / 10,
+                    label: forecast.hourly_labels[idx] || `+${idx}h`,
+                })));
             }
         } catch (err) {
-            console.warn("Backend API sync offline, using local model state:", err);
+            // Previously this only reached console.warn, so the UI kept showing
+            // mock numbers under a green "Live" badge.
+            setFeed((prev) => ({ ...prev, lastErrorAt: Date.now(), error: err.message }));
         } finally {
             setIsFetchingForecast(false);
         }
@@ -5324,6 +5839,29 @@ function RainDrop() {
         const pollId = setInterval(() => loadWardForecast(ward, selectedCity), 30000);
         return () => clearInterval(pollId);
     }, [ward, selectedCity, loadWardForecast]);
+
+    // City registry: supplies each city's reference evacuation corridor so the
+    // map and the route panel stop showing Mumbai's flyover everywhere.
+    const [cityRegistry, setCityRegistry] = useState(null);
+
+    useEffect(() => {
+        let cancelled = false;
+        fetch("/api/cities", { credentials: "same-origin" })
+            .then((response) => (response.ok ? response.json() : null))
+            .then((body) => {
+                if (!cancelled && body) setCityRegistry(body);
+            })
+            .catch(() => {});
+        return () => { cancelled = true; };
+    }, []);
+
+    const cityCorridor = useMemo(() => {
+        if (!cityRegistry) return null;
+        const match = cityRegistry.cities.find(
+            (city) => city.name.toLowerCase() === String(selectedCity).toLowerCase()
+        );
+        return match ? match.corridor : null;
+    }, [cityRegistry, selectedCity]);
 
     // --- Telemetry Polling (every 30 s) ---
     useEffect(() => {
@@ -5358,7 +5896,6 @@ function RainDrop() {
             setRouteProgress((p) => {
                 if (p >= 100) {
                     setIsSimulatingRoute(false);
-                    pushToast("Vehicle arrived safely via elevation bypass corridor");
                     return 100;
                 }
                 return p + 5;
@@ -5367,21 +5904,39 @@ function RainDrop() {
         return () => clearInterval(interval);
     }, [isSimulatingRoute]);
 
+    // Feed state drives the status badge and the offline banner.
+    const feedStatus = useMemo(() => feedState(feed), [feed]);
+    const feedMeta = useMemo(() => statusMeta(feedStatus), [feedStatus]);
+    const isFeedTrustworthy = feedStatus === "live" || feedStatus === "heuristic";
+
     const currentWardData = useMemo(() => {
         const base = WARDS_DATA[ward] || WARDS_DATA["Velachery"] || Object.values(WARDS_DATA)[0];
-        if (!liveForecast || liveForecast.ward_name !== base.name) return base;
+        // Only overlay live values when the response is for the ward on screen
+        // and the feed is actually current. Otherwise the sample data stands,
+        // and the status badge says so.
+        if (!liveForecast || !liveForecast.ward || liveForecast.ward.name !== base.name || !isFeedTrustworthy) {
+            return base;
+        }
+        const river = liveForecast.river || {};
+        const forecast = liveForecast.forecast || {};
+        const pumps = liveForecast.pumps || {};
         return {
             ...base,
-            riverLevel: liveForecast.river_level_m !== undefined ? liveForecast.river_level_m : base.riverLevel,
-            rainfallForecast: liveForecast.rainfall_forecast_mm !== undefined ? `${liveForecast.rainfall_forecast_mm} mm` : base.rainfallForecast,
-            activePumps: liveForecast.active_pumps || base.activePumps,
-            riskLevel: liveForecast.status || base.riskLevel,
+            riverLevel: river.estimated_level_m !== undefined ? river.estimated_level_m : base.riverLevel,
+            dangerLevel: river.danger_level_m !== undefined ? river.danger_level_m : base.dangerLevel,
+            rainfallForecast: forecast.total_rainfall_mm !== undefined ? `${forecast.total_rainfall_mm} mm` : base.rainfallForecast,
+            // There is no pump telemetry feed. Say so rather than inventing a count.
+            activePumps: pumps.active === null || pumps.active === undefined
+                ? `— / ${pumps.total_installed ?? "?"} (no telemetry)`
+                : `${pumps.active} / ${pumps.total_installed}`,
+            riskLevel: forecast.risk_level || base.riskLevel,
         };
-    }, [ward, liveForecast]);
+    }, [ward, liveForecast, isFeedTrustworthy]);
 
     const sectorDepths = useMemo(() => {
-        const predDepth = (liveForecast && liveForecast.predicted_flood_depth_cm !== undefined) ? liveForecast.predicted_flood_depth_cm : null;
-        const livePeak = (liveForecast && liveForecast.prediction && liveForecast.prediction.peak_intensity_mm_hr) || 15;
+        const forecast = (isFeedTrustworthy && liveForecast && liveForecast.forecast) || null;
+        const predDepth = forecast ? forecast.predicted_flood_depth_cm : null;
+        const livePeak = (forecast && forecast.peak_intensity_mm_hr) || 15;
         const rainRatio = Math.max(0.1, livePeak / 30.0);
         const timeMultiplier = (timeStep * 0.35) + 0.65;
         const rainFactor = scenario.rainfallMultiplier * (rainRatio > 0 ? rainRatio : 1.0);
@@ -5399,57 +5954,119 @@ function RainDrop() {
             );
             return Math.max(0, calc);
         });
-    }, [currentWardData, timeStep, scenario, liveForecast]);
+    }, [currentWardData, timeStep, scenario, liveForecast, isFeedTrustworthy]);
+
+    // Sector depths are modelled from the ward estimate and sample elevations.
+    // They are never a measurement, and the UI labels them accordingly.
+    const sectorDepthsAreModelled = true;
 
     const floodStats = useMemo(() => {
-        let clear = 0;
-        let caution = 0;
-        let critical = 0;
-        sectorDepths.forEach((d) => {
-            if (d < 15) clear++;
-            else if (d < 30) caution++;
-            else critical++;
+        // Band boundaries come from the shared risk scale so the counts here
+        // and the colours on the map can never disagree.
+        const counts = { clear: 0, caution: 0, critical: 0 };
+        sectorDepths.forEach((depth) => {
+            const band = bandForDepth(depth);
+            if (band.order <= 1) counts.clear += 1;
+            else if (band.order === 2) counts.caution += 1;
+            else counts.critical += 1;
         });
-        return { clear, caution, critical };
+        return counts;
     }, [sectorDepths]);
 
-    const runAction = (setBusy, msg, after) => {
-        setBusy(true);
-        setTimeout(() => {
-            setBusy(false);
-            pushToast(msg);
-            if (after) after();
-        }, 900);
+    /**
+     * Ask for confirmation, then run a control-room action.
+     *
+     * The old runAction waited 900 ms and then reported success without doing
+     * anything. This one requires a signed-in operator, shows what is about to
+     * happen, and reports the real outcome of the request.
+     */
+    const requestOperatorAction = ({ title, description, details, confirmLabel, run }) => {
+        if (!operator) {
+            setLoginOpen(true);
+            pushToast("Sign in as an operator to dispatch resources.", "error");
+            return;
+        }
+        setConfirmRequest({
+            title,
+            description,
+            details,
+            confirmLabel,
+            run,
+        });
     };
 
-    const handleEnableMap = () => {
-        setIsMapEnabled(true);
-        pushToast(`Spatial flood map activated for ${ward}`);
-    };
-
-    const handleDisableMap = () => {
-        setIsMapEnabled(false);
-        pushToast("Spatial map switched to Standby Mode");
-    };
-
-    // --- Nowcast API Call ---
-    const handleRefreshNowcast = async () => {
-        setNowcastBusy(true);
-        setNowcastResult(null);
+    const confirmPendingAction = async () => {
+        const request = confirmRequest;
+        setConfirmRequest(null);
+        if (!request) return;
         try {
-            const res = await fetch("/api/run_pipeline");
-            const data = await res.json();
-            setNowcastResult(data);
-            pushToast(`Nowcast pipeline: ${data.status || "DONE"} — ${data.message || ""}`);
+            const outcome = await request.run();
+            pushToast(outcome || `${request.title} requested.`, "success");
         } catch (err) {
-            setNowcastResult({ status: "ERROR", message: err.message });
-            pushToast("Nowcast pipeline call failed — backend offline?");
-        } finally {
-            setNowcastBusy(false);
+            pushToast(`${request.title} failed: ${err.message}`, "error");
         }
     };
 
-    // --- Route Check API Call ---
+    /**
+     * Open the map for a city, always with one of that city's own wards.
+     *
+     * This used to set the city and keep whatever ward was current, so choosing
+     * Mumbai from the landing page opened Chennai's Velachery ward under a
+     * "Mumbai" label, and the live forecast never matched the ward on screen.
+     */
+    const openCityMap = (targetWard, targetCity) => {
+        const cityName = targetCity || selectedCity;
+        const belongsToCity = (wardKey) =>
+            WARDS_DATA[wardKey] && WARDS_DATA[wardKey].city.toLowerCase() === String(cityName).toLowerCase();
+        const nextWard = targetWard && belongsToCity(targetWard)
+            ? targetWard
+            : Object.keys(WARDS_DATA).find(belongsToCity) || ward;
+
+        setSelectedCity(cityName);
+        setWard(nextWard);
+        setSelectedSector(null);
+        setIsMapEnabled(true);
+        setView("command");
+        // No explicit fetch: the effect watching [ward, selectedCity] loads it.
+    };
+
+    const handleEnableMap = () => setIsMapEnabled(true);
+    const handleDisableMap = () => setIsMapEnabled(false);
+
+    // --- Pipeline run (operator only; the endpoint now actually runs it) ---
+    const handleRefreshNowcast = () => {
+        requestOperatorAction({
+            title: "Run the nowcast pipeline",
+            description: `This recomputes the rainfall nowcast for ${selectedCity}. It can take several minutes and will replace the current forecast raster.`,
+            details: [
+                { label: "City", value: selectedCity },
+                { label: "Stage", value: "nowcast" },
+                { label: "Signed in as", value: operator ? operator.display_name : "—" },
+            ],
+            confirmLabel: "Run pipeline",
+            run: async () => {
+                setNowcastBusy(true);
+                setNowcastResult(null);
+                try {
+                    const params = new URLSearchParams({ stage: "nowcast", city: selectedCity.toLowerCase() });
+                    const res = await fetch(`/api/run_pipeline?${params}`, {
+                        method: "POST",
+                        credentials: "same-origin",
+                    });
+                    const data = await res.json().catch(() => ({}));
+                    if (!res.ok) throw new Error(data.detail || `Server responded ${res.status}`);
+                    setNowcastResult(data);
+                    return data.succeeded
+                        ? `Nowcast pipeline finished in ${data.duration_seconds}s.`
+                        : `Nowcast pipeline exited with code ${data.exit_code}.`;
+                } finally {
+                    setNowcastBusy(false);
+                }
+            },
+        });
+    };
+
+    // --- Route guidance (public; returns a reference corridor, not a route) ---
     const handleRouteCheck = async (e) => {
         e.preventDefault();
         if (!routeOrigin.trim() || !routeDest.trim()) return;
@@ -5459,15 +6076,15 @@ function RainDrop() {
             const params = new URLSearchParams({
                 origin: routeOrigin,
                 destination: routeDest,
+                city: selectedCity.toLowerCase(),
                 depth_cm: routeDepth,
             });
-            const res = await fetch(`/api/route_check?${params}`);
-            const data = await res.json();
-            setRouteCheckResult(data);
-            pushToast(`Route safety check complete: ${(data && data.standard_route && data.standard_route.status) || "DONE"}`);
+            const res = await fetch(`/api/route_check?${params}`, { credentials: "same-origin" });
+            if (!res.ok) throw new Error(`Server responded ${res.status}`);
+            setRouteCheckResult(await res.json());
         } catch (err) {
             setRouteCheckResult({ error: err.message });
-            pushToast("Route check failed — backend offline?");
+            pushToast(`Could not check that route: ${err.message}`, "error");
         } finally {
             setRouteCheckBusy(false);
         }
@@ -5523,7 +6140,6 @@ function RainDrop() {
         if (window._rainDropMap && res.coords) {
             window._rainDropMap.flyTo(res.coords, 15, { duration: 1.2 });
         }
-        pushToast(`Focused on ${res.title}`);
     };
 
     // Keyboard shortcut for Cmd+K / Ctrl+K
@@ -5538,11 +6154,57 @@ function RainDrop() {
         return () => window.removeEventListener("keydown", handleKeyDown);
     }, []);
 
+    /*
+      Chrome rendered in every view: toasts, the sign-in and confirmation
+      dialogs, and a persistent banner when the data on screen is not current.
+      The banner is deliberately not dismissible while the condition holds - an
+      operator must not be able to hide the fact that the feed is down.
+    */
+    const globalChrome = (
+        <>
+            <ToastStack toasts={toasts} />
+            {!isFeedTrustworthy && (
+                /*
+                  In normal flow, not fixed. Each view root is a flex column, so
+                  the banner takes its own row and pushes the toolbar down
+                  instead of covering the city selector and the retry control.
+                */
+                <div
+                    role="alert"
+                    className={`relative w-full shrink-0 z-[1000] px-4 py-2.5 text-center text-sm font-semibold border-b ${feedMeta.chip}`}
+                >
+                    <span className="font-bold">{feedMeta.label}:</span>{" "}
+                    {feedMeta.plain}{" "}
+                    {feed.lastSuccessAt
+                        ? `Last successful update ${ageLabel(feed.lastSuccessAt)}.`
+                        : "No data has been received in this session."}{" "}
+                    <button
+                        type="button"
+                        onClick={() => loadWardForecast(ward, selectedCity)}
+                        className="underline underline-offset-2 font-bold focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-current"
+                    >
+                        Retry now
+                    </button>
+                </div>
+            )}
+            <OperatorLoginDialog
+                open={loginOpen}
+                onClose={() => setLoginOpen(false)}
+                onSignedIn={setOperator}
+            />
+            <ConfirmDialog
+                request={confirmRequest}
+                onCancel={() => setConfirmRequest(null)}
+                onConfirm={confirmPendingAction}
+            />
+        </>
+    );
+
     // VIEW 1: Public Hero Landing Page (Editorial Light Sea Blue GIS Theme)
     if (view === "hero") {
         return (
             <div className="min-h-screen w-full bg-white text-slate-900 selection:bg-emerald-600 selection:text-white font-sans antialiased overflow-x-hidden">
-                <ToastStack toasts={toasts} />
+                {globalChrome}
                 <HeroView
                     ward={ward}
                     wardData={currentWardData}
@@ -5555,14 +6217,13 @@ function RainDrop() {
                         const firstWard = cityWards[0] || Object.keys(WARDS_DATA)[0];
                         setWard(firstWard);
                         setSelectedSector(null);
-                        loadWardForecast(firstWard, cityName);
                         setView("overview");
                     }}
-                    onOpenMap={(targetWard, targetCity) => {
-                        if (targetCity) setSelectedCity(targetCity);
-                        if (targetWard) setWard(targetWard);
-                        setIsMapEnabled(true);
-                        setView("command");
+                    onOpenMap={(targetWard, targetCity) => openCityMap(targetWard, targetCity)}
+                    onCheckRoute={(targetCity) => {
+                        openCityMap(null, targetCity);
+                        setRouteCheckResult(null);
+                        setRouteCheckOpen(true);
                     }}
                     pushToast={pushToast}
                 />
@@ -5574,7 +6235,7 @@ function RainDrop() {
     if (view === "overview") {
         return (
             <div className="h-screen w-screen bg-[#F8FAFC] text-slate-900 selection:bg-blue-600 selection:text-white font-sans overflow-hidden flex flex-col">
-                <ToastStack toasts={toasts} />
+                {globalChrome}
                 {sitRepOpen && (
                     <SitRepModal
                         ward={ward}
@@ -5607,13 +6268,7 @@ function RainDrop() {
                     liveForecast={liveForecast}
                     loadWardForecast={loadWardForecast}
                     isFetchingForecast={isFetchingForecast}
-                    onOpenMap={(targetWard, targetCity) => {
-                        if (targetCity) setSelectedCity(targetCity);
-                        if (targetWard) setWard(targetWard);
-                        setIsMapEnabled(true);
-                        setView("command");
-                        pushToast(`Opening GIS Map view for ${targetWard || ward} (${targetCity || selectedCity})`);
-                    }}
+                    onOpenMap={(targetWard, targetCity) => openCityMap(targetWard, targetCity)}
                     onOpenSitRep={(targetWard) => {
                         if (targetWard) setWard(targetWard);
                         setSitRepOpen(true);
@@ -5629,7 +6284,7 @@ function RainDrop() {
 
     return (
         <div className="h-screen w-screen bg-[#F8FAFC] text-slate-900 relative selection:bg-blue-600 selection:text-white font-sans overflow-hidden flex flex-col">
-            <ToastStack toasts={toasts} />
+            {globalChrome}
 
             {selectedSector !== null && currentWardData?.sectors?.[selectedSector] && (
                 <SectorDrawer
@@ -5677,13 +6332,14 @@ function RainDrop() {
                             </div>
                             <div>
                                 <h2 className="text-base font-bold text-slate-900 flex items-center gap-2">
-                                    Dual-Corridor Safe Routing
-                                    <span className="text-[10px] px-2 py-0.5 rounded-full bg-blue-100 text-blue-700 font-bold uppercase">
-                                        30m DEM High-Ground
+                                    Can I get through?
+                                    <span className="text-[10px] px-2 py-0.5 rounded-full bg-violet-100 text-violet-900 font-bold uppercase border border-violet-300">
+                                        Demo
                                     </span>
                                 </h2>
-                                <p className="text-xs text-slate-500">
-                                    Bypasses inundated underpasses &amp; lowlands using surface elevation data
+                                <p className="text-xs text-slate-600">
+                                    Shows the elevated road on file for this city and what a given water depth
+                                    means for walking, riding and driving.
                                 </p>
                             </div>
                         </div>
@@ -5705,38 +6361,45 @@ function RainDrop() {
                                 aria-hidden="true"
                             />
                             <div>
-                                <label className="block text-[11px] font-bold text-slate-600 mb-1">Origin Landmark</label>
+                                <label htmlFor="route-origin" className="block text-xs font-bold text-slate-700 mb-1">Starting from</label>
                                 <input
+                                    id="route-origin"
                                     value={routeOrigin}
                                     onChange={(e) => setRouteOrigin(e.target.value)}
-                                    placeholder="e.g. Kurla Station"
+                                    placeholder="Your area or landmark"
                                     required
-                                    className="w-full rounded-2xl border border-slate-200 bg-slate-50 px-3.5 py-2 text-xs text-slate-900 placeholder-slate-400 focus:border-blue-500 focus:bg-white focus:outline-none"
+                                    className="w-full min-h-[44px] rounded-2xl border border-slate-300 bg-white px-3.5 text-sm text-slate-900 placeholder-slate-500 focus-visible:outline-2 focus-visible:outline-offset-1 focus-visible:outline-blue-700"
                                 />
                             </div>
                             <div>
-                                <label className="block text-[11px] font-bold text-slate-600 mb-1">Destination</label>
+                                <label htmlFor="route-destination" className="block text-xs font-bold text-slate-700 mb-1">Going to</label>
                                 <input
+                                    id="route-destination"
                                     value={routeDest}
                                     onChange={(e) => setRouteDest(e.target.value)}
-                                    placeholder="e.g. BKC Connector"
+                                    placeholder="Destination area or landmark"
                                     required
-                                    className="w-full rounded-2xl border border-slate-200 bg-slate-50 px-3.5 py-2 text-xs text-slate-900 placeholder-slate-400 focus:border-blue-500 focus:bg-white focus:outline-none"
+                                    className="w-full min-h-[44px] rounded-2xl border border-slate-300 bg-white px-3.5 text-sm text-slate-900 placeholder-slate-500 focus-visible:outline-2 focus-visible:outline-offset-1 focus-visible:outline-blue-700"
                                 />
                             </div>
                             <div className="sm:col-span-2">
-                                <label className="block text-[11px] font-bold text-slate-600 mb-1">
-                                    Simulated Flood Water Depth (cm)
+                                <label htmlFor="route-depth" className="block text-xs font-bold text-slate-700 mb-1">
+                                    Water depth on the road (cm)
                                 </label>
                                 <input
+                                    id="route-depth"
                                     type="number"
                                     min="0"
                                     max="200"
                                     step="1"
                                     value={routeDepth}
                                     onChange={(e) => setRouteDepth(Number(e.target.value))}
-                                    className="w-full rounded-2xl border border-slate-200 bg-slate-50 px-3.5 py-2 text-xs text-slate-900 placeholder-slate-400 focus:border-blue-500 focus:bg-white focus:outline-none"
+                                    aria-describedby="route-depth-help"
+                                    className="w-full min-h-[44px] rounded-2xl border border-slate-300 bg-white px-3.5 text-sm text-slate-900 focus-visible:outline-2 focus-visible:outline-offset-1 focus-visible:outline-blue-700"
                                 />
+                                <p id="route-depth-help" className="mt-1 text-xs text-slate-600">
+                                    What you can see, or the estimate shown for your ward.
+                                </p>
                             </div>
                             <div className="sm:col-span-2 mt-1">
                                 <button
@@ -5746,11 +6409,11 @@ function RainDrop() {
                                 >
                                     {routeCheckBusy ? (
                                         <>
-                                            <RefreshCw className="w-3.5 h-3.5 animate-spin" /> Analyzing 30m Elevation Corridors…
+                                            <RefreshCw className="w-3.5 h-3.5 animate-spin" aria-hidden="true" /> Checking…
                                         </>
                                     ) : (
                                         <>
-                                            <Send className="w-3.5 h-3.5" /> Check Dual-Corridor Safety
+                                            <Send className="w-3.5 h-3.5" aria-hidden="true" /> Check this route
                                         </>
                                     )}
                                 </button>
@@ -5758,59 +6421,75 @@ function RainDrop() {
                         </form>
 
                         {routeCheckResult && !routeCheckResult.error && (
-                            <div className="space-y-3 border-t border-slate-100 pt-4">
-                                <div className="rounded-2xl p-3.5 bg-rose-50 border border-rose-200 text-rose-900">
-                                    <div className="flex items-center justify-between mb-1.5">
-                                        <span className="text-xs font-bold flex items-center gap-1.5 text-rose-700">
-                                            🔴 Standard Direct Route
-                                        </span>
-                                        <span className="text-[10px] font-extrabold px-2 py-0.5 rounded-full bg-rose-200 text-rose-800">
-                                            {routeCheckResult.standard_route?.status_label || "HAZARDOUS"}
-                                        </span>
-                                    </div>
-                                    <div className="grid grid-cols-3 gap-2 text-[11px] text-slate-600 my-2">
-                                        <div>
-                                            Distance: <strong className="text-slate-900">{routeCheckResult.standard_route?.distance_km} km</strong>
-                                        </div>
-                                        <div>
-                                            Travel: <strong className="text-slate-900">{routeCheckResult.standard_route?.est_time_min} mins</strong>
-                                        </div>
-                                        <div>
-                                            Max Flood: <strong className="text-rose-600">🌊 {routeCheckResult.standard_route?.max_water_depth_cm} cm</strong>
-                                        </div>
-                                    </div>
-                                    {routeCheckResult.standard_route?.danger_points?.[0] && (
-                                        <div className="text-[10px] text-rose-800 bg-rose-100/80 px-2.5 py-1.5 rounded-xl">
-                                            ⚠️ <strong>Hazard Bottleneck:</strong> {routeCheckResult.standard_route.danger_points[0].name} ({routeCheckResult.standard_route.danger_points[0].hazard})
-                                        </div>
+                            <div className="space-y-3 border-t border-slate-200 pt-4">
+                                {/*
+                                  Honest version of the old "dual corridor" panel.
+                                  The distances, travel times and per-route flood
+                                  depths it used to show were generated constants,
+                                  and the recommended corridor was the same Mumbai
+                                  flyover in every city.
+                                */}
+                                <div className="rounded-2xl border border-violet-300 bg-violet-50 p-3 text-xs text-violet-900">
+                                    <strong>Reference information, not a route.</strong> This shows the elevated
+                                    road on file for {routeCheckResult.city} and what the reported depth means for
+                                    each way of travelling. No live road, traffic or closure data is used.
+                                </div>
+
+                                <div className="rounded-2xl border border-slate-300 bg-white p-3.5">
+                                    <h3 className="text-sm font-bold text-slate-900">
+                                        {routeCheckResult.suggested_corridor?.name}
+                                    </h3>
+                                    <p className="mt-1 text-xs text-slate-700 leading-relaxed">
+                                        {routeCheckResult.suggested_corridor?.summary}
+                                    </p>
+                                    {routeCheckResult.suggested_corridor?.waypoints?.length > 0 && (
+                                        <ol className="mt-2.5 flex flex-wrap items-center gap-x-1.5 gap-y-1 text-xs text-slate-700">
+                                            {routeCheckResult.suggested_corridor.waypoints.map((point, idx) => (
+                                                <li key={point} className="flex items-center gap-1.5">
+                                                    {idx > 0 && <span className="text-slate-400" aria-hidden="true">&rarr;</span>}
+                                                    <span className="font-medium">{point}</span>
+                                                </li>
+                                            ))}
+                                        </ol>
                                     )}
                                 </div>
 
-                                <div className="rounded-2xl p-3.5 bg-emerald-50 border border-emerald-200 text-emerald-900">
-                                    <div className="flex items-center justify-between mb-1.5">
-                                        <span className="text-xs font-bold flex items-center gap-1.5 text-emerald-700">
-                                            🟢 Safe Elevation Corridor (Recommended)
-                                        </span>
-                                        <span className="text-[10px] font-extrabold px-2 py-0.5 rounded-full bg-emerald-200 text-emerald-800">
-                                            {routeCheckResult.safe_corridor?.status_label || "SAFE PASSAGE"}
-                                        </span>
-                                    </div>
-                                    <div className="grid grid-cols-3 gap-2 text-[11px] text-slate-600 my-2">
-                                        <div>
-                                            Distance: <strong className="text-slate-900">{routeCheckResult.safe_corridor?.distance_km} km</strong>
-                                        </div>
-                                        <div>
-                                            Travel: <strong className="text-slate-900">{routeCheckResult.safe_corridor?.est_time_min} mins</strong>
-                                        </div>
-                                        <div>
-                                            Max Flood: <strong className="text-emerald-600">🌊 {routeCheckResult.safe_corridor?.max_water_depth_cm} cm</strong>
-                                        </div>
-                                    </div>
-                                    <div className="flex items-center justify-between text-[10px] text-emerald-800 bg-emerald-100/80 px-2.5 py-1.5 rounded-xl">
-                                        <span>🛡️ <strong>Highland Bypass:</strong> Elevated Flyover Route</span>
-                                        <span className="font-bold">+{routeCheckResult.safe_corridor?.detour_time_min} min detour (+{routeCheckResult.safe_corridor?.detour_dist_km} km)</span>
-                                    </div>
+                                <div className="rounded-2xl border border-slate-300 overflow-hidden">
+                                    <table className="w-full text-xs">
+                                        <caption className="sr-only">
+                                            Can I pass through water {routeCheckResult.reported_depth_cm} cm deep?
+                                        </caption>
+                                        <thead className="bg-slate-100 text-slate-800">
+                                            <tr>
+                                                <th scope="col" className="text-left px-3 py-2 font-bold">How you travel</th>
+                                                <th scope="col" className="text-left px-3 py-2 font-bold">
+                                                    At {routeCheckResult.reported_depth_cm} cm
+                                                </th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            {(routeCheckResult.passability || []).map((row) => {
+                                                const tone = row.verdict === "passable"
+                                                    ? "text-slate-800 bg-white"
+                                                    : row.verdict === "risky"
+                                                        ? "text-orange-900 bg-orange-50"
+                                                        : "text-red-50 bg-red-800";
+                                                return (
+                                                    <tr key={row.mode} className={`border-t border-slate-200 ${tone}`}>
+                                                        <th scope="row" className="text-left px-3 py-2.5 font-semibold">{row.mode}</th>
+                                                        <td className="px-3 py-2.5">{row.advice}</td>
+                                                    </tr>
+                                                );
+                                            })}
+                                        </tbody>
+                                    </table>
                                 </div>
+
+                                <ul className="text-xs text-slate-700 space-y-1 list-disc pl-5">
+                                    {(routeCheckResult.provenance?.caveats || []).map((caveat) => (
+                                        <li key={caveat}>{caveat}</li>
+                                    ))}
+                                </ul>
                             </div>
                         )}
                         {routeCheckResult && routeCheckResult.error && (
@@ -5868,7 +6547,6 @@ function RainDrop() {
                                             type="button"
                                             onClick={() => {
                                                 setScenario((prev) => ({ ...prev, rainfallMm: scen.val }));
-                                                pushToast(`Scenario selected: ${scen.label} (${scen.desc})`);
                                             }}
                                             className={`p-3 rounded-2xl border text-left transition-all cursor-pointer ${
                                                 scenario.rainfallMm === scen.val
@@ -5934,7 +6612,7 @@ function RainDrop() {
                                     setSimulationModalOpen(false);
                                     setTimeStep(2);
                                     setTimelineIndex(2);
-                                    pushToast("Simulation Applied", "Interactive map updated with pulse forecast.", "success");
+                                    pushToast("Scenario applied to the map. These are modelled values, not observations.", "success");
                                 }}
                                 className="w-full py-3 rounded-2xl bg-[#0F2942] hover:bg-[#163A5E] text-white text-xs font-bold transition-all shadow-md cursor-pointer flex items-center justify-center gap-2"
                             >
@@ -6395,36 +7073,57 @@ function RainDrop() {
                                     )}
                                 </div>
 
-                                {/* Live Data Badge */}
-                                <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-emerald-50 border border-emerald-200/80 text-emerald-700 text-xs font-semibold shadow-2xs" title="Open-Meteo & IMD Live Radar Synchronized">
-                                    <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
-                                    <span>Live Telemetry</span>
+                                {/*
+                                  Feed status. Derived from whether data actually
+                                  arrived, not from a ticking clock. The previous
+                                  badge was permanently green and showed the wall
+                                  clock, so stale and mock data looked live.
+                                */}
+                                <div
+                                    role="status"
+                                    aria-live="polite"
+                                    className={`flex items-center gap-2 px-3 py-1.5 rounded-full border text-xs font-semibold ${feedMeta.chip}`}
+                                    title={feedMeta.plain}
+                                >
+                                    <span className={`w-2 h-2 rounded-full ${feedMeta.dot}`} aria-hidden="true" />
+                                    <span>{feedMeta.label}</span>
+                                    <span className="font-normal opacity-80">
+                                        {feed.observedAt
+                                            ? `· data ${clockLabel(feed.observedAt)}`
+                                            : feed.lastSuccessAt
+                                                ? `· ${ageLabel(feed.lastSuccessAt)}`
+                                                : "· never updated"}
+                                    </span>
                                 </div>
 
-                                {/* Real-Time Date and Time Clock */}
-                                <div className="text-xs font-medium text-slate-500 flex items-center bg-slate-50/90 px-3 py-1.5 rounded-full border border-slate-200/80 shadow-2xs">
-                                    <Clock className="w-3.5 h-3.5 text-blue-500 mr-1.5" />
-                                    <span className="text-slate-600 font-medium">
-                                        {currentTime.toLocaleDateString(undefined, { weekday: 'short', day: 'numeric', month: 'short' })}
-                                    </span>
-                                    <span className="ml-2 font-bold font-mono text-slate-800">
-                                        {currentTime.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' })}
-                                    </span>
-                                </div>
+                                {/* Operator session */}
+                                <OperatorBadge
+                                    operator={operator}
+                                    onSignIn={() => setLoginOpen(true)}
+                                    onSignOut={signOutOperator}
+                                />
 
                                 {/* Notification Bell */}
                                 <button
                                     type="button"
-                                    onClick={() =>
+                                    onClick={() => {
+                                        const river = (liveForecast && liveForecast.river) || null;
+                                        if (!river) {
+                                            pushToast("No river level estimate is available right now.", "error");
+                                            return;
+                                        }
                                         pushToast(
-                                            "Mithi River Alert: Water level at Kurla Lowland sensor 3.42m approaching danger threshold."
-                                        )
-                                    }
-                                    className="relative p-2 rounded-full hover:bg-slate-100 text-slate-600 transition-colors cursor-pointer"
-                                    title="Alerts Feed"
+                                            `${river.name}: estimated ${river.estimated_level_m} m against a ${river.danger_level_m} m danger level. Estimated from rainfall, not a gauge reading.`
+                                        );
+                                    }}
+                                    className="relative p-2.5 min-h-[44px] min-w-[44px] rounded-full hover:bg-slate-100 text-slate-700 transition-colors cursor-pointer focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue-700"
+                                    title="River level for the selected ward"
+                                    aria-label="Show river level for the selected ward"
                                 >
-                                    <Bell className="w-4 h-4" />
-                                    <span className="absolute top-1.5 right-1.5 w-2 h-2 rounded-full bg-rose-500 ring-2 ring-white" />
+                                    <Bell className="w-4 h-4" aria-hidden="true" />
+                                    {liveForecast && liveForecast.river && liveForecast.river.at_or_above_danger && (
+                                        <span className="absolute top-1.5 right-1.5 w-2 h-2 rounded-full bg-red-700 ring-2 ring-white" aria-hidden="true" />
+                                    )}
                                 </button>
                             </div>
                         </header>
@@ -6441,6 +7140,7 @@ function RainDrop() {
                                 mapStyle={mapStyle}
                                 mapToggles={mapToggles}
                                 timelineStep={timeStep}
+                                cityCorridor={cityCorridor}
                             />
 
                             {/* FLOATING BASEMAP SWITCHER (Top Center) */}
@@ -6584,12 +7284,13 @@ function RainDrop() {
                                         </div>
                                         <div>
                                             <div className="flex items-center gap-2">
-                                                <h3 className="text-xs font-bold text-slate-900">
-                                                    Flood Inundation
+                                                <h3 className="text-sm font-bold text-slate-900">
+                                                    Flood estimate
                                                 </h3>
-                                                <span className="inline-flex items-center gap-1 text-[9.5px] font-bold px-2 py-0.5 rounded-full bg-emerald-50 text-emerald-700 border border-emerald-200/60">
-                                                    <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
-                                                    Live
+                                                {/* Mirrors the real feed state rather than always reading "Live". */}
+                                                <span className={`inline-flex items-center gap-1 text-xs font-bold px-2 py-0.5 rounded-full border ${feedMeta.chip}`}>
+                                                    <span className={`w-1.5 h-1.5 rounded-full ${feedMeta.dot}`} aria-hidden="true" />
+                                                    {feedMeta.label}
                                                 </span>
                                             </div>
                                         </div>
@@ -6610,56 +7311,22 @@ function RainDrop() {
 
                                 {!rightCardCollapsed && (
                                     <>
-                                        {/* Severity Legend */}
-                                        <div>
-                                            <div className="text-[10px] font-bold uppercase tracking-wider text-slate-400 mb-1.5">
-                                                Depth Classification
-                                            </div>
-                                            <div className="grid grid-cols-2 gap-1.5 bg-slate-50/80 p-2 rounded-2xl border border-slate-100">
-                                                <div className="flex items-center gap-2 p-1.5 rounded-xl bg-white/80 border border-rose-100 shadow-2xs">
-                                                    <span className="w-2.5 h-2.5 rounded-full bg-rose-500 shrink-0 ring-2 ring-rose-200" />
-                                                    <div className="leading-tight">
-                                                        <div className="text-[10.5px] font-bold text-slate-800">&gt; 30 cm</div>
-                                                        <div className="text-[9px] font-semibold text-rose-600">Critical</div>
-                                                    </div>
-                                                </div>
-                                                <div className="flex items-center gap-2 p-1.5 rounded-xl bg-white/80 border border-blue-100 shadow-2xs">
-                                                    <span className="w-2.5 h-2.5 rounded-full bg-blue-500 shrink-0 ring-2 ring-blue-200" />
-                                                    <div className="leading-tight">
-                                                        <div className="text-[10.5px] font-bold text-slate-800">15–30 cm</div>
-                                                        <div className="text-[9px] font-semibold text-blue-600">Caution</div>
-                                                    </div>
-                                                </div>
-                                                <div className="flex items-center gap-2 p-1.5 rounded-xl bg-white/80 border border-sky-100 shadow-2xs">
-                                                    <span className="w-2.5 h-2.5 rounded-full bg-sky-400 shrink-0 ring-2 ring-sky-200" />
-                                                    <div className="leading-tight">
-                                                        <div className="text-[10.5px] font-bold text-slate-800">&lt; 15 cm</div>
-                                                        <div className="text-[9px] font-semibold text-sky-600">Possible</div>
-                                                    </div>
-                                                </div>
-                                                <div className="flex items-center gap-2 p-1.5 rounded-xl bg-white/80 border border-emerald-100 shadow-2xs">
-                                                    <span className="w-2.5 h-2.5 rounded-full bg-emerald-500 shrink-0 ring-2 ring-emerald-200" />
-                                                    <div className="leading-tight">
-                                                        <div className="text-[10.5px] font-bold text-slate-800">0 cm Dry</div>
-                                                        <div className="text-[9px] font-semibold text-emerald-600">Passable</div>
-                                                    </div>
-                                                </div>
-                                            </div>
-                                        </div>
+                                        {/* Depth legend, from the one shared risk scale. */}
+                                        <RiskLegend />
 
                                         {/* Toggle Switches */}
                                         <div>
                                             <div className="flex items-center justify-between text-[10px] font-bold uppercase tracking-wider text-slate-400 mb-2">
-                                                <span>GIS Layer Overlays</span>
-                                                <span className="text-[9px] font-normal text-slate-400">Active telemetry</span>
+                                                <span>Map layers</span>
+                                                <span className="text-xs font-normal text-slate-600">Show or hide</span>
                                             </div>
                                             <div className="flex flex-col gap-2">
                                                 {[
-                                                    { id: "hotspots", label: "Critical Hotspots", desc: "6 inundation zones", activeColor: "bg-rose-500", dot: "bg-rose-500" },
-                                                    { id: "pumps", label: "Drainage Pumps", desc: "12 active stations", activeColor: "bg-blue-600", dot: "bg-blue-600" },
-                                                    { id: "shelters", label: "Relief Shelters", desc: "4 emergency hubs", activeColor: "bg-indigo-600", dot: "bg-indigo-600" },
-                                                    { id: "metro", label: "Metro & Transport", desc: "Subway & rail gates", activeColor: "bg-emerald-500", dot: "bg-emerald-500" },
-                                                    { id: "boundaries", label: "Ward Boundaries", desc: "BMC L-Ward zone", activeColor: "bg-slate-700", dot: "bg-slate-600" },
+                                                    { id: "hotspots", label: "Flood hotspots", desc: `${currentWardData.sectors.length} modelled sectors`, activeColor: "bg-slate-800", dot: "bg-slate-700" },
+                                                    { id: "pumps", label: "Pump locations", desc: "Reference only, no telemetry", activeColor: "bg-slate-800", dot: "bg-slate-700" },
+                                                    { id: "shelters", label: "Relief shelters", desc: "Reference only, confirm locally", activeColor: "bg-slate-800", dot: "bg-slate-700" },
+                                                    { id: "metro", label: "Metro and transport", desc: "Reference locations", activeColor: "bg-slate-800", dot: "bg-slate-700" },
+                                                    { id: "boundaries", label: "Ward boundary", desc: `${currentWardData.name}, ${selectedCity}`, activeColor: "bg-slate-800", dot: "bg-slate-700" },
                                                 ].map((toggle) => (
                                                     <div key={toggle.id} className="flex items-center justify-between py-1 px-1.5 rounded-xl hover:bg-slate-50 transition-colors">
                                                         <div className="flex items-center gap-2">
@@ -6754,7 +7421,6 @@ function RainDrop() {
                                                         e.stopPropagation();
                                                         setTimelineIndex(idx);
                                                         setTimeStep(idx);
-                                                        pushToast(`Timeline updated to ${step}`);
                                                     }}
                                                     className="pointer-events-auto flex flex-col items-center cursor-pointer group"
                                                 >
@@ -6784,15 +7450,15 @@ function RainDrop() {
                                 <div className="flex items-center gap-3 shrink-0">
                                     <button
                                         type="button"
-                                        onClick={() => {
-                                            loadWardForecast(ward, selectedCity);
-                                            pushToast(`Live radar & telemetry refreshed at ${currentTime.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' })}`);
-                                        }}
-                                        className="flex items-center gap-2 px-3.5 py-2 rounded-2xl bg-blue-50/90 hover:bg-blue-100/90 border border-blue-200/90 text-xs font-semibold text-blue-700 transition-all cursor-pointer shadow-2xs"
-                                        title="Click to fetch latest Open-Meteo Doppler observation and recompute ML depths"
+                                        onClick={() => loadWardForecast(ward, selectedCity)}
+                                        className="flex items-center gap-2 px-3.5 py-2 min-h-[44px] rounded-2xl bg-slate-50 hover:bg-slate-100 border border-slate-300 text-xs font-semibold text-slate-800 transition-all cursor-pointer focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue-700"
+                                        title="Fetch the latest rainfall forecast and recompute depths"
                                     >
-                                        <RefreshCw className={`w-3.5 h-3.5 text-blue-600 ${isFetchingForecast ? "animate-spin" : ""}`} />
-                                        <span>Live Feed · {currentTime.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' })}</span>
+                                        <RefreshCw className={`w-3.5 h-3.5 ${isFetchingForecast ? "animate-spin" : ""}`} aria-hidden="true" />
+                                        {/* The age of the data, not the current time. */}
+                                        <span>
+                                            {isFetchingForecast ? "Refreshing…" : `Data ${ageLabel(feed.lastSuccessAt)}`}
+                                        </span>
                                     </button>
 
                                     <button

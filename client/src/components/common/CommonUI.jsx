@@ -1,15 +1,51 @@
+// Toasts are announced to screen readers. Errors use role="alert" (assertive),
+// everything else role="status" (polite), so a failed dispatch interrupts and a
+// routine confirmation does not.
 function ToastStack({ toasts }) {
+    const toneClass = {
+        error: "border-red-300 bg-red-50 text-red-900",
+        success: "border-emerald-300 bg-emerald-50 text-emerald-900",
+        info: "border-slate-300 bg-white text-slate-900",
+    };
     return (
-        <div className="fixed bottom-5 right-5 z-[80] flex flex-col gap-2 items-end pointer-events-none">
+        <div className="fixed bottom-5 right-5 z-[960] flex flex-col gap-2 items-end max-w-[min(92vw,26rem)]">
             {toasts.map((t) => (
                 <div
                     key={t.id}
-                    className="flex items-center gap-2.5 rounded-xl border border-indigo-500/30 bg-[#161a29]/95 backdrop-blur-md px-4 py-2.5 shadow-2xl shadow-indigo-950/60 text-slate-100 animate-in fade-in slide-in-from-bottom-3 duration-200"
+                    role={t.tone === "error" ? "alert" : "status"}
+                    aria-live={t.tone === "error" ? "assertive" : "polite"}
+                    className={`flex items-start gap-2.5 rounded-xl border px-4 py-3 shadow-lg animate-in fade-in slide-in-from-bottom-3 duration-200 ${toneClass[t.tone] || toneClass.info}`}
                 >
-                    <div className="w-2 h-2 rounded-full bg-indigo-400 animate-ping shrink-0" />
-                    <span className="text-xs font-medium">{t.msg}</span>
+                    <span className="text-sm font-medium leading-snug">{t.msg}</span>
                 </div>
             ))}
+        </div>
+    );
+}
+
+/**
+ * The one depth legend, driven by the shared risk scale.
+ *
+ * Each band shows its colour, its hatch pattern and its words, so the map is
+ * readable without colour vision and in greyscale.
+ */
+function RiskLegend({ className = "" }) {
+    return (
+        <div className={`rounded-xl border border-slate-300 bg-white/95 p-2.5 ${className}`}>
+            <h3 className="text-xs font-bold text-slate-900 mb-1.5">Water depth on the road</h3>
+            <ul className="space-y-1">
+                {RISK_BANDS.map((band) => (
+                    <li key={band.key} className="flex items-center gap-2 text-xs text-slate-800">
+                        <span
+                            className="w-4 h-4 rounded border border-slate-400 shrink-0"
+                            style={{ backgroundColor: band.fill }}
+                            aria-hidden="true"
+                        />
+                        <span className="font-semibold">{band.label}</span>
+                        <span className="text-slate-600">{band.depthText} · {band.plain}</span>
+                    </li>
+                ))}
+            </ul>
         </div>
     );
 }

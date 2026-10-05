@@ -269,14 +269,18 @@ function SitRepModal({ ward, wardData, floodStats, sectorDepths, timeStep, scena
 - Emergency Shelters: ${data.evacShelters}
 
 ## Incident Commander Directives
-1. Deploy mobile dewatering units to lowest elevation sectors in ${wardName}.
-2. Divert commuter transit along designated Safe Elevation Corridors via Kalina CST Flyover Upper Deck.
-3. Lower subway and underpass gates at critical waterlogged bottlenecks (Bail Bazar & Station West).
-4. Keep all ${data.activePumps} stormwater dewatering stations on continuous suction with auxiliary diesel backup.
+1. Consider dewatering units for the lowest-lying sectors in ${wardName}.
+2. Consider diverting transit to the elevated corridor on file for ${data.city}.
+3. Review underpass and subway gates at the sectors listed above.
+4. Confirm pump availability with the ward office: this system has no pump telemetry.
+
+NOTE: Depth figures are modelled estimates from forecast rainfall and sample
+ground levels, not measurements, and this is not an official IMD or NDMA
+warning. Verify before acting.
 `;
         navigator.clipboard.writeText(text).then(() => {
             if (pushToast) {
-                pushToast("SitRep Copied", "Markdown format ready for municipal dispatch.", "success");
+                pushToast("Situation report copied to the clipboard.", "success");
             }
         });
     };

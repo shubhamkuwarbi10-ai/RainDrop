@@ -2,6 +2,7 @@ from fastapi import APIRouter, Depends, HTTPException, status
 from geoalchemy2.elements import WKTElement
 from sqlalchemy.orm import Session
 
+from app.core.security import require_api_key
 from app.db.session import get_db
 from app.models.tables import FloodPrediction
 from app.schemas.common import SurrogatePredictionCreate, SurrogatePredictionResponse
@@ -9,7 +10,11 @@ from app.services.surrogate_prediction import predict_depth
 from app.services.terrain_processing import classify_flood_risk
 
 
-router = APIRouter(prefix="/api/v1/processing", tags=["real-surrogate-model"])
+router = APIRouter(
+    prefix="/api/v1/processing",
+    tags=["real-surrogate-model"],
+    dependencies=[Depends(require_api_key)],
+)
 
 
 @router.post("/surrogate-prediction", response_model=SurrogatePredictionResponse, status_code=status.HTTP_201_CREATED)

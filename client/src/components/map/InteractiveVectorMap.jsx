@@ -12,6 +12,9 @@ function InteractiveVectorMap(props) {
         mapStyle = "Map",
         mapToggles = { hotspots: true, pumps: true, shelters: false, metro: true, boundaries: false },
         timelineStep = 1,
+        // Reference corridor for the selected city, fetched from /api/cities.
+        // Previously the corridor shown here was hardcoded to Mumbai.
+        cityCorridor = null,
     } = props;
 
     const mapRef = useRef(null);
@@ -103,33 +106,33 @@ function InteractiveVectorMap(props) {
                 if (coords.length < 2 || isNaN(coords[0]) || isNaN(coords[1])) return;
                 const [lat, lon] = coords;
 
-                let nodeHtml = "";
-                let nodeSize = [28, 28];
-                let anchor = [14, 14];
+                // One ordered risk scale for the marker, the pool and the popup.
+                // These used to disagree: the 15-30 cm band was blue on the map
+                // and amber in the popup, and "Critical" shared its colour with
+                // "High". See client/src/lib/riskScale.js.
+                const band = bandForDepth(depth);
 
-                if (depth >= 30) {
-                    // Critical hotspot: Red circle with white exclamation point & glowing pulse
-                    nodeHtml = `<div style="background:#ef4444; color:#ffffff; width:28px; height:28px; border-radius:50%; display:flex; align-items:center; justify-content:center; font-weight:900; font-size:14px; border:3px solid #ffffff; box-shadow:0 4px 12px rgba(239,68,68,0.6); cursor:pointer; font-family:Inter,sans-serif; transition:transform 0.2s;">!</div>`;
-                } else if (depth >= 15) {
-                    // Caution hotspot: Amber circle with warning triangle
-                    nodeHtml = `<div style="background:#f59e0b; color:#ffffff; width:26px; height:26px; border-radius:50%; display:flex; align-items:center; justify-content:center; font-weight:900; font-size:12px; border:2.5px solid #ffffff; box-shadow:0 3px 8px rgba(245,158,11,0.5); cursor:pointer; font-family:Inter,sans-serif; transition:transform 0.2s;">▲</div>`;
-                    nodeSize = [26, 26];
-                    anchor = [13, 13];
-                } else {
-                    // Clear safe corridor: Emerald circle with checkmark
-                    nodeHtml = `<div style="background:#10b981; color:#ffffff; width:24px; height:24px; border-radius:50%; display:flex; align-items:center; justify-content:center; font-weight:900; font-size:12px; border:2px solid #ffffff; box-shadow:0 3px 8px rgba(16,185,129,0.45); cursor:pointer; font-family:Inter,sans-serif; transition:transform 0.2s;">✓</div>`;
-                    nodeSize = [24, 24];
-                    anchor = [12, 12];
-                }
+                // Shape and glyph vary with the band as well as colour, so the
+                // map is readable in greyscale and with colour-vision deficiency.
+                const glyph = ["", "●", "▲", "!", "!"][band.order] || "●";
+                const nodeSize = [28, 28];
+                const anchor = [14, 14];
+                const nodeHtml =
+                    '<div title="' + escapeHtml(sec.name + ": " + band.label) + '" ' +
+                    'style="background:' + band.hex + '; color:#ffffff; width:28px; height:28px; ' +
+                    'border-radius:50%; display:flex; align-items:center; justify-content:center; ' +
+                    'font-weight:900; font-size:13px; border:3px solid #ffffff; ' +
+                    'box-shadow:0 2px 8px rgba(15,23,42,0.45); cursor:pointer; font-family:Inter,sans-serif;">' +
+                    glyph + '</div>';
 
-                // Inundation radial pool
+                // Inundation pool
                 const circleRadius = Math.max(80, depth * 4.5 + 40);
                 const circle = window.L.circle([lat, lon], {
                     radius: circleRadius,
-                    color: depth >= 30 ? '#f43f5e' : depth >= 15 ? '#fbbf24' : '#34d399',
-                    fillColor: depth >= 30 ? '#ef4444' : depth >= 15 ? '#3b82f6' : '#10b981',
-                    fillOpacity: 0.25,
-                    weight: 1,
+                    color: band.hex,
+                    fillColor: band.fill,
+                    fillOpacity: band.order === 0 ? 0.12 : 0.28,
+                    weight: 1.5,
                 }).addTo(map);
 
                 const icon = window.L.divIcon({
@@ -139,73 +142,86 @@ function InteractiveVectorMap(props) {
                     iconAnchor: anchor
                 });
 
-                const marker = window.L.marker([lat, lon], { icon }).addTo(map);
+                const marker = window.L.marker([lat, lon], {
+                    icon,
+                    // Markers were unreachable by keyboard and unnamed to a
+                    // screen reader. Leaflet exposes both through these options.
+                    keyboard: true,
+                    alt: sec.name + ", estimated " + depth.toFixed(0) + " cm, " + band.label,
+                    title: sec.name + ": " + band.label,
+                }).addTo(map);
 
-                // Rich Interactive Leaflet Popup with Full Telemetry
-                const riskBadge = depth >= 30 ? "CRITICAL RISK" : depth >= 15 ? "MODERATE HAZARD" : "SAFE ELEVATION";
-                const riskBg = depth >= 30 ? "#fef2f2" : depth >= 15 ? "#fffbeb" : "#ecfdf5";
-                const riskColor = depth >= 30 ? "#dc2626" : depth >= 15 ? "#d97706" : "#059669";
-                const riskBorder = depth >= 30 ? "#fca5a5" : depth >= 15 ? "#fcd34d" : "#6ee7b7";
+                // Popups are HTML strings, so every interpolated value is escaped.
+                // Nothing here is attacker-controlled today; the moment these names
+                // come from the API or a citizen report, an unescaped one is stored XSS.
+                const passability = depth >= 30
+                    ? 'Do not enter on foot or by vehicle.'
+                    : depth >= 15
+                        ? 'Risky for two-wheelers and cars. Walking is risky if the water is moving.'
+                        : depth >= 5
+                            ? 'Usually passable with care.'
+                            : 'Road is clear.';
 
-                const popupHtml = `
-                <div style="font-family:Inter,sans-serif; min-width:250px; padding:4px 2px;">
-                    <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:8px;">
-                        <span style="font-size:10px; font-weight:800; text-transform:uppercase; letter-spacing:0.04em; background:${riskBg}; color:${riskColor}; border:1px solid ${riskBorder}; padding:2.5px 8px; border-radius:9999px;">
-                            ${riskBadge}
-                        </span>
-                        <span style="font-size:10px; color:#64748b; font-family:monospace;">${sec.elevation}m MSL</span>
-                    </div>
-                    <div style="font-size:14px; font-weight:800; color:#0f172a; line-height:1.25; margin-bottom:3px;">
-                        ${sec.name}
-                    </div>
-                    <div style="font-size:11px; color:#64748b; margin-bottom:10px;">
-                        ${wardData.name} · ${wardData.city} (${wardData.riverName})
-                    </div>
+                const popupHtml =
+                '<div style="font-family:Inter,sans-serif; min-width:250px; padding:4px 2px;">' +
+                    '<div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:8px;">' +
+                        '<span style="font-size:11px; font-weight:800; text-transform:uppercase; letter-spacing:0.04em; ' +
+                        'background:' + band.bg + '; color:' + band.text + '; border:1px solid ' + band.border + '; ' +
+                        'padding:3px 9px; border-radius:9999px;">' + escapeHtml(band.label) + '</span>' +
+                        '<span style="font-size:11px; color:#475569; font-family:monospace;">' +
+                        escapeHtml(sec.elevation) + ' m</span>' +
+                    '</div>' +
 
-                    <div style="display:grid; grid-template-columns:1fr 1fr; gap:6px; margin-bottom:10px;">
-                        <div style="background:#f8fafc; border:1px solid #e2e8f0; border-radius:12px; padding:8px 10px;">
-                            <div style="font-size:9.5px; color:#64748b; font-weight:600;">Water Depth</div>
-                            <div style="font-size:15px; font-weight:800; color:${depth >= 30 ? '#dc2626' : depth >= 15 ? '#d97706' : '#2563eb'}; font-family:monospace;">
-                                ${depth.toFixed(1)} cm
-                            </div>
-                        </div>
-                        <div style="background:#f8fafc; border:1px solid #e2e8f0; border-radius:12px; padding:8px 10px;">
-                            <div style="font-size:9.5px; color:#64748b; font-weight:600;">Flow Velocity</div>
-                            <div style="font-size:15px; font-weight:800; color:#0f172a; font-family:monospace;">
-                                ${(1.1 + depth * 0.02).toFixed(1)} m/s
-                            </div>
-                        </div>
-                    </div>
+                    '<div style="font-size:15px; font-weight:800; color:#0f172a; line-height:1.25; margin-bottom:3px;">' +
+                        escapeHtml(sec.name) +
+                    '</div>' +
+                    '<div style="font-size:12px; color:#475569; margin-bottom:10px;">' +
+                        escapeHtml(wardData.name) + ' · ' + escapeHtml(wardData.city) +
+                    '</div>' +
 
-                    <div style="background:#f8fafc; border:1px solid #e2e8f0; border-radius:12px; padding:8px 10px; margin-bottom:10px; font-size:11px;">
-                        <div style="display:flex; justify-content:space-between; margin-bottom:4px;">
-                            <span style="color:#64748b;">Drainage Culvert:</span>
-                            <span style="font-weight:700; color:${depth >= 30 ? '#dc2626' : '#059669'};">
-                                ${depth >= 30 ? '92% Surcharged' : depth >= 15 ? '64% Flowing' : '28% Free Flow'}
-                            </span>
-                        </div>
-                        <div style="display:flex; justify-content:space-between; margin-bottom:4px;">
-                            <span style="color:#64748b;">Pedestrians:</span>
-                            <span style="font-weight:700; color:${depth >= 15 ? '#dc2626' : '#059669'};">
-                                ${depth >= 15 ? '⛔ Impassable' : '✅ Passable'}
-                            </span>
-                        </div>
-                        <div style="display:flex; justify-content:space-between;">
-                            <span style="color:#64748b;">Vehicles:</span>
-                            <span style="font-weight:700; color:${depth >= 25 ? '#dc2626' : depth >= 15 ? '#d97706' : '#059669'};">
-                                ${depth >= 25 ? '⛔ High Stall Risk' : depth >= 15 ? '⚠️ Caution' : '✅ Clear'}
-                            </span>
-                        </div>
-                    </div>
+                    '<div style="background:#f8fafc; border:1px solid #cbd5e1; border-radius:12px; padding:9px 11px; margin-bottom:9px;">' +
+                        '<div style="font-size:11px; color:#475569; font-weight:600;">Estimated water depth</div>' +
+                        '<div style="font-size:19px; font-weight:800; color:' + band.text + '; font-family:monospace;">' +
+                            escapeHtml(depth.toFixed(0)) + ' cm' +
+                        '</div>' +
+                        '<div style="font-size:11px; color:#475569;">' + escapeHtml(band.plain) + '</div>' +
+                    '</div>' +
 
-                    <button type="button" onclick="window._openSectorDrawer && window._openSectorDrawer(${idx})" style="width:100%; background:#0f2942; color:#ffffff; border:none; padding:8px 12px; border-radius:12px; font-size:11.5px; font-weight:700; cursor:pointer; display:flex; align-items:center; justify-content:center; gap:6px; box-shadow:0 2px 6px rgba(15,41,66,0.2);">
-                        <span>Check Location Safety &rarr;</span>
-                    </button>
-                </div>
-                `;
+                    '<div style="background:#f8fafc; border:1px solid #cbd5e1; border-radius:12px; padding:9px 11px; margin-bottom:9px; font-size:12px; color:#0f172a;">' +
+                        escapeHtml(passability) +
+                    '</div>' +
+
+                    // Flow velocity and drainage-culvert percentages used to appear
+                    // here. Nothing measures either, so they are gone rather than
+                    // fabricated from the depth.
+                    '<div style="font-size:11px; color:#475569; margin-bottom:9px; line-height:1.4;">' +
+                        'Modelled estimate from forecast rainfall and sample ground levels. ' +
+                        'Not a measurement, and not an official warning.' +
+                    '</div>' +
+
+                    '<button type="button" data-open-sector="' + Number(idx) + '" ' +
+                    'style="width:100%; min-height:44px; background:#0f2942; color:#ffffff; border:none; padding:10px 12px; ' +
+                    'border-radius:12px; font-size:13px; font-weight:700; cursor:pointer;">' +
+                        'Open details' +
+                    '</button>' +
+                '</div>';
 
                 marker.bindPopup(popupHtml, { maxWidth: 300, offset: [0, -10] });
                 circle.bindPopup(popupHtml, { maxWidth: 300, offset: [0, -10] });
+
+                // Wire the popup button with a real listener. An inline onclick=
+                // attribute is blocked by the site's CSP (script-src 'self'), so
+                // the button silently did nothing once served through nginx.
+                const wirePopupButton = (event) => {
+                    const root = event.popup && event.popup.getElement();
+                    const button = root && root.querySelector('[data-open-sector]');
+                    if (button && !button.dataset.wired) {
+                        button.dataset.wired = 'true';
+                        button.addEventListener('click', () => onSelectSector(idx));
+                    }
+                };
+                marker.on('popupopen', wirePopupButton);
+                circle.on('popupopen', wirePopupButton);
 
                 const handleNodeClick = () => {
                     onSelectSector(idx);
@@ -231,7 +247,12 @@ function InteractiveVectorMap(props) {
                     iconAnchor: [11, 11]
                 });
                 const pMarker = window.L.marker([pt[0] + 0.003, pt[1] - 0.003], { icon: pumpIcon }).addTo(map);
-                pMarker.bindPopup(`<strong>⚡ Stormwater Dewatering Pump #0${i+1}</strong><br><span style="font-size:11px; color:#2563eb;">Status: 100% Active Suction</span>`);
+                // No pump telemetry feed exists, so the popup states the location
+                // and says the running status is unknown rather than asserting one.
+                pMarker.bindPopup(
+                    '<strong>' + escapeHtml('Stormwater pump ' + (i + 1)) + '</strong><br>' +
+                    '<span style="font-size:12px; color:#475569;">Running status unknown: no pump telemetry is connected.</span>'
+                );
                 markersRef.current.push(pMarker);
             });
         }
@@ -246,7 +267,10 @@ function InteractiveVectorMap(props) {
                     iconAnchor: [11, 11]
                 });
                 const mMarker = window.L.marker([pt[0] - 0.0035, pt[1] + 0.0035], { icon: metroIcon }).addTo(map);
-                mMarker.bindPopup(`<strong>🚇 Metro Station #M-${i+1}</strong><br><span style="font-size:11px; color:#059669;">Corridor: Elevated Dry Deck</span>`);
+                mMarker.bindPopup(
+                    '<strong>' + escapeHtml('Metro station ' + (i + 1)) + '</strong><br>' +
+                    '<span style="font-size:12px; color:#475569;">Reference location. Service status is not monitored here.</span>'
+                );
                 markersRef.current.push(mMarker);
             });
         }
@@ -261,7 +285,12 @@ function InteractiveVectorMap(props) {
                     iconAnchor: [11, 11]
                 });
                 const sMarker = window.L.marker([pt[0] + 0.004, pt[1] + 0.004], { icon: shelterIcon }).addTo(map);
-                sMarker.bindPopup(`<strong>🏠 Emergency Relief Shelter #${i+1}</strong><br><span style="font-size:11px; color:#7c3aed;">Capacity: Available</span>`);
+                // "Capacity: Available" was a constant. Sending someone to a full
+                // shelter during a flood is a real harm, so we do not claim capacity.
+                sMarker.bindPopup(
+                    '<strong>' + escapeHtml('Relief shelter ' + (i + 1)) + '</strong><br>' +
+                    '<span style="font-size:12px; color:#475569;">Reference location. Confirm with the ward office before travelling.</span>'
+                );
                 markersRef.current.push(sMarker);
             });
         }
@@ -285,8 +314,12 @@ function InteractiveVectorMap(props) {
             } catch (_) {}
         }
 
-        // Render Safe Corridor & Bypass Route Lines if available
-        if (routeCheckResult && routeCheckResult.standard_route && routeCheckResult.safe_corridor) {
+        // Route polylines are not drawn any more. The coordinates behind them
+        // were generated by offsetting the city centre, so the lines did not
+        // follow roads and the "hazard bottleneck" they crossed was invented.
+        // Reinstate this once a real routing engine (OSRM, Valhalla, GraphHopper)
+        // is wired in against an OSM road graph.
+        if (false && routeCheckResult && routeCheckResult.standard_route && routeCheckResult.safe_corridor) {
             const stdCoords = routeCheckResult.standard_route.coordinates || [];
             const safeCoords = routeCheckResult.safe_corridor.coordinates || [];
 
@@ -594,8 +627,18 @@ function SectorDrawer({ sector, depth, wardName, onClose, pushToast }) {
                                     <div className="flex items-start gap-2">
                                         <span className="text-emerald-600 mt-0.5 font-bold">🛣️</span>
                                         <div>
-                                            <strong className="font-bold block">Recommended Dry Alternate Route</strong>
-                                            <span className="text-emerald-800 text-[11px]">Take the Kalina-CST Elevated Bypass. 100% dry (0 cm water), +3 min detour.</span>
+                                            <strong className="font-bold block">Elevated road on file for this city</strong>
+                                            {/*
+                                              This was hardcoded to Mumbai's Kalina-CST bypass and shown to
+                                              users in Chennai and Delhi too, with a "100% dry" guarantee the
+                                              system has no way to make. The corridor now comes from the
+                                              selected city and makes no passability promise.
+                                            */}
+                                            <span className="text-slate-800 text-xs">
+                                                {cityCorridor
+                                                    ? `${cityCorridor.name}. Usually above the surrounding low ground; conditions are not verified.`
+                                                    : "No reference corridor is on file for this city."}
+                                            </span>
                                         </div>
                                     </div>
                                     <button

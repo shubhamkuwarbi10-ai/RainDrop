@@ -3,9 +3,6 @@
 @tailwind utilities;
 
 @layer utilities {
-  .font-editorial {
-    font-family: 'Cormorant Garamond', 'Playfair Display', serif;
-  }
   .glass-btn {
     background: rgba(255, 255, 255, 0.12);
     backdrop-filter: blur(12px);

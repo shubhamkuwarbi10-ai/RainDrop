@@ -91,6 +91,20 @@ function RainDrop() {
     const [liveForecast, setLiveForecast] = useState(null);
     const [isFetchingForecast, setIsFetchingForecast] = useState(false);
 
+    // Feed health, derived from fetch outcomes. See lib/riskScale.js.
+    const [feed, setFeed] = useState({
+        lastSuccessAt: null,
+        lastErrorAt: null,
+        error: null,
+        serverStatus: null,
+        observedAt: null,
+    });
+
+    // Operator session. Null means a citizen is using the page.
+    const { operator, setOperator, signOut: signOutOperator } = useOperatorSession();
+    const [loginOpen, setLoginOpen] = useState(false);
+    const [confirmRequest, setConfirmRequest] = useState(null);
+
     // Layer Controls
     const [layers, setLayers] = useState({
         heatmap: true,
@@ -140,34 +154,52 @@ function RainDrop() {
     const [routeCheckBusy, setRouteCheckBusy] = useState(false);
     const [routeCheckResult, setRouteCheckResult] = useState(null);
 
-    const pushToast = (msg) => {
+    // Toasts are for operational outcomes and errors only. Routine UI changes
+    // (focus, map view, timeline position) are visible on screen already, and
+    // announcing them trained operators to ignore the toast area entirely.
+    // `tone` drives the aria-live politeness: errors assert, the rest is polite.
+    const pushToast = (msg, tone = "info") => {
         const id = ++toastId.current;
-        setToasts((t) => [...t.slice(-1), { id, msg }]);
-        setTimeout(() => setToasts((t) => t.filter((x) => x.id !== id)), 2200);
+        setToasts((t) => [...t.slice(-2), { id, msg, tone }]);
+        // Errors stay long enough to read and act on; the old 2.2 s was not
+        // enough time to read "backend offline" before it vanished.
+        const lifetime = tone === "error" ? 9000 : 4500;
+        setTimeout(() => setToasts((t) => t.filter((x) => x.id !== id)), lifetime);
     };
 
-    // Fetch Live Real-Time ML Ward Forecast from FastAPI Backend
+    // Fetch the ward forecast. Feed health is derived from what actually
+    // happened to this request, never from the wall clock.
     const loadWardForecast = useCallback(async (targetWard = ward, targetCity = selectedCity) => {
         setIsFetchingForecast(true);
         try {
-            const res = await fetch(`/api/ward_forecast?ward_name=${encodeURIComponent(targetWard)}&city=${encodeURIComponent(targetCity)}`);
-            if (res.ok) {
-                const data = await res.json();
-                setLiveForecast(data);
-                setRadarTime(new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' }));
-                
-                if (data.prediction && data.prediction.timeseries_mm_hr && data.prediction.timeseries_mm_hr.length > 0) {
-                    const newHydro = data.prediction.timeseries_mm_hr.slice(0, 7).map((val, idx) => ({
-                        t: data.prediction.timeseries_labels[idx] || `+${idx}h`,
-                        rain: Math.round(val * 10) / 10,
-                        surge: Number((1.2 + val * 0.05).toFixed(1)),
-                        label: data.prediction.timeseries_labels[idx] || `+${idx}h Forecast`
-                    }));
-                    setHydrograph(newHydro);
-                }
+            const res = await fetch(
+                `/api/ward_forecast?ward_name=${encodeURIComponent(targetWard)}&city=${encodeURIComponent(targetCity)}`,
+                { credentials: "same-origin" }
+            );
+            if (!res.ok) throw new Error(`Server responded ${res.status}`);
+
+            const data = await res.json();
+            setLiveForecast(data);
+            setFeed({
+                lastSuccessAt: Date.now(),
+                lastErrorAt: null,
+                error: null,
+                serverStatus: (data.provenance && data.provenance.data_status) || "heuristic",
+                observedAt: (data.provenance && data.provenance.observed_at) || null,
+            });
+
+            const forecast = data.forecast;
+            if (forecast && forecast.hourly_rainfall_mm && forecast.hourly_rainfall_mm.length > 0) {
+                setHydrograph(forecast.hourly_rainfall_mm.slice(0, 7).map((val, idx) => ({
+                    t: forecast.hourly_labels[idx] || `+${idx}h`,
+                    rain: Math.round(val * 10) / 10,
+                    label: forecast.hourly_labels[idx] || `+${idx}h`,
+                })));
             }
         } catch (err) {
-            console.warn("Backend API sync offline, using local model state:", err);
+            // Previously this only reached console.warn, so the UI kept showing
+            // mock numbers under a green "Live" badge.
+            setFeed((prev) => ({ ...prev, lastErrorAt: Date.now(), error: err.message }));
         } finally {
             setIsFetchingForecast(false);
         }
@@ -178,6 +210,29 @@ function RainDrop() {
         const pollId = setInterval(() => loadWardForecast(ward, selectedCity), 30000);
         return () => clearInterval(pollId);
     }, [ward, selectedCity, loadWardForecast]);
+
+    // City registry: supplies each city's reference evacuation corridor so the
+    // map and the route panel stop showing Mumbai's flyover everywhere.
+    const [cityRegistry, setCityRegistry] = useState(null);
+
+    useEffect(() => {
+        let cancelled = false;
+        fetch("/api/cities", { credentials: "same-origin" })
+            .then((response) => (response.ok ? response.json() : null))
+            .then((body) => {
+                if (!cancelled && body) setCityRegistry(body);
+            })
+            .catch(() => {});
+        return () => { cancelled = true; };
+    }, []);
+
+    const cityCorridor = useMemo(() => {
+        if (!cityRegistry) return null;
+        const match = cityRegistry.cities.find(
+            (city) => city.name.toLowerCase() === String(selectedCity).toLowerCase()
+        );
+        return match ? match.corridor : null;
+    }, [cityRegistry, selectedCity]);
 
     // --- Telemetry Polling (every 30 s) ---
     useEffect(() => {
@@ -212,7 +267,6 @@ function RainDrop() {
             setRouteProgress((p) => {
                 if (p >= 100) {
                     setIsSimulatingRoute(false);
-                    pushToast("Vehicle arrived safely via elevation bypass corridor");
                     return 100;
                 }
                 return p + 5;
@@ -221,21 +275,39 @@ function RainDrop() {
         return () => clearInterval(interval);
     }, [isSimulatingRoute]);
 
+    // Feed state drives the status badge and the offline banner.
+    const feedStatus = useMemo(() => feedState(feed), [feed]);
+    const feedMeta = useMemo(() => statusMeta(feedStatus), [feedStatus]);
+    const isFeedTrustworthy = feedStatus === "live" || feedStatus === "heuristic";
+
     const currentWardData = useMemo(() => {
         const base = WARDS_DATA[ward] || WARDS_DATA["Velachery"] || Object.values(WARDS_DATA)[0];
-        if (!liveForecast || liveForecast.ward_name !== base.name) return base;
+        // Only overlay live values when the response is for the ward on screen
+        // and the feed is actually current. Otherwise the sample data stands,
+        // and the status badge says so.
+        if (!liveForecast || !liveForecast.ward || liveForecast.ward.name !== base.name || !isFeedTrustworthy) {
+            return base;
+        }
+        const river = liveForecast.river || {};
+        const forecast = liveForecast.forecast || {};
+        const pumps = liveForecast.pumps || {};
         return {
             ...base,
-            riverLevel: liveForecast.river_level_m !== undefined ? liveForecast.river_level_m : base.riverLevel,
-            rainfallForecast: liveForecast.rainfall_forecast_mm !== undefined ? `${liveForecast.rainfall_forecast_mm} mm` : base.rainfallForecast,
-            activePumps: liveForecast.active_pumps || base.activePumps,
-            riskLevel: liveForecast.status || base.riskLevel,
+            riverLevel: river.estimated_level_m !== undefined ? river.estimated_level_m : base.riverLevel,
+            dangerLevel: river.danger_level_m !== undefined ? river.danger_level_m : base.dangerLevel,
+            rainfallForecast: forecast.total_rainfall_mm !== undefined ? `${forecast.total_rainfall_mm} mm` : base.rainfallForecast,
+            // There is no pump telemetry feed. Say so rather than inventing a count.
+            activePumps: pumps.active === null || pumps.active === undefined
+                ? `— / ${pumps.total_installed ?? "?"} (no telemetry)`
+                : `${pumps.active} / ${pumps.total_installed}`,
+            riskLevel: forecast.risk_level || base.riskLevel,
         };
-    }, [ward, liveForecast]);
+    }, [ward, liveForecast, isFeedTrustworthy]);
 
     const sectorDepths = useMemo(() => {
-        const predDepth = (liveForecast && liveForecast.predicted_flood_depth_cm !== undefined) ? liveForecast.predicted_flood_depth_cm : null;
-        const livePeak = (liveForecast && liveForecast.prediction && liveForecast.prediction.peak_intensity_mm_hr) || 15;
+        const forecast = (isFeedTrustworthy && liveForecast && liveForecast.forecast) || null;
+        const predDepth = forecast ? forecast.predicted_flood_depth_cm : null;
+        const livePeak = (forecast && forecast.peak_intensity_mm_hr) || 15;
         const rainRatio = Math.max(0.1, livePeak / 30.0);
         const timeMultiplier = (timeStep * 0.35) + 0.65;
         const rainFactor = scenario.rainfallMultiplier * (rainRatio > 0 ? rainRatio : 1.0);
@@ -253,57 +325,119 @@ function RainDrop() {
             );
             return Math.max(0, calc);
         });
-    }, [currentWardData, timeStep, scenario, liveForecast]);
+    }, [currentWardData, timeStep, scenario, liveForecast, isFeedTrustworthy]);
+
+    // Sector depths are modelled from the ward estimate and sample elevations.
+    // They are never a measurement, and the UI labels them accordingly.
+    const sectorDepthsAreModelled = true;
 
     const floodStats = useMemo(() => {
-        let clear = 0;
-        let caution = 0;
-        let critical = 0;
-        sectorDepths.forEach((d) => {
-            if (d < 15) clear++;
-            else if (d < 30) caution++;
-            else critical++;
+        // Band boundaries come from the shared risk scale so the counts here
+        // and the colours on the map can never disagree.
+        const counts = { clear: 0, caution: 0, critical: 0 };
+        sectorDepths.forEach((depth) => {
+            const band = bandForDepth(depth);
+            if (band.order <= 1) counts.clear += 1;
+            else if (band.order === 2) counts.caution += 1;
+            else counts.critical += 1;
         });
-        return { clear, caution, critical };
+        return counts;
     }, [sectorDepths]);
 
-    const runAction = (setBusy, msg, after) => {
-        setBusy(true);
-        setTimeout(() => {
-            setBusy(false);
-            pushToast(msg);
-            if (after) after();
-        }, 900);
+    /**
+     * Ask for confirmation, then run a control-room action.
+     *
+     * The old runAction waited 900 ms and then reported success without doing
+     * anything. This one requires a signed-in operator, shows what is about to
+     * happen, and reports the real outcome of the request.
+     */
+    const requestOperatorAction = ({ title, description, details, confirmLabel, run }) => {
+        if (!operator) {
+            setLoginOpen(true);
+            pushToast("Sign in as an operator to dispatch resources.", "error");
+            return;
+        }
+        setConfirmRequest({
+            title,
+            description,
+            details,
+            confirmLabel,
+            run,
+        });
     };
 
-    const handleEnableMap = () => {
-        setIsMapEnabled(true);
-        pushToast(`Spatial flood map activated for ${ward}`);
-    };
-
-    const handleDisableMap = () => {
-        setIsMapEnabled(false);
-        pushToast("Spatial map switched to Standby Mode");
-    };
-
-    // --- Nowcast API Call ---
-    const handleRefreshNowcast = async () => {
-        setNowcastBusy(true);
-        setNowcastResult(null);
+    const confirmPendingAction = async () => {
+        const request = confirmRequest;
+        setConfirmRequest(null);
+        if (!request) return;
         try {
-            const res = await fetch("/api/run_pipeline");
-            const data = await res.json();
-            setNowcastResult(data);
-            pushToast(`Nowcast pipeline: ${data.status || "DONE"} — ${data.message || ""}`);
+            const outcome = await request.run();
+            pushToast(outcome || `${request.title} requested.`, "success");
         } catch (err) {
-            setNowcastResult({ status: "ERROR", message: err.message });
-            pushToast("Nowcast pipeline call failed — backend offline?");
-        } finally {
-            setNowcastBusy(false);
+            pushToast(`${request.title} failed: ${err.message}`, "error");
         }
     };
 
-    // --- Route Check API Call ---
+    /**
+     * Open the map for a city, always with one of that city's own wards.
+     *
+     * This used to set the city and keep whatever ward was current, so choosing
+     * Mumbai from the landing page opened Chennai's Velachery ward under a
+     * "Mumbai" label, and the live forecast never matched the ward on screen.
+     */
+    const openCityMap = (targetWard, targetCity) => {
+        const cityName = targetCity || selectedCity;
+        const belongsToCity = (wardKey) =>
+            WARDS_DATA[wardKey] && WARDS_DATA[wardKey].city.toLowerCase() === String(cityName).toLowerCase();
+        const nextWard = targetWard && belongsToCity(targetWard)
+            ? targetWard
+            : Object.keys(WARDS_DATA).find(belongsToCity) || ward;
+
+        setSelectedCity(cityName);
+        setWard(nextWard);
+        setSelectedSector(null);
+        setIsMapEnabled(true);
+        setView("command");
+        // No explicit fetch: the effect watching [ward, selectedCity] loads it.
+    };
+
+    const handleEnableMap = () => setIsMapEnabled(true);
+    const handleDisableMap = () => setIsMapEnabled(false);
+
+    // --- Pipeline run (operator only; the endpoint now actually runs it) ---
+    const handleRefreshNowcast = () => {
+        requestOperatorAction({
+            title: "Run the nowcast pipeline",
+            description: `This recomputes the rainfall nowcast for ${selectedCity}. It can take several minutes and will replace the current forecast raster.`,
+            details: [
+                { label: "City", value: selectedCity },
+                { label: "Stage", value: "nowcast" },
+                { label: "Signed in as", value: operator ? operator.display_name : "—" },
+            ],
+            confirmLabel: "Run pipeline",
+            run: async () => {
+                setNowcastBusy(true);
+                setNowcastResult(null);
+                try {
+                    const params = new URLSearchParams({ stage: "nowcast", city: selectedCity.toLowerCase() });
+                    const res = await fetch(`/api/run_pipeline?${params}`, {
+                        method: "POST",
+                        credentials: "same-origin",
+                    });
+                    const data = await res.json().catch(() => ({}));
+                    if (!res.ok) throw new Error(data.detail || `Server responded ${res.status}`);
+                    setNowcastResult(data);
+                    return data.succeeded
+                        ? `Nowcast pipeline finished in ${data.duration_seconds}s.`
+                        : `Nowcast pipeline exited with code ${data.exit_code}.`;
+                } finally {
+                    setNowcastBusy(false);
+                }
+            },
+        });
+    };
+
+    // --- Route guidance (public; returns a reference corridor, not a route) ---
     const handleRouteCheck = async (e) => {
         e.preventDefault();
         if (!routeOrigin.trim() || !routeDest.trim()) return;
@@ -313,15 +447,15 @@ function RainDrop() {
             const params = new URLSearchParams({
                 origin: routeOrigin,
                 destination: routeDest,
+                city: selectedCity.toLowerCase(),
                 depth_cm: routeDepth,
             });
-            const res = await fetch(`/api/route_check?${params}`);
-            const data = await res.json();
-            setRouteCheckResult(data);
-            pushToast(`Route safety check complete: ${(data && data.standard_route && data.standard_route.status) || "DONE"}`);
+            const res = await fetch(`/api/route_check?${params}`, { credentials: "same-origin" });
+            if (!res.ok) throw new Error(`Server responded ${res.status}`);
+            setRouteCheckResult(await res.json());
         } catch (err) {
             setRouteCheckResult({ error: err.message });
-            pushToast("Route check failed — backend offline?");
+            pushToast(`Could not check that route: ${err.message}`, "error");
         } finally {
             setRouteCheckBusy(false);
         }
@@ -377,7 +511,6 @@ function RainDrop() {
         if (window._rainDropMap && res.coords) {
             window._rainDropMap.flyTo(res.coords, 15, { duration: 1.2 });
         }
-        pushToast(`Focused on ${res.title}`);
     };
 
     // Keyboard shortcut for Cmd+K / Ctrl+K
@@ -392,11 +525,57 @@ function RainDrop() {
         return () => window.removeEventListener("keydown", handleKeyDown);
     }, []);
 
+    /*
+      Chrome rendered in every view: toasts, the sign-in and confirmation
+      dialogs, and a persistent banner when the data on screen is not current.
+      The banner is deliberately not dismissible while the condition holds - an
+      operator must not be able to hide the fact that the feed is down.
+    */
+    const globalChrome = (
+        <>
+            <ToastStack toasts={toasts} />
+            {!isFeedTrustworthy && (
+                /*
+                  In normal flow, not fixed. Each view root is a flex column, so
+                  the banner takes its own row and pushes the toolbar down
+                  instead of covering the city selector and the retry control.
+                */
+                <div
+                    role="alert"
+                    className={`relative w-full shrink-0 z-[1000] px-4 py-2.5 text-center text-sm font-semibold border-b ${feedMeta.chip}`}
+                >
+                    <span className="font-bold">{feedMeta.label}:</span>{" "}
+                    {feedMeta.plain}{" "}
+                    {feed.lastSuccessAt
+                        ? `Last successful update ${ageLabel(feed.lastSuccessAt)}.`
+                        : "No data has been received in this session."}{" "}
+                    <button
+                        type="button"
+                        onClick={() => loadWardForecast(ward, selectedCity)}
+                        className="underline underline-offset-2 font-bold focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-current"
+                    >
+                        Retry now
+                    </button>
+                </div>
+            )}
+            <OperatorLoginDialog
+                open={loginOpen}
+                onClose={() => setLoginOpen(false)}
+                onSignedIn={setOperator}
+            />
+            <ConfirmDialog
+                request={confirmRequest}
+                onCancel={() => setConfirmRequest(null)}
+                onConfirm={confirmPendingAction}
+            />
+        </>
+    );
+
     // VIEW 1: Public Hero Landing Page (Editorial Light Sea Blue GIS Theme)
     if (view === "hero") {
         return (
             <div className="min-h-screen w-full bg-white text-slate-900 selection:bg-emerald-600 selection:text-white font-sans antialiased overflow-x-hidden">
-                <ToastStack toasts={toasts} />
+                {globalChrome}
                 <HeroView
                     ward={ward}
                     wardData={currentWardData}
@@ -409,14 +588,13 @@ function RainDrop() {
                         const firstWard = cityWards[0] || Object.keys(WARDS_DATA)[0];
                         setWard(firstWard);
                         setSelectedSector(null);
-                        loadWardForecast(firstWard, cityName);
                         setView("overview");
                     }}
-                    onOpenMap={(targetWard, targetCity) => {
-                        if (targetCity) setSelectedCity(targetCity);
-                        if (targetWard) setWard(targetWard);
-                        setIsMapEnabled(true);
-                        setView("command");
+                    onOpenMap={(targetWard, targetCity) => openCityMap(targetWard, targetCity)}
+                    onCheckRoute={(targetCity) => {
+                        openCityMap(null, targetCity);
+                        setRouteCheckResult(null);
+                        setRouteCheckOpen(true);
                     }}
                     pushToast={pushToast}
                 />
@@ -428,7 +606,7 @@ function RainDrop() {
     if (view === "overview") {
         return (
             <div className="h-screen w-screen bg-[#F8FAFC] text-slate-900 selection:bg-blue-600 selection:text-white font-sans overflow-hidden flex flex-col">
-                <ToastStack toasts={toasts} />
+                {globalChrome}
                 {sitRepOpen && (
                     <SitRepModal
                         ward={ward}
@@ -461,13 +639,7 @@ function RainDrop() {
                     liveForecast={liveForecast}
                     loadWardForecast={loadWardForecast}
                     isFetchingForecast={isFetchingForecast}
-                    onOpenMap={(targetWard, targetCity) => {
-                        if (targetCity) setSelectedCity(targetCity);
-                        if (targetWard) setWard(targetWard);
-                        setIsMapEnabled(true);
-                        setView("command");
-                        pushToast(`Opening GIS Map view for ${targetWard || ward} (${targetCity || selectedCity})`);
-                    }}
+                    onOpenMap={(targetWard, targetCity) => openCityMap(targetWard, targetCity)}
                     onOpenSitRep={(targetWard) => {
                         if (targetWard) setWard(targetWard);
                         setSitRepOpen(true);
@@ -483,7 +655,7 @@ function RainDrop() {
 
     return (
         <div className="h-screen w-screen bg-[#F8FAFC] text-slate-900 relative selection:bg-blue-600 selection:text-white font-sans overflow-hidden flex flex-col">
-            <ToastStack toasts={toasts} />
+            {globalChrome}
 
             {selectedSector !== null && currentWardData?.sectors?.[selectedSector] && (
                 <SectorDrawer
@@ -531,13 +703,14 @@ function RainDrop() {
                             </div>
                             <div>
                                 <h2 className="text-base font-bold text-slate-900 flex items-center gap-2">
-                                    Dual-Corridor Safe Routing
-                                    <span className="text-[10px] px-2 py-0.5 rounded-full bg-blue-100 text-blue-700 font-bold uppercase">
-                                        30m DEM High-Ground
+                                    Can I get through?
+                                    <span className="text-[10px] px-2 py-0.5 rounded-full bg-violet-100 text-violet-900 font-bold uppercase border border-violet-300">
+                                        Demo
                                     </span>
                                 </h2>
-                                <p className="text-xs text-slate-500">
-                                    Bypasses inundated underpasses &amp; lowlands using surface elevation data
+                                <p className="text-xs text-slate-600">
+                                    Shows the elevated road on file for this city and what a given water depth
+                                    means for walking, riding and driving.
                                 </p>
                             </div>
                         </div>
@@ -559,38 +732,45 @@ function RainDrop() {
                                 aria-hidden="true"
                             />
                             <div>
-                                <label className="block text-[11px] font-bold text-slate-600 mb-1">Origin Landmark</label>
+                                <label htmlFor="route-origin" className="block text-xs font-bold text-slate-700 mb-1">Starting from</label>
                                 <input
+                                    id="route-origin"
                                     value={routeOrigin}
                                     onChange={(e) => setRouteOrigin(e.target.value)}
-                                    placeholder="e.g. Kurla Station"
+                                    placeholder="Your area or landmark"
                                     required
-                                    className="w-full rounded-2xl border border-slate-200 bg-slate-50 px-3.5 py-2 text-xs text-slate-900 placeholder-slate-400 focus:border-blue-500 focus:bg-white focus:outline-none"
+                                    className="w-full min-h-[44px] rounded-2xl border border-slate-300 bg-white px-3.5 text-sm text-slate-900 placeholder-slate-500 focus-visible:outline-2 focus-visible:outline-offset-1 focus-visible:outline-blue-700"
                                 />
                             </div>
                             <div>
-                                <label className="block text-[11px] font-bold text-slate-600 mb-1">Destination</label>
+                                <label htmlFor="route-destination" className="block text-xs font-bold text-slate-700 mb-1">Going to</label>
                                 <input
+                                    id="route-destination"
                                     value={routeDest}
                                     onChange={(e) => setRouteDest(e.target.value)}
-                                    placeholder="e.g. BKC Connector"
+                                    placeholder="Destination area or landmark"
                                     required
-                                    className="w-full rounded-2xl border border-slate-200 bg-slate-50 px-3.5 py-2 text-xs text-slate-900 placeholder-slate-400 focus:border-blue-500 focus:bg-white focus:outline-none"
+                                    className="w-full min-h-[44px] rounded-2xl border border-slate-300 bg-white px-3.5 text-sm text-slate-900 placeholder-slate-500 focus-visible:outline-2 focus-visible:outline-offset-1 focus-visible:outline-blue-700"
                                 />
                             </div>
                             <div className="sm:col-span-2">
-                                <label className="block text-[11px] font-bold text-slate-600 mb-1">
-                                    Simulated Flood Water Depth (cm)
+                                <label htmlFor="route-depth" className="block text-xs font-bold text-slate-700 mb-1">
+                                    Water depth on the road (cm)
                                 </label>
                                 <input
+                                    id="route-depth"
                                     type="number"
                                     min="0"
                                     max="200"
                                     step="1"
                                     value={routeDepth}
                                     onChange={(e) => setRouteDepth(Number(e.target.value))}
-                                    className="w-full rounded-2xl border border-slate-200 bg-slate-50 px-3.5 py-2 text-xs text-slate-900 placeholder-slate-400 focus:border-blue-500 focus:bg-white focus:outline-none"
+                                    aria-describedby="route-depth-help"
+                                    className="w-full min-h-[44px] rounded-2xl border border-slate-300 bg-white px-3.5 text-sm text-slate-900 focus-visible:outline-2 focus-visible:outline-offset-1 focus-visible:outline-blue-700"
                                 />
+                                <p id="route-depth-help" className="mt-1 text-xs text-slate-600">
+                                    What you can see, or the estimate shown for your ward.
+                                </p>
                             </div>
                             <div className="sm:col-span-2 mt-1">
                                 <button
@@ -600,11 +780,11 @@ function RainDrop() {
                                 >
                                     {routeCheckBusy ? (
                                         <>
-                                            <RefreshCw className="w-3.5 h-3.5 animate-spin" /> Analyzing 30m Elevation Corridors…
+                                            <RefreshCw className="w-3.5 h-3.5 animate-spin" aria-hidden="true" /> Checking…
                                         </>
                                     ) : (
                                         <>
-                                            <Send className="w-3.5 h-3.5" /> Check Dual-Corridor Safety
+                                            <Send className="w-3.5 h-3.5" aria-hidden="true" /> Check this route
                                         </>
                                     )}
                                 </button>
@@ -612,59 +792,75 @@ function RainDrop() {
                         </form>
 
                         {routeCheckResult && !routeCheckResult.error && (
-                            <div className="space-y-3 border-t border-slate-100 pt-4">
-                                <div className="rounded-2xl p-3.5 bg-rose-50 border border-rose-200 text-rose-900">
-                                    <div className="flex items-center justify-between mb-1.5">
-                                        <span className="text-xs font-bold flex items-center gap-1.5 text-rose-700">
-                                            🔴 Standard Direct Route
-                                        </span>
-                                        <span className="text-[10px] font-extrabold px-2 py-0.5 rounded-full bg-rose-200 text-rose-800">
-                                            {routeCheckResult.standard_route?.status_label || "HAZARDOUS"}
-                                        </span>
-                                    </div>
-                                    <div className="grid grid-cols-3 gap-2 text-[11px] text-slate-600 my-2">
-                                        <div>
-                                            Distance: <strong className="text-slate-900">{routeCheckResult.standard_route?.distance_km} km</strong>
-                                        </div>
-                                        <div>
-                                            Travel: <strong className="text-slate-900">{routeCheckResult.standard_route?.est_time_min} mins</strong>
-                                        </div>
-                                        <div>
-                                            Max Flood: <strong className="text-rose-600">🌊 {routeCheckResult.standard_route?.max_water_depth_cm} cm</strong>
-                                        </div>
-                                    </div>
-                                    {routeCheckResult.standard_route?.danger_points?.[0] && (
-                                        <div className="text-[10px] text-rose-800 bg-rose-100/80 px-2.5 py-1.5 rounded-xl">
-                                            ⚠️ <strong>Hazard Bottleneck:</strong> {routeCheckResult.standard_route.danger_points[0].name} ({routeCheckResult.standard_route.danger_points[0].hazard})
-                                        </div>
+                            <div className="space-y-3 border-t border-slate-200 pt-4">
+                                {/*
+                                  Honest version of the old "dual corridor" panel.
+                                  The distances, travel times and per-route flood
+                                  depths it used to show were generated constants,
+                                  and the recommended corridor was the same Mumbai
+                                  flyover in every city.
+                                */}
+                                <div className="rounded-2xl border border-violet-300 bg-violet-50 p-3 text-xs text-violet-900">
+                                    <strong>Reference information, not a route.</strong> This shows the elevated
+                                    road on file for {routeCheckResult.city} and what the reported depth means for
+                                    each way of travelling. No live road, traffic or closure data is used.
+                                </div>
+
+                                <div className="rounded-2xl border border-slate-300 bg-white p-3.5">
+                                    <h3 className="text-sm font-bold text-slate-900">
+                                        {routeCheckResult.suggested_corridor?.name}
+                                    </h3>
+                                    <p className="mt-1 text-xs text-slate-700 leading-relaxed">
+                                        {routeCheckResult.suggested_corridor?.summary}
+                                    </p>
+                                    {routeCheckResult.suggested_corridor?.waypoints?.length > 0 && (
+                                        <ol className="mt-2.5 flex flex-wrap items-center gap-x-1.5 gap-y-1 text-xs text-slate-700">
+                                            {routeCheckResult.suggested_corridor.waypoints.map((point, idx) => (
+                                                <li key={point} className="flex items-center gap-1.5">
+                                                    {idx > 0 && <span className="text-slate-400" aria-hidden="true">&rarr;</span>}
+                                                    <span className="font-medium">{point}</span>
+                                                </li>
+                                            ))}
+                                        </ol>
                                     )}
                                 </div>
 
-                                <div className="rounded-2xl p-3.5 bg-emerald-50 border border-emerald-200 text-emerald-900">
-                                    <div className="flex items-center justify-between mb-1.5">
-                                        <span className="text-xs font-bold flex items-center gap-1.5 text-emerald-700">
-                                            🟢 Safe Elevation Corridor (Recommended)
-                                        </span>
-                                        <span className="text-[10px] font-extrabold px-2 py-0.5 rounded-full bg-emerald-200 text-emerald-800">
-                                            {routeCheckResult.safe_corridor?.status_label || "SAFE PASSAGE"}
-                                        </span>
-                                    </div>
-                                    <div className="grid grid-cols-3 gap-2 text-[11px] text-slate-600 my-2">
-                                        <div>
-                                            Distance: <strong className="text-slate-900">{routeCheckResult.safe_corridor?.distance_km} km</strong>
-                                        </div>
-                                        <div>
-                                            Travel: <strong className="text-slate-900">{routeCheckResult.safe_corridor?.est_time_min} mins</strong>
-                                        </div>
-                                        <div>
-                                            Max Flood: <strong className="text-emerald-600">🌊 {routeCheckResult.safe_corridor?.max_water_depth_cm} cm</strong>
-                                        </div>
-                                    </div>
-                                    <div className="flex items-center justify-between text-[10px] text-emerald-800 bg-emerald-100/80 px-2.5 py-1.5 rounded-xl">
-                                        <span>🛡️ <strong>Highland Bypass:</strong> Elevated Flyover Route</span>
-                                        <span className="font-bold">+{routeCheckResult.safe_corridor?.detour_time_min} min detour (+{routeCheckResult.safe_corridor?.detour_dist_km} km)</span>
-                                    </div>
+                                <div className="rounded-2xl border border-slate-300 overflow-hidden">
+                                    <table className="w-full text-xs">
+                                        <caption className="sr-only">
+                                            Can I pass through water {routeCheckResult.reported_depth_cm} cm deep?
+                                        </caption>
+                                        <thead className="bg-slate-100 text-slate-800">
+                                            <tr>
+                                                <th scope="col" className="text-left px-3 py-2 font-bold">How you travel</th>
+                                                <th scope="col" className="text-left px-3 py-2 font-bold">
+                                                    At {routeCheckResult.reported_depth_cm} cm
+                                                </th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            {(routeCheckResult.passability || []).map((row) => {
+                                                const tone = row.verdict === "passable"
+                                                    ? "text-slate-800 bg-white"
+                                                    : row.verdict === "risky"
+                                                        ? "text-orange-900 bg-orange-50"
+                                                        : "text-red-50 bg-red-800";
+                                                return (
+                                                    <tr key={row.mode} className={`border-t border-slate-200 ${tone}`}>
+                                                        <th scope="row" className="text-left px-3 py-2.5 font-semibold">{row.mode}</th>
+                                                        <td className="px-3 py-2.5">{row.advice}</td>
+                                                    </tr>
+                                                );
+                                            })}
+                                        </tbody>
+                                    </table>
                                 </div>
+
+                                <ul className="text-xs text-slate-700 space-y-1 list-disc pl-5">
+                                    {(routeCheckResult.provenance?.caveats || []).map((caveat) => (
+                                        <li key={caveat}>{caveat}</li>
+                                    ))}
+                                </ul>
                             </div>
                         )}
                         {routeCheckResult && routeCheckResult.error && (
@@ -722,7 +918,6 @@ function RainDrop() {
                                             type="button"
                                             onClick={() => {
                                                 setScenario((prev) => ({ ...prev, rainfallMm: scen.val }));
-                                                pushToast(`Scenario selected: ${scen.label} (${scen.desc})`);
                                             }}
                                             className={`p-3 rounded-2xl border text-left transition-all cursor-pointer ${
                                                 scenario.rainfallMm === scen.val
@@ -788,7 +983,7 @@ function RainDrop() {
                                     setSimulationModalOpen(false);
                                     setTimeStep(2);
                                     setTimelineIndex(2);
-                                    pushToast("Simulation Applied", "Interactive map updated with pulse forecast.", "success");
+                                    pushToast("Scenario applied to the map. These are modelled values, not observations.", "success");
                                 }}
                                 className="w-full py-3 rounded-2xl bg-[#0F2942] hover:bg-[#163A5E] text-white text-xs font-bold transition-all shadow-md cursor-pointer flex items-center justify-center gap-2"
                             >
@@ -1249,36 +1444,57 @@ function RainDrop() {
                                     )}
                                 </div>
 
-                                {/* Live Data Badge */}
-                                <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-emerald-50 border border-emerald-200/80 text-emerald-700 text-xs font-semibold shadow-2xs" title="Open-Meteo & IMD Live Radar Synchronized">
-                                    <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
-                                    <span>Live Telemetry</span>
+                                {/*
+                                  Feed status. Derived from whether data actually
+                                  arrived, not from a ticking clock. The previous
+                                  badge was permanently green and showed the wall
+                                  clock, so stale and mock data looked live.
+                                */}
+                                <div
+                                    role="status"
+                                    aria-live="polite"
+                                    className={`flex items-center gap-2 px-3 py-1.5 rounded-full border text-xs font-semibold ${feedMeta.chip}`}
+                                    title={feedMeta.plain}
+                                >
+                                    <span className={`w-2 h-2 rounded-full ${feedMeta.dot}`} aria-hidden="true" />
+                                    <span>{feedMeta.label}</span>
+                                    <span className="font-normal opacity-80">
+                                        {feed.observedAt
+                                            ? `· data ${clockLabel(feed.observedAt)}`
+                                            : feed.lastSuccessAt
+                                                ? `· ${ageLabel(feed.lastSuccessAt)}`
+                                                : "· never updated"}
+                                    </span>
                                 </div>
 
-                                {/* Real-Time Date and Time Clock */}
-                                <div className="text-xs font-medium text-slate-500 flex items-center bg-slate-50/90 px-3 py-1.5 rounded-full border border-slate-200/80 shadow-2xs">
-                                    <Clock className="w-3.5 h-3.5 text-blue-500 mr-1.5" />
-                                    <span className="text-slate-600 font-medium">
-                                        {currentTime.toLocaleDateString(undefined, { weekday: 'short', day: 'numeric', month: 'short' })}
-                                    </span>
-                                    <span className="ml-2 font-bold font-mono text-slate-800">
-                                        {currentTime.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' })}
-                                    </span>
-                                </div>
+                                {/* Operator session */}
+                                <OperatorBadge
+                                    operator={operator}
+                                    onSignIn={() => setLoginOpen(true)}
+                                    onSignOut={signOutOperator}
+                                />
 
                                 {/* Notification Bell */}
                                 <button
                                     type="button"
-                                    onClick={() =>
+                                    onClick={() => {
+                                        const river = (liveForecast && liveForecast.river) || null;
+                                        if (!river) {
+                                            pushToast("No river level estimate is available right now.", "error");
+                                            return;
+                                        }
                                         pushToast(
-                                            "Mithi River Alert: Water level at Kurla Lowland sensor 3.42m approaching danger threshold."
-                                        )
-                                    }
-                                    className="relative p-2 rounded-full hover:bg-slate-100 text-slate-600 transition-colors cursor-pointer"
-                                    title="Alerts Feed"
+                                            `${river.name}: estimated ${river.estimated_level_m} m against a ${river.danger_level_m} m danger level. Estimated from rainfall, not a gauge reading.`
+                                        );
+                                    }}
+                                    className="relative p-2.5 min-h-[44px] min-w-[44px] rounded-full hover:bg-slate-100 text-slate-700 transition-colors cursor-pointer focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue-700"
+                                    title="River level for the selected ward"
+                                    aria-label="Show river level for the selected ward"
                                 >
-                                    <Bell className="w-4 h-4" />
-                                    <span className="absolute top-1.5 right-1.5 w-2 h-2 rounded-full bg-rose-500 ring-2 ring-white" />
+                                    <Bell className="w-4 h-4" aria-hidden="true" />
+                                    {liveForecast && liveForecast.river && liveForecast.river.at_or_above_danger && (
+                                        <span className="absolute top-1.5 right-1.5 w-2 h-2 rounded-full bg-red-700 ring-2 ring-white" aria-hidden="true" />
+                                    )}
                                 </button>
                             </div>
                         </header>
@@ -1295,6 +1511,7 @@ function RainDrop() {
                                 mapStyle={mapStyle}
                                 mapToggles={mapToggles}
                                 timelineStep={timeStep}
+                                cityCorridor={cityCorridor}
                             />
 
                             {/* FLOATING BASEMAP SWITCHER (Top Center) */}
@@ -1438,12 +1655,13 @@ function RainDrop() {
                                         </div>
                                         <div>
                                             <div className="flex items-center gap-2">
-                                                <h3 className="text-xs font-bold text-slate-900">
-                                                    Flood Inundation
+                                                <h3 className="text-sm font-bold text-slate-900">
+                                                    Flood estimate
                                                 </h3>
-                                                <span className="inline-flex items-center gap-1 text-[9.5px] font-bold px-2 py-0.5 rounded-full bg-emerald-50 text-emerald-700 border border-emerald-200/60">
-                                                    <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
-                                                    Live
+                                                {/* Mirrors the real feed state rather than always reading "Live". */}
+                                                <span className={`inline-flex items-center gap-1 text-xs font-bold px-2 py-0.5 rounded-full border ${feedMeta.chip}`}>
+                                                    <span className={`w-1.5 h-1.5 rounded-full ${feedMeta.dot}`} aria-hidden="true" />
+                                                    {feedMeta.label}
                                                 </span>
                                             </div>
                                         </div>
@@ -1464,56 +1682,22 @@ function RainDrop() {
 
                                 {!rightCardCollapsed && (
                                     <>
-                                        {/* Severity Legend */}
-                                        <div>
-                                            <div className="text-[10px] font-bold uppercase tracking-wider text-slate-400 mb-1.5">
-                                                Depth Classification
-                                            </div>
-                                            <div className="grid grid-cols-2 gap-1.5 bg-slate-50/80 p-2 rounded-2xl border border-slate-100">
-                                                <div className="flex items-center gap-2 p-1.5 rounded-xl bg-white/80 border border-rose-100 shadow-2xs">
-                                                    <span className="w-2.5 h-2.5 rounded-full bg-rose-500 shrink-0 ring-2 ring-rose-200" />
-                                                    <div className="leading-tight">
-                                                        <div className="text-[10.5px] font-bold text-slate-800">&gt; 30 cm</div>
-                                                        <div className="text-[9px] font-semibold text-rose-600">Critical</div>
-                                                    </div>
-                                                </div>
-                                                <div className="flex items-center gap-2 p-1.5 rounded-xl bg-white/80 border border-blue-100 shadow-2xs">
-                                                    <span className="w-2.5 h-2.5 rounded-full bg-blue-500 shrink-0 ring-2 ring-blue-200" />
-                                                    <div className="leading-tight">
-                                                        <div className="text-[10.5px] font-bold text-slate-800">15–30 cm</div>
-                                                        <div className="text-[9px] font-semibold text-blue-600">Caution</div>
-                                                    </div>
-                                                </div>
-                                                <div className="flex items-center gap-2 p-1.5 rounded-xl bg-white/80 border border-sky-100 shadow-2xs">
-                                                    <span className="w-2.5 h-2.5 rounded-full bg-sky-400 shrink-0 ring-2 ring-sky-200" />
-                                                    <div className="leading-tight">
-                                                        <div className="text-[10.5px] font-bold text-slate-800">&lt; 15 cm</div>
-                                                        <div className="text-[9px] font-semibold text-sky-600">Possible</div>
-                                                    </div>
-                                                </div>
-                                                <div className="flex items-center gap-2 p-1.5 rounded-xl bg-white/80 border border-emerald-100 shadow-2xs">
-                                                    <span className="w-2.5 h-2.5 rounded-full bg-emerald-500 shrink-0 ring-2 ring-emerald-200" />
-                                                    <div className="leading-tight">
-                                                        <div className="text-[10.5px] font-bold text-slate-800">0 cm Dry</div>
-                                                        <div className="text-[9px] font-semibold text-emerald-600">Passable</div>
-                                                    </div>
-                                                </div>
-                                            </div>
-                                        </div>
+                                        {/* Depth legend, from the one shared risk scale. */}
+                                        <RiskLegend />
 
                                         {/* Toggle Switches */}
                                         <div>
                                             <div className="flex items-center justify-between text-[10px] font-bold uppercase tracking-wider text-slate-400 mb-2">
-                                                <span>GIS Layer Overlays</span>
-                                                <span className="text-[9px] font-normal text-slate-400">Active telemetry</span>
+                                                <span>Map layers</span>
+                                                <span className="text-xs font-normal text-slate-600">Show or hide</span>
                                             </div>
                                             <div className="flex flex-col gap-2">
                                                 {[
-                                                    { id: "hotspots", label: "Critical Hotspots", desc: "6 inundation zones", activeColor: "bg-rose-500", dot: "bg-rose-500" },
-                                                    { id: "pumps", label: "Drainage Pumps", desc: "12 active stations", activeColor: "bg-blue-600", dot: "bg-blue-600" },
-                                                    { id: "shelters", label: "Relief Shelters", desc: "4 emergency hubs", activeColor: "bg-indigo-600", dot: "bg-indigo-600" },
-                                                    { id: "metro", label: "Metro & Transport", desc: "Subway & rail gates", activeColor: "bg-emerald-500", dot: "bg-emerald-500" },
-                                                    { id: "boundaries", label: "Ward Boundaries", desc: "BMC L-Ward zone", activeColor: "bg-slate-700", dot: "bg-slate-600" },
+                                                    { id: "hotspots", label: "Flood hotspots", desc: `${currentWardData.sectors.length} modelled sectors`, activeColor: "bg-slate-800", dot: "bg-slate-700" },
+                                                    { id: "pumps", label: "Pump locations", desc: "Reference only, no telemetry", activeColor: "bg-slate-800", dot: "bg-slate-700" },
+                                                    { id: "shelters", label: "Relief shelters", desc: "Reference only, confirm locally", activeColor: "bg-slate-800", dot: "bg-slate-700" },
+                                                    { id: "metro", label: "Metro and transport", desc: "Reference locations", activeColor: "bg-slate-800", dot: "bg-slate-700" },
+                                                    { id: "boundaries", label: "Ward boundary", desc: `${currentWardData.name}, ${selectedCity}`, activeColor: "bg-slate-800", dot: "bg-slate-700" },
                                                 ].map((toggle) => (
                                                     <div key={toggle.id} className="flex items-center justify-between py-1 px-1.5 rounded-xl hover:bg-slate-50 transition-colors">
                                                         <div className="flex items-center gap-2">
@@ -1608,7 +1792,6 @@ function RainDrop() {
                                                         e.stopPropagation();
                                                         setTimelineIndex(idx);
                                                         setTimeStep(idx);
-                                                        pushToast(`Timeline updated to ${step}`);
                                                     }}
                                                     className="pointer-events-auto flex flex-col items-center cursor-pointer group"
                                                 >
@@ -1638,15 +1821,15 @@ function RainDrop() {
                                 <div className="flex items-center gap-3 shrink-0">
                                     <button
                                         type="button"
-                                        onClick={() => {
-                                            loadWardForecast(ward, selectedCity);
-                                            pushToast(`Live radar & telemetry refreshed at ${currentTime.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' })}`);
-                                        }}
-                                        className="flex items-center gap-2 px-3.5 py-2 rounded-2xl bg-blue-50/90 hover:bg-blue-100/90 border border-blue-200/90 text-xs font-semibold text-blue-700 transition-all cursor-pointer shadow-2xs"
-                                        title="Click to fetch latest Open-Meteo Doppler observation and recompute ML depths"
+                                        onClick={() => loadWardForecast(ward, selectedCity)}
+                                        className="flex items-center gap-2 px-3.5 py-2 min-h-[44px] rounded-2xl bg-slate-50 hover:bg-slate-100 border border-slate-300 text-xs font-semibold text-slate-800 transition-all cursor-pointer focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue-700"
+                                        title="Fetch the latest rainfall forecast and recompute depths"
                                     >
-                                        <RefreshCw className={`w-3.5 h-3.5 text-blue-600 ${isFetchingForecast ? "animate-spin" : ""}`} />
-                                        <span>Live Feed · {currentTime.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' })}</span>
+                                        <RefreshCw className={`w-3.5 h-3.5 ${isFetchingForecast ? "animate-spin" : ""}`} aria-hidden="true" />
+                                        {/* The age of the data, not the current time. */}
+                                        <span>
+                                            {isFetchingForecast ? "Refreshing…" : `Data ${ageLabel(feed.lastSuccessAt)}`}
+                                        </span>
                                     </button>
 
                                     <button

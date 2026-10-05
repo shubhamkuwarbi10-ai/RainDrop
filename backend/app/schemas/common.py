@@ -53,8 +53,9 @@ class ModelLocation(BaseModel):
 
 
 class NowcastForecast(BaseModel):
-    timeseries_mm_hr: list[float] = Field(min_length=1)
-    timeseries_labels: list[str] = Field(default_factory=list)
+    # 288 entries is 24 h at 5-minute resolution: generous, but bounded.
+    timeseries_mm_hr: list[float] = Field(min_length=1, max_length=288)
+    timeseries_labels: list[str] = Field(default_factory=list, max_length=288)
     risk_level: str | None = None
 
     @model_validator(mode="after")
@@ -132,7 +133,8 @@ class RadarRainfallGridCreate(BaseModel):
     source: str = Field(min_length=1, max_length=100)
     resolution_m: float = Field(gt=0)
     bounds: BoundingBox
-    values: list[list[float]] = Field(min_length=1)
+    # A radar grid larger than 2000x2000 is not a request we expect to serve.
+    values: list[list[float]] = Field(min_length=1, max_length=2000)
 
     @model_validator(mode="after")
     def validate_values(self):
@@ -152,7 +154,9 @@ class TerrainDatasetCreate(BaseModel):
     resolution_m: float | None = Field(default=None, gt=0)
     min_value: float | None = None
     max_value: float | None = None
-    file_path: str | None = Field(default=None, max_length=500)
+    #: Filename inside the server's terrain data folder, not a path. Resolved by
+    #: services.terrain_processing.resolve_dataset_path, which rejects traversal.
+    dataset_file: str | None = Field(default=None, max_length=200, pattern=r"^[A-Za-z0-9._-]+$")
 
 
 class TerrainDatasetResponse(TerrainDatasetCreate):
@@ -242,7 +246,7 @@ class SurrogatePredictionResponse(BaseModel):
 class RoadCreate(BaseModel):
     name: str | None = Field(default=None, max_length=255)
     road_class: str | None = Field(default=None, max_length=100)
-    coordinates: list[GeoPoint] = Field(min_length=2)
+    coordinates: list[GeoPoint] = Field(min_length=2, max_length=10000)
 
 
 class RoadResponse(BaseModel):
@@ -273,7 +277,7 @@ class DrainageEdgeCreate(BaseModel):
     diameter_mm: float | None = Field(default=None, gt=0)
     slope: float | None = None
     capacity_lps: float | None = Field(default=None, ge=0)
-    coordinates: list[GeoPoint] = Field(min_length=2)
+    coordinates: list[GeoPoint] = Field(min_length=2, max_length=10000)
 
 
 class DrainageEdgeResponse(BaseModel):

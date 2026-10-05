@@ -55,7 +55,8 @@ class TerrainDataset(Base):
     max_slope: Mapped[float | None] = mapped_column(Float)
     crs: Mapped[str | None] = mapped_column(String(100))
     processed_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
-    file_path: Mapped[str | None] = mapped_column(String(500))
+    #: Filename within the server terrain folder. Never a caller-supplied path.
+    dataset_file: Mapped[str | None] = mapped_column(String(200))
 
 
 class Road(Base):
