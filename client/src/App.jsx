@@ -378,6 +378,29 @@ function RainDrop() {
         }
     };
 
+    /**
+     * Open the map for a city, always with one of that city's own wards.
+     *
+     * This used to set the city and keep whatever ward was current, so choosing
+     * Mumbai from the landing page opened Chennai's Velachery ward under a
+     * "Mumbai" label, and the live forecast never matched the ward on screen.
+     */
+    const openCityMap = (targetWard, targetCity) => {
+        const cityName = targetCity || selectedCity;
+        const belongsToCity = (wardKey) =>
+            WARDS_DATA[wardKey] && WARDS_DATA[wardKey].city.toLowerCase() === String(cityName).toLowerCase();
+        const nextWard = targetWard && belongsToCity(targetWard)
+            ? targetWard
+            : Object.keys(WARDS_DATA).find(belongsToCity) || ward;
+
+        setSelectedCity(cityName);
+        setWard(nextWard);
+        setSelectedSector(null);
+        setIsMapEnabled(true);
+        setView("command");
+        // No explicit fetch: the effect watching [ward, selectedCity] loads it.
+    };
+
     const handleEnableMap = () => setIsMapEnabled(true);
     const handleDisableMap = () => setIsMapEnabled(false);
 
@@ -565,14 +588,13 @@ function RainDrop() {
                         const firstWard = cityWards[0] || Object.keys(WARDS_DATA)[0];
                         setWard(firstWard);
                         setSelectedSector(null);
-                        loadWardForecast(firstWard, cityName);
                         setView("overview");
                     }}
-                    onOpenMap={(targetWard, targetCity) => {
-                        if (targetCity) setSelectedCity(targetCity);
-                        if (targetWard) setWard(targetWard);
-                        setIsMapEnabled(true);
-                        setView("command");
+                    onOpenMap={(targetWard, targetCity) => openCityMap(targetWard, targetCity)}
+                    onCheckRoute={(targetCity) => {
+                        openCityMap(null, targetCity);
+                        setRouteCheckResult(null);
+                        setRouteCheckOpen(true);
                     }}
                     pushToast={pushToast}
                 />
@@ -617,12 +639,7 @@ function RainDrop() {
                     liveForecast={liveForecast}
                     loadWardForecast={loadWardForecast}
                     isFetchingForecast={isFetchingForecast}
-                    onOpenMap={(targetWard, targetCity) => {
-                        if (targetCity) setSelectedCity(targetCity);
-                        if (targetWard) setWard(targetWard);
-                        setIsMapEnabled(true);
-                        setView("command");
-                    }}
+                    onOpenMap={(targetWard, targetCity) => openCityMap(targetWard, targetCity)}
                     onOpenSitRep={(targetWard) => {
                         if (targetWard) setWard(targetWard);
                         setSitRepOpen(true);

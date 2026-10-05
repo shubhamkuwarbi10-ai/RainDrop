@@ -14,10 +14,8 @@ module.exports = {
   theme: {
     extend: {
       fontFamily: {
-        // Georgia ships with every target platform, so the display face costs
-        // no request. Cormorant Garamond was dropped when the five font
-        // families were cut to two.
-        editorial: ["Georgia", "Times New Roman", "serif"],
+        // Self-hosted from client/fonts; see the @font-face in styles.css.
+        editorial: ['"Cormorant Garamond"', "Georgia", "Times New Roman", "serif"],
         sans: ['"Inter"', "system-ui", "-apple-system", "sans-serif"],
         mono: ['"JetBrains Mono"', "ui-monospace", "monospace"],
       },

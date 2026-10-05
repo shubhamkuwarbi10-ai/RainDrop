@@ -10,6 +10,154 @@ const {
   useCallback
 } = React;
 const ICON_SVGS = {
+  // Drawn from lucide-static 0.460.0 (ISC). These names were declared below
+  // but had no drawing, so they rendered as a placeholder circle.
+  AlertOctagon: /*#__PURE__*/React.createElement("g", null, /*#__PURE__*/React.createElement("path", {
+    d: "M12 16h.01"
+  }), " ", /*#__PURE__*/React.createElement("path", {
+    d: "M12 8v4"
+  }), " ", /*#__PURE__*/React.createElement("path", {
+    d: "M15.312 2a2 2 0 0 1 1.414.586l4.688 4.688A2 2 0 0 1 22 8.688v6.624a2 2 0 0 1-.586 1.414l-4.688 4.688a2 2 0 0 1-1.414.586H8.688a2 2 0 0 1-1.414-.586l-4.688-4.688A2 2 0 0 1 2 15.312V8.688a2 2 0 0 1 .586-1.414l4.688-4.688A2 2 0 0 1 8.688 2z"
+  })),
+  Bell: /*#__PURE__*/React.createElement("g", null, /*#__PURE__*/React.createElement("path", {
+    d: "M6 8a6 6 0 0 1 12 0c0 7 3 9 3 9H3s3-2 3-9"
+  }), " ", /*#__PURE__*/React.createElement("path", {
+    d: "M10.3 21a1.94 1.94 0 0 0 3.4 0"
+  })),
+  Car: /*#__PURE__*/React.createElement("g", null, /*#__PURE__*/React.createElement("path", {
+    d: "M19 17h2c.6 0 1-.4 1-1v-3c0-.9-.7-1.7-1.5-1.9C18.7 10.6 16 10 16 10s-1.3-1.4-2.2-2.3c-.5-.4-1.1-.7-1.8-.7H5c-.6 0-1.1.4-1.4.9l-1.4 2.9A3.7 3.7 0 0 0 2 12v4c0 .6.4 1 1 1h2"
+  }), " ", /*#__PURE__*/React.createElement("circle", {
+    cx: "7",
+    cy: "17",
+    r: "2"
+  }), " ", /*#__PURE__*/React.createElement("path", {
+    d: "M9 17h6"
+  }), " ", /*#__PURE__*/React.createElement("circle", {
+    cx: "17",
+    cy: "17",
+    r: "2"
+  })),
+  CloudRain: /*#__PURE__*/React.createElement("g", null, /*#__PURE__*/React.createElement("path", {
+    d: "M4 14.899A7 7 0 1 1 15.71 8h1.79a4.5 4.5 0 0 1 2.5 8.242"
+  }), " ", /*#__PURE__*/React.createElement("path", {
+    d: "M16 14v6"
+  }), " ", /*#__PURE__*/React.createElement("path", {
+    d: "M8 14v6"
+  }), " ", /*#__PURE__*/React.createElement("path", {
+    d: "M12 16v6"
+  })),
+  Copy: /*#__PURE__*/React.createElement("g", null, /*#__PURE__*/React.createElement("rect", {
+    width: "14",
+    height: "14",
+    x: "8",
+    y: "8",
+    rx: "2",
+    ry: "2"
+  }), " ", /*#__PURE__*/React.createElement("path", {
+    d: "M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"
+  })),
+  Crosshair: /*#__PURE__*/React.createElement("g", null, /*#__PURE__*/React.createElement("circle", {
+    cx: "12",
+    cy: "12",
+    r: "10"
+  }), " ", /*#__PURE__*/React.createElement("line", {
+    x1: "22",
+    x2: "18",
+    y1: "12",
+    y2: "12"
+  }), " ", /*#__PURE__*/React.createElement("line", {
+    x1: "6",
+    x2: "2",
+    y1: "12",
+    y2: "12"
+  }), " ", /*#__PURE__*/React.createElement("line", {
+    x1: "12",
+    x2: "12",
+    y1: "6",
+    y2: "2"
+  }), " ", /*#__PURE__*/React.createElement("line", {
+    x1: "12",
+    x2: "12",
+    y1: "22",
+    y2: "18"
+  })),
+  Minus: /*#__PURE__*/React.createElement("g", null, /*#__PURE__*/React.createElement("path", {
+    d: "M5 12h14"
+  })),
+  Plus: /*#__PURE__*/React.createElement("g", null, /*#__PURE__*/React.createElement("path", {
+    d: "M5 12h14"
+  }), " ", /*#__PURE__*/React.createElement("path", {
+    d: "M12 5v14"
+  })),
+  Power: /*#__PURE__*/React.createElement("g", null, /*#__PURE__*/React.createElement("path", {
+    d: "M12 2v10"
+  }), " ", /*#__PURE__*/React.createElement("path", {
+    d: "M18.4 6.6a9 9 0 1 1-12.77.04"
+  })),
+  Printer: /*#__PURE__*/React.createElement("g", null, /*#__PURE__*/React.createElement("path", {
+    d: "M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"
+  }), " ", /*#__PURE__*/React.createElement("path", {
+    d: "M6 9V3a1 1 0 0 1 1-1h10a1 1 0 0 1 1 1v6"
+  }), " ", /*#__PURE__*/React.createElement("rect", {
+    x: "6",
+    y: "14",
+    width: "12",
+    height: "8",
+    rx: "1"
+  })),
+  Send: /*#__PURE__*/React.createElement("g", null, /*#__PURE__*/React.createElement("path", {
+    d: "M14.536 21.686a.5.5 0 0 0 .937-.024l6.5-19a.496.496 0 0 0-.635-.635l-19 6.5a.5.5 0 0 0-.024.937l7.93 3.18a2 2 0 0 1 1.112 1.11z"
+  }), " ", /*#__PURE__*/React.createElement("path", {
+    d: "m21.854 2.147-10.94 10.939"
+  })),
+  Server: /*#__PURE__*/React.createElement("g", null, /*#__PURE__*/React.createElement("rect", {
+    width: "20",
+    height: "8",
+    x: "2",
+    y: "2",
+    rx: "2",
+    ry: "2"
+  }), " ", /*#__PURE__*/React.createElement("rect", {
+    width: "20",
+    height: "8",
+    x: "2",
+    y: "14",
+    rx: "2",
+    ry: "2"
+  }), " ", /*#__PURE__*/React.createElement("line", {
+    x1: "6",
+    x2: "6.01",
+    y1: "6",
+    y2: "6"
+  }), " ", /*#__PURE__*/React.createElement("line", {
+    x1: "6",
+    x2: "6.01",
+    y1: "18",
+    y2: "18"
+  })),
+  Volume2: /*#__PURE__*/React.createElement("g", null, /*#__PURE__*/React.createElement("path", {
+    d: "M11 4.702a.705.705 0 0 0-1.203-.498L6.413 7.587A1.4 1.4 0 0 1 5.416 8H3a1 1 0 0 0-1 1v6a1 1 0 0 0 1 1h2.416a1.4 1.4 0 0 1 .997.413l3.383 3.384A.705.705 0 0 0 11 19.298z"
+  }), " ", /*#__PURE__*/React.createElement("path", {
+    d: "M16 9a5 5 0 0 1 0 6"
+  }), " ", /*#__PURE__*/React.createElement("path", {
+    d: "M19.364 18.364a9 9 0 0 0 0-12.728"
+  })),
+  VolumeX: /*#__PURE__*/React.createElement("g", null, /*#__PURE__*/React.createElement("path", {
+    d: "M11 4.702a.705.705 0 0 0-1.203-.498L6.413 7.587A1.4 1.4 0 0 1 5.416 8H3a1 1 0 0 0-1 1v6a1 1 0 0 0 1 1h2.416a1.4 1.4 0 0 1 .997.413l3.383 3.384A.705.705 0 0 0 11 19.298z"
+  }), " ", /*#__PURE__*/React.createElement("line", {
+    x1: "22",
+    x2: "16",
+    y1: "9",
+    y2: "15"
+  }), " ", /*#__PURE__*/React.createElement("line", {
+    x1: "16",
+    x2: "22",
+    y1: "9",
+    y2: "15"
+  })),
+  Zap: /*#__PURE__*/React.createElement("g", null, /*#__PURE__*/React.createElement("path", {
+    d: "M4 14a1 1 0 0 1-.78-1.63l9.9-10.2a.5.5 0 0 1 .86.46l-1.92 6.02A1 1 0 0 0 13 10h7a1 1 0 0 1 .78 1.63l-9.9 10.2a.5.5 0 0 1-.86-.46l1.92-6.02A1 1 0 0 0 11 14z"
+  })),
   ArrowRight: /*#__PURE__*/React.createElement("g", null, /*#__PURE__*/React.createElement("path", {
     d: "M5 12h14"
   }), /*#__PURE__*/React.createElement("path", {
@@ -2193,12 +2341,12 @@ const CITY_PROFILES = {
   }
 };
 const CITY_HERO_BACKDROPS = {
-  "Chennai": "/static/Landing Page images/zoshua-colah-1fradOPdjBM-unsplash.webp",
-  "Mumbai": "/static/Landing Page images/hero-mumbai-harbor-boats.webp",
-  "Delhi": "/static/Landing Page images/pexels-dibakar-roy-2432543-18192646.webp",
-  "Bengaluru": "/static/Landing Page images/pexels-wanderinglenses-13670217.webp",
-  "Kolkata": "/static/Landing Page images/hero-kolkata-taxi-reflection.webp",
-  "Hyderabad": "/static/Landing Page images/hero-river-ghats-aerial-hd.webp"
+  "Chennai": "/static/images/zoshua-colah-1fradOPdjBM-unsplash.webp",
+  "Mumbai": "/static/images/hero-mumbai-harbor-boats.webp",
+  "Delhi": "/static/images/pexels-dibakar-roy-2432543-18192646.webp",
+  "Bengaluru": "/static/images/pexels-wanderinglenses-13670217.webp",
+  "Kolkata": "/static/images/hero-kolkata-taxi-reflection.webp",
+  "Hyderabad": "/static/images/hero-river-ghats-aerial-hd.webp"
 };
 
 // --- MODULE: client/src/components/auth/OperatorAuth.jsx ---
@@ -3582,25 +3730,22 @@ function HeroView({
   onEnter,
   onSelectCity,
   onOpenMap,
+  onCheckRoute,
   pushToast
 }) {
   const showBackgroundVideo = useBackgroundVideo();
-  const [activeRailStep, setActiveRailStep] = useState(0); // 0: DATA, 1: COVERAGE, 2: IMPACT, 3: FUTURE
   const [activePillarTab, setActivePillarTab] = useState(0);
-  const [scenarioRain, setScenarioRain] = useState(45); // mm/hr
-  const [scenarioTide, setScenarioTide] = useState(0.4); // meters
-  const [scenarioPumps, setScenarioPumps] = useState(90); // %
-  const [routeSimProgress, setRouteSimProgress] = useState(0);
-  const [isSimulatingRoute, setIsSimulatingRoute] = useState(false);
 
   // CreativaX Studio State & Filmstrip Slideshow Track State
   const [slideIndex, setSlideIndex] = useState(4); // Starts at index 4 (Real 01 in middle set)
-  const [activeArtworkIdx, setActiveArtworkIdx] = useState(0);
   const [isTransitioning, setIsTransitioning] = useState(true);
   const [isCarouselHovered, setIsCarouselHovered] = useState(false);
-  const [showreelModalOpen, setShowreelModalOpen] = useState(false);
+  // WCAG 2.2.2: auto-moving content needs a way to stop it that does not
+  // depend on a mouse. Hover alone fails keyboard and touch users.
+  const [isCarouselPaused, setIsCarouselPaused] = useState(false);
+  const [isCarouselFocused, setIsCarouselFocused] = useState(false);
+  const prefersReducedMotion = useMemo(() => typeof window !== "undefined" && window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches, []);
   const [mobileDrawerOpen, setMobileDrawerOpen] = useState(false);
-  const [modalArtworkIdx, setModalArtworkIdx] = useState(0);
 
   // Responsive viewport tracking for mathematically exact slide centering
   const [viewportWidth, setViewportWidth] = useState(typeof window !== 'undefined' ? window.innerWidth : 1440);
@@ -3610,37 +3755,45 @@ function HeroView({
     return () => window.removeEventListener('resize', handleResize);
   }, []);
   const ARTWORKS = [{
-    num: "01",
-    title: "Historic River City Ghats",
-    subtitle: "Varanasi Riverfront Topography",
-    desc: "High-resolution spatial elevation models mapping riverbank gradient steps and sacred hydrological corridors.",
-    img: "/static/images/hero-river-ghats-aerial-hd.webp",
-    tag: "RIVER TOPOGRAPHY",
-    stats: "25.3176° N, 82.8739° E"
-  }, {
-    num: "02",
-    title: "Harbor Tides & Coastal Fleets",
-    subtitle: "Mumbai Harbor Tidal Basin",
-    desc: "Coastal surge modeling and astronomical high-tide boundary conditions for peninsular megacities.",
-    img: "/static/images/hero-mumbai-harbor-boats.webp",
-    tag: "COASTAL DYNAMICS",
-    stats: "18.9220° N, 72.8347° E"
-  }, {
-    num: "03",
-    title: "Urban Monsoons & Street Reflections",
-    subtitle: "Kolkata Metropolitan Grid",
-    desc: "Street-level micro-inundation nowcasting tracking waterlogged taxi avenues and low-elevation sumps.",
-    img: "/static/images/hero-kolkata-taxi-reflection.webp",
-    tag: "URBAN INUNDATION",
-    stats: "22.5726° N, 88.3639° E"
-  }, {
-    num: "04",
-    title: "Highway Drainage & Storm Surges",
-    subtitle: "Corridor Transit Bypass",
-    desc: "Dual-corridor safe elevation routing bypassing flooded underpasses and high-velocity stormwater splash zones.",
+    key: "route",
+    title: "Can I get through?",
+    subtitle: "Walking, two-wheeler, car or bus",
+    desc: "Enter the depth you can see and get advice for each way of travelling, plus the elevated road on file for your city.",
     img: "/static/images/hero-monsoon-bus-splash.webp",
-    tag: "TRANSIT RESILIENCE",
-    stats: "22.6200° N, 88.4200° E"
+    alt: "A city bus driving through deep standing water",
+    tag: "Getting through",
+    actionLabel: "Check a route",
+    onAction: () => onCheckRoute ? onCheckRoute("Chennai") : onOpenMap(ward, "Chennai")
+  }, {
+    key: "mumbai",
+    title: "Mumbai, where the tide meets the drains",
+    subtitle: "Mithi river and Mahim Bay",
+    desc: "Low wards along the Mithi flood first. High tide can lock the outfalls, which the estimate does not model yet, so read it as a lower bound at high tide.",
+    img: "/static/images/hero-mumbai-harbor-boats.webp",
+    alt: "Fishing boats moored in Mumbai harbour with the skyline behind",
+    tag: "Focus city",
+    actionLabel: "Open Mumbai",
+    onAction: () => onOpenMap(null, "Mumbai")
+  }, {
+    key: "kolkata",
+    title: "Kolkata, flat ground and slow drains",
+    subtitle: "Hooghly river and city canals",
+    desc: "Much of the city sits only a few metres above sea level, so rain has nowhere to run. Covered, but less closely calibrated than the focus cities.",
+    img: "/static/images/hero-kolkata-taxi-reflection.webp",
+    alt: "A yellow Kolkata taxi on a wet street after rain",
+    tag: "Covered city",
+    actionLabel: "Open Kolkata",
+    onAction: () => onOpenMap(null, "Kolkata")
+  }, {
+    key: "method",
+    title: "The ground decides where water collects",
+    subtitle: "How the depth figure is worked out",
+    desc: "Forecast rain, minus what the drains can carry, pooled into the lowest ground. Every number on the map shows its method and its limits.",
+    img: "/static/images/hero-river-ghats-aerial-hd.webp",
+    alt: "Aerial view of riverside steps and buildings along a river",
+    tag: "How it works",
+    actionLabel: "See how it works",
+    onAction: () => scrollTo("data")
   }];
 
   // 3 complete sets of ARTWORKS (indices 0..3, 4..7, 8..11) for true infinite forward/backward track sliding
@@ -3663,17 +3816,18 @@ function HeroView({
   const translateX = centerOffset - slideIndex * slideStep;
 
   // Automatic slide progression every 1.75 seconds with smooth 750ms glide
+  const isCarouselStill = isCarouselHovered || isCarouselFocused || isCarouselPaused || prefersReducedMotion;
   useEffect(() => {
-    if (isCarouselHovered) return;
+    if (isCarouselStill) return;
     const timer = setInterval(() => {
       setIsTransitioning(true);
       setSlideIndex(prev => {
         if (prev >= 8) return 5;
         return prev + 1;
       });
-    }, 1750);
+    }, 6000);
     return () => clearInterval(timer);
-  }, [isCarouselHovered]);
+  }, [isCarouselStill]);
 
   // Rock-solid infinite loop normalization:
   // When transitioning past index 7 to index 8 (Slide 01 in Set 2), wait for the 750ms transition
@@ -3697,17 +3851,10 @@ function HeroView({
 
   // Calculate active project index (0, 1, 2, 3) and sync activeArtworkIdx
   const activeProjectIdx = (slideIndex % 4 + 4) % 4;
-  useEffect(() => {
-    setActiveArtworkIdx(activeProjectIdx);
-  }, [activeProjectIdx]);
   const handleDotClick = targetIdx => {
     setIsTransitioning(true);
     setSlideIndex(4 + targetIdx);
   };
-
-  // Dynamic calculation for the What-If sandbox
-  const computedDepthCm = Math.max(0, Math.round(scenarioRain * 0.45 + scenarioTide * 12 - scenarioPumps / 100 * 16));
-  const computedClearanceHours = Math.max(0.5, Number((computedDepthCm * 0.12 / (scenarioPumps / 100)).toFixed(1)));
   const scrollTo = id => {
     const el = document.getElementById(id);
     if (el) {
@@ -3716,29 +3863,12 @@ function HeroView({
       });
     }
   };
-  const handleRunRouteSim = () => {
-    setIsSimulatingRoute(true);
-    setRouteSimProgress(0);
-    const timer = setInterval(() => {
-      setRouteSimProgress(prev => {
-        if (prev >= 100) {
-          clearInterval(timer);
-          setIsSimulatingRoute(false);
-          if (pushToast) pushToast("Dual-Corridor: Emergency vehicle successfully routed via elevated bypass!");
-          return 100;
-        }
-        return prev + 10;
-      });
-    }, 120);
-  };
   const cityCards = [{
     city: "Chennai",
     state: "Tamil Nadu",
     river: "Adyar & Cooum Basin",
     focus: "Coastal Storm Canals",
-    risk: "High Watch",
-    riskType: "high",
-    pumps: "49 / 54 Active",
+    focusCity: true,
     elevation: "Sea Level Basin",
     img: "/static/images/pexels-wanderinglenses-13670217.webp"
   }, {
@@ -3746,9 +3876,7 @@ function HeroView({
     state: "Maharashtra",
     river: "Mithi River & Mahim Bay",
     focus: "Tidal Creek Outfalls",
-    risk: "High Watch",
-    riskType: "high",
-    pumps: "51 / 58 Active",
+    focusCity: true,
     elevation: "Coastal Lowland",
     img: "/static/images/zoshua-colah-1fradOPdjBM-unsplash.webp"
   }, {
@@ -3756,9 +3884,7 @@ function HeroView({
     state: "NCR",
     river: "Yamuna River Basin",
     focus: "Ring Road Underpasses",
-    risk: "High Watch",
-    riskType: "high",
-    pumps: "62 / 69 Active",
+    focusCity: true,
     elevation: "River Floodplain",
     img: "/static/images/dibakar-roy-KbG3OsDKkCM-unsplash.webp"
   }, {
@@ -3766,9 +3892,7 @@ function HeroView({
     state: "West Bengal",
     river: "Hooghly River & Canals",
     focus: "Historic Sump Stations",
-    risk: "High Watch",
-    riskType: "high",
-    pumps: "44 / 50 Active",
+    focusCity: false,
     elevation: "Delta Lowland",
     img: "/static/images/hero-kolkata-taxi-reflection.webp"
   }, {
@@ -3776,9 +3900,7 @@ function HeroView({
     state: "Karnataka",
     river: "Bellandur & Vrishabhavathi",
     focus: "Valley Storm Drains",
-    risk: "Moderate",
-    riskType: "mod",
-    pumps: "38 / 42 Active",
+    focusCity: false,
     elevation: "Elevated Plateau",
     img: "/static/images/hero-aerial-drone.webp"
   }, {
@@ -3786,50 +3908,55 @@ function HeroView({
     state: "Telangana",
     river: "Musi River & Hussain Sagar",
     focus: "Storm Culvert Runoff",
-    risk: "Moderate",
-    riskType: "mod",
-    pumps: "34 / 38 Active",
+    focusCity: false,
     elevation: "Deccan Basin",
     img: "/static/images/dibakar-roy-aby-GGLtD-A-unsplash.webp"
   }];
   const GIS_PILLARS = [{
     num: "01",
-    title: "3D Street Elevation Mapping",
-    badge: "Terrain Heights",
-    tagline: "Pinpoints low road dips and hollows where stormwater gathers first.",
-    desc: "By reading high-accuracy satellite terrain heights across every street, RainDrop reveals exactly which intersections, underpasses, and neighborhood lanes sit in natural low points.",
+    title: "Where the ground is low",
+    badge: "Terrain",
+    tagline: "Finds the dips and hollows where rain water collects first.",
+    desc: "A 30 m elevation model is filled, routed and turned into slope and flow lines, so each ward has a measure of how readily water pools there. Until a city's elevation tiles are processed, city-wide averages stand in, and the dashboard says so.",
     img: "/static/images/dibakar-roy-FbOchRlXaPs-unsplash.webp",
-    benefits: ["Sub-meter street height precision", "Highlights deep road hollows", "Calculates downhill water flow", "Flags trapped water pockets"],
-    tag: "Elevation Topography"
+    alt: "Rain falling on a low-lying city street",
+    benefits: ["Depression filling and flow routing", "Slope measured on a metre grid", "Sets the share of each ward that ponds", "Marked as an average until real tiles load"],
+    status: "Estimate",
+    statusNote: "City-wide averages until elevation tiles are processed"
   }, {
     num: "02",
-    title: "Live Rainstorm Radar Tracking",
-    badge: "Weather Radar",
-    tagline: "Follows heavy cloudbursts minute-by-minute hours before rainfall peaks.",
-    desc: "Streams live weather radar across every metropolitan area. It tracks storm clouds in motion so residents and municipal crews know exactly when and where heavy downpours will hit.",
+    title: "How much rain, and how fast",
+    badge: "Rainfall",
+    tagline: "Hourly forecast rainfall for each ward, from the current hour.",
+    desc: "Hourly rainfall forecasts from Open-Meteo, refreshed through the day and checked for age. Intensity matters more than the daily total: 100 mm in three hours floods streets that 100 mm spread over a day does not.",
     img: "/static/images/dibakar-roy-DccG84ivd3k-unsplash.webp",
-    benefits: ["Live radar precipitation feed", "Storm direction and speed tracking", "5-minute cloud updates", "Up to 6 hours advance warning"],
-    tag: "Radar Telemetry"
+    alt: "Heavy monsoon rain over a city",
+    benefits: ["Next 12 hours, hour by hour", "Peak intensity, not just totals", "Marked stale or offline when it lapses", "No radar feed connected yet"],
+    status: "Live",
+    statusNote: "Open-Meteo hourly forecast"
   }, {
     num: "03",
-    title: "Canals & Drainage Water Flow",
-    badge: "Waterway Movement",
-    tagline: "Monitors city canals, sea tides, and stormwater drainage lines.",
-    desc: "Watches how water travels through underground pipes, open city canals, and river outfall gates, accounting for ocean high tides that push seawater back into neighborhood drains.",
+    title: "What the drains can carry",
+    badge: "Drainage",
+    tagline: "Rain that falls faster than drains can clear it becomes surface water.",
+    desc: "Each city is given a drainage rate in millimetres per hour, and rain above that rate becomes runoff. The rate is a published design figure, not a measurement of the drains as they are today. Blocked drains and high tides are not modelled.",
     img: "/static/images/dibakar-roy-P7Z3HwNWPeQ-unsplash.webp",
-    benefits: ["Underground pipe capacity checks", "Tide and river backflow tracking", "Canal blockage detection", "Gate opening advisories"],
-    tag: "Hydrodynamics"
+    alt: "Water flowing along an urban drainage channel",
+    benefits: ["Drain capacity per city, in mm per hour", "Paved share sets how much rain runs off", "Tide and river backflow not modelled yet", "SWMM simulation planned for a faster model"],
+    status: "Estimate",
+    statusNote: "Design figures, not measured capacity"
   }, {
     num: "04",
-    title: "Instant Street Flood Depth Alerts",
-    badge: "Real-Time Depth",
-    tagline: "Calculates standing water depth across every neighborhood in milliseconds.",
-    desc: "Instead of waiting hours for slow simulations, our smart predictive model calculates whether a street will have 5 cm or 45 cm of water in milliseconds as rain falls.",
+    title: "How deep the water gets",
+    badge: "Depth",
+    tagline: "Turns the excess rain into a depth for the wettest part of a ward.",
+    desc: "The water the drains cannot take is pooled over the lowest part of the ward to give a depth in centimetres, then translated into whether you can walk, ride or drive through. It is an estimate for the ward, not a reading for your street.",
     img: "/static/images/hero-aerial-drone.webp",
-    benefits: ["Instant depth forecasts in cm", "Door-to-door street accuracy", "Clear vehicle safety limits", "Fast response advisories"],
-    tag: "Surrogate Intelligence"
+    alt: "Aerial view of a flooded neighbourhood",
+    benefits: ["Depth in centimetres, with the working shown", "Advice for walking, riding and driving", "Not yet validated against observed floods", "Not an official IMD or NDMA warning"],
+    status: "Estimate",
+    statusNote: "Rational method, not a trained model"
   }];
-  const currentArt = ARTWORKS[activeArtworkIdx] || ARTWORKS[0];
   return /*#__PURE__*/React.createElement("div", {
     className: "min-h-screen bg-white text-slate-900 flex flex-col items-center justify-start p-0 m-0 font-sans antialiased w-full overflow-x-hidden selection:bg-emerald-600 selection:text-white"
   }, /*#__PURE__*/React.createElement("section", {
@@ -4056,67 +4183,35 @@ function HeroView({
   }, "\u2022"), /*#__PURE__*/React.createElement("span", null, "WARD-LEVEL DEPTH ESTIMATES"), /*#__PURE__*/React.createElement("span", {
     className: "text-black/40"
   }, "\u2022"), /*#__PURE__*/React.createElement("span", null, "6 INDIAN CITIES")))), /*#__PURE__*/React.createElement("section", {
-    className: "w-full bg-white border-t border-neutral-200 text-neutral-900 font-sans",
-    style: {
-      paddingTop: '96px',
-      paddingBottom: '0'
+    "aria-roledescription": "carousel",
+    "aria-labelledby": "ways-in-title",
+    className: "w-full bg-white border-t border-slate-200 text-slate-900 font-sans pt-20 sm:pt-24",
+    onFocus: () => setIsCarouselFocused(true),
+    onBlur: event => {
+      if (!event.currentTarget.contains(event.relatedTarget)) setIsCarouselFocused(false);
     }
   }, /*#__PURE__*/React.createElement("div", {
-    className: "relative w-full max-w-7xl mx-auto px-6 sm:px-10 lg:px-14 mb-12"
-  }, /*#__PURE__*/React.createElement("div", {
-    className: "flex items-center justify-center gap-4 mb-4"
-  }, /*#__PURE__*/React.createElement("span", {
+    className: "w-full max-w-3xl mx-auto px-6 sm:px-10 text-center"
+  }, /*#__PURE__*/React.createElement("h2", {
+    id: "ways-in-title",
+    className: "font-editorial text-4xl sm:text-5xl lg:text-6xl font-semibold text-slate-900 leading-[1.05] tracking-[-0.01em]",
     style: {
-      flex: '0 0 60px',
-      height: '1px',
-      background: '#93c5fd'
+      textWrap: 'balance'
     }
-  }), /*#__PURE__*/React.createElement("span", {
-    className: "font-bebas uppercase tracking-[0.35em] text-sky-500",
+  }, "Four ways into the estimate"), /*#__PURE__*/React.createElement("p", {
+    className: "mt-4 text-base sm:text-lg text-slate-600 leading-relaxed",
     style: {
-      fontSize: '13px',
-      letterSpacing: '0.3em'
+      textWrap: 'pretty'
     }
-  }, "OUR FOCUS AREAS"), /*#__PURE__*/React.createElement("span", {
-    style: {
-      flex: '0 0 60px',
-      height: '1px',
-      background: '#93c5fd'
-    }
-  })), /*#__PURE__*/React.createElement("h2", {
-    className: "font-bebas text-center text-neutral-950 uppercase leading-[0.9] tracking-wide",
-    style: {
-      fontSize: 'clamp(28px, 5.5vw, 80px)',
-      marginBottom: '12px',
-      letterSpacing: '0.02em'
-    }
-  }, "DATA-DRIVEN SOLUTIONS FOR SAFER CITIES"), /*#__PURE__*/React.createElement("p", {
-    className: "font-bebas text-center text-neutral-500 uppercase tracking-[0.18em]",
-    style: {
-      fontSize: '12px',
-      marginBottom: '0'
-    }
-  }, "EXPLORE KEY USE CASES WHERE REAL-TIME GEOSPATIAL DATA AND FORECASTING CREATE MEASURABLE IMPACT."), /*#__PURE__*/React.createElement("button", {
+  }, "Check whether you can get through, open a city's map, or see how the depth figure is worked out."), /*#__PURE__*/React.createElement("button", {
     type: "button",
-    onClick: () => {
-      const el = document.getElementById('cities');
-      if (el) el.scrollIntoView({
-        behavior: 'smooth'
-      });
-    },
-    className: "font-bebas uppercase tracking-widest text-neutral-900 hover:bg-neutral-100 transition-colors cursor-pointer",
-    style: {
-      position: 'absolute',
-      top: '0',
-      right: '56px',
-      fontSize: '12px',
-      letterSpacing: '0.12em',
-      border: '1.5px solid #737373',
-      borderRadius: '999px',
-      padding: '8px 20px'
-    }
-  }, "VIEW ALL PROJECTS")), /*#__PURE__*/React.createElement("div", {
-    className: "w-full select-none",
+    onClick: () => scrollTo('coverage'),
+    className: "mt-6 inline-flex items-center gap-2 min-h-[44px] px-5 rounded-full border border-slate-300 text-sm font-semibold text-slate-800 hover:bg-slate-50 hover:border-slate-400 transition-colors cursor-pointer"
+  }, "See all six cities", /*#__PURE__*/React.createElement(ArrowRight, {
+    className: "w-4 h-4",
+    "aria-hidden": "true"
+  }))), /*#__PURE__*/React.createElement("div", {
+    className: "w-full select-none mt-10",
     style: {
       overflow: 'hidden',
       paddingTop: '28px',
@@ -4131,36 +4226,49 @@ function HeroView({
       alignItems: 'flex-end',
       gap: `${carouselGap}px`,
       transform: `translate3d(${translateX}px, 0, 0)`,
-      transition: isTransitioning ? 'transform 750ms cubic-bezier(0.25, 1, 0.5, 1)' : 'none',
+      transition: isTransitioning && !prefersReducedMotion ? 'transform 750ms cubic-bezier(0.22, 1, 0.36, 1)' : 'none',
       willChange: 'transform'
     }
   }, EXTENDED_SLIDES.map((art, idx) => {
     const isCurrent = idx === slideIndex;
+    const position = idx % ARTWORKS.length + 1;
     return /*#__PURE__*/React.createElement("div", {
-      key: `${art.num}-${idx}`,
+      key: `${art.key}-${idx}`,
+      role: "group",
+      "aria-roledescription": "slide",
+      "aria-label": `${position} of ${ARTWORKS.length}: ${art.title}`
+      // The track holds three copies for the infinite loop. Only the
+      // current card is exposed, so a screen reader hears four
+      // slides, not twelve.
+      ,
+      "aria-hidden": !isCurrent,
       onClick: () => {
+        if (isCurrent) return;
         setIsTransitioning(true);
         setSlideIndex(idx);
       },
       style: {
         position: 'relative',
         flexShrink: '0',
-        cursor: 'pointer',
-        borderRadius: '16px',
+        cursor: isCurrent ? 'default' : 'pointer',
+        background: '#0f172a',
+        borderRadius: '18px',
         overflow: 'hidden',
-        boxShadow: isCurrent ? '0 24px 64px rgba(0,0,0,0.38)' : '0 8px 24px rgba(0,0,0,0.16)',
+        boxShadow: isCurrent ? '0 28px 60px -18px rgba(15,23,42,0.55)' : '0 10px 24px -12px rgba(15,23,42,0.35)',
         width: `${isCurrent ? cardWidthActive : cardWidthInactive}px`,
         height: isCurrent ? '430px' : '350px',
         transform: isCurrent ? 'translateY(-16px)' : 'translateY(0)',
-        opacity: isCurrent ? 1 : 0.72,
-        transition: isTransitioning ? 'width 750ms cubic-bezier(0.25, 1, 0.5, 1), height 750ms cubic-bezier(0.25, 1, 0.5, 1), transform 750ms cubic-bezier(0.25, 1, 0.5, 1), opacity 750ms ease, box-shadow 750ms ease' : 'none',
+        opacity: isCurrent ? 1 : 0.7,
+        transition: isTransitioning && !prefersReducedMotion ? 'width 750ms cubic-bezier(0.22, 1, 0.36, 1), height 750ms cubic-bezier(0.22, 1, 0.36, 1), transform 750ms cubic-bezier(0.22, 1, 0.36, 1), opacity 600ms ease-out, box-shadow 600ms ease-out' : 'none',
         willChange: 'transform, width'
       }
     }, /*#__PURE__*/React.createElement("img", {
       loading: "lazy",
       decoding: "async",
       src: art.img,
-      alt: art.title,
+      alt: isCurrent ? art.alt : '',
+      width: "1600",
+      height: "1067",
       style: {
         position: 'absolute',
         inset: '0',
@@ -4171,211 +4279,85 @@ function HeroView({
         display: 'block'
       }
     }), /*#__PURE__*/React.createElement("div", {
+      "aria-hidden": "true",
       style: {
         position: 'absolute',
         inset: '0',
-        background: isCurrent ? 'linear-gradient(to top, rgba(0,0,0,0.85) 0%, rgba(0,0,0,0.25) 55%, rgba(0,0,0,0.15) 100%)' : 'linear-gradient(to top, rgba(0,0,0,0.75) 0%, rgba(0,0,0,0.35) 50%, rgba(0,0,0,0.2) 100%)'
-      }
-    }), /*#__PURE__*/React.createElement("div", {
-      style: {
-        position: 'absolute',
-        top: '18px',
-        left: '18px',
-        right: '18px',
-        display: 'flex',
-        alignItems: 'center',
-        gap: '10px'
-      }
-    }, /*#__PURE__*/React.createElement("span", {
-      className: "font-bebas text-white",
-      style: {
-        fontSize: '14px',
-        letterSpacing: '0.12em',
-        opacity: 0.9
-      }
-    }, art.num), /*#__PURE__*/React.createElement("span", {
-      style: {
-        width: '24px',
-        height: '1px',
-        background: 'rgba(255,255,255,0.5)',
-        flexShrink: '0'
+        background: isCurrent ? 'linear-gradient(to top, rgba(2,6,23,0.92) 0%, rgba(2,6,23,0.55) 42%, rgba(2,6,23,0.05) 78%)' : 'linear-gradient(to top, rgba(2,6,23,0.85) 0%, rgba(2,6,23,0.35) 55%, rgba(2,6,23,0.15) 100%)'
       }
     }), /*#__PURE__*/React.createElement("span", {
-      className: "font-bebas text-white uppercase",
+      className: "absolute top-4 left-4 inline-flex items-center rounded-full bg-white/95 px-3 py-1 text-xs font-semibold text-slate-900"
+    }, art.tag), /*#__PURE__*/React.createElement("div", {
+      className: `absolute inset-x-0 bottom-0 ${isCurrent ? 'p-6 sm:p-8' : 'p-4'}`
+    }, /*#__PURE__*/React.createElement("h3", {
+      className: `font-editorial font-semibold text-white leading-[1.02] ${isCurrent ? 'text-3xl sm:text-4xl lg:text-[2.75rem]' : 'text-xl'}`,
       style: {
-        fontSize: '11px',
-        letterSpacing: '0.22em',
-        opacity: 0.75
-      }
-    }, art.tag)), /*#__PURE__*/React.createElement("div", {
-      style: {
-        position: 'absolute',
-        bottom: '0',
-        left: '0',
-        right: '0',
-        padding: isCurrent ? '28px' : '16px 18px'
-      }
-    }, !isCurrent && /*#__PURE__*/React.createElement("span", {
-      className: "font-bebas text-white uppercase block",
-      style: {
-        fontSize: '9px',
-        letterSpacing: '0.2em',
-        opacity: 0.6,
-        marginBottom: '4px'
-      }
-    }, art.tag), /*#__PURE__*/React.createElement("h3", {
-      className: "font-bebas text-white uppercase leading-[0.95]",
-      style: {
-        fontSize: isCurrent ? 'clamp(24px, 3vw, 44px)' : 'clamp(13px, 1.5vw, 20px)',
-        marginBottom: isCurrent ? '6px' : '0'
+        textWrap: 'balance'
       }
     }, art.title), isCurrent && /*#__PURE__*/React.createElement(React.Fragment, null, /*#__PURE__*/React.createElement("p", {
-      className: "font-bebas text-white uppercase",
+      className: "mt-2 text-sm font-semibold text-white/85"
+    }, art.subtitle), /*#__PURE__*/React.createElement("p", {
+      className: "mt-3 max-w-[52ch] text-sm sm:text-base leading-relaxed text-white/90",
       style: {
-        fontSize: '11px',
-        letterSpacing: '0.15em',
-        opacity: 0.65,
-        marginBottom: '20px'
+        textWrap: 'pretty'
       }
-    }, art.subtitle), /*#__PURE__*/React.createElement("div", {
-      style: {
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'space-between'
-      }
-    }, /*#__PURE__*/React.createElement("button", {
+    }, art.desc), /*#__PURE__*/React.createElement("button", {
       type: "button",
-      onClick: e => {
-        e.stopPropagation();
-        setModalArtworkIdx(art.num === '01' ? 0 : art.num === '02' ? 1 : art.num === '03' ? 2 : 3);
-        setShowreelModalOpen(true);
+      onClick: event => {
+        event.stopPropagation();
+        art.onAction();
       },
-      className: "font-bebas text-white uppercase hover:bg-white hover:text-black transition-all cursor-pointer",
-      style: {
-        fontSize: '12px',
-        letterSpacing: '0.15em',
-        border: '1.5px solid rgba(255,255,255,0.7)',
-        borderRadius: '999px',
-        padding: '7px 20px'
-      }
-    }, "EXPLORE PROJECT"), /*#__PURE__*/React.createElement("span", {
-      className: "font-bebas text-white",
-      style: {
-        fontSize: '13px',
-        letterSpacing: '0.1em',
-        opacity: 0.45
-      }
-    }, art.num, " / 04"))), !isCurrent && /*#__PURE__*/React.createElement("span", {
-      className: "font-bebas text-white block",
-      style: {
-        fontSize: '10px',
-        letterSpacing: '0.12em',
-        opacity: 0.4,
-        marginTop: '4px'
-      }
-    }, art.num, " / 04")));
+      className: "mt-5 inline-flex items-center gap-2 min-h-[44px] px-5 rounded-full bg-white text-slate-900 text-sm font-bold hover:bg-sky-50 transition-colors cursor-pointer"
+    }, art.actionLabel, /*#__PURE__*/React.createElement(ArrowRight, {
+      className: "w-4 h-4",
+      "aria-hidden": "true"
+    })))));
   }))), /*#__PURE__*/React.createElement("div", {
-    style: {
-      display: 'flex',
-      justifyContent: 'center',
-      alignItems: 'center',
-      gap: '8px',
-      marginTop: '20px',
-      marginBottom: '20px'
-    }
-  }, ARTWORKS.map((art, idx) => {
+    className: "flex items-center justify-center gap-1 mt-4 mb-6"
+  }, /*#__PURE__*/React.createElement("button", {
+    type: "button",
+    onClick: () => setIsCarouselPaused(paused => !paused),
+    "aria-label": isCarouselPaused ? 'Resume slides' : 'Pause slides',
+    "aria-pressed": isCarouselPaused,
+    className: "inline-flex items-center justify-center w-11 h-11 rounded-full text-slate-700 hover:bg-slate-100 transition-colors cursor-pointer"
+  }, isCarouselPaused || prefersReducedMotion ? /*#__PURE__*/React.createElement(Play, {
+    className: "w-3.5 h-3.5",
+    "aria-hidden": "true"
+  }) : /*#__PURE__*/React.createElement(Pause, {
+    className: "w-3.5 h-3.5",
+    "aria-hidden": "true"
+  })), ARTWORKS.map((art, idx) => {
     const isActive = idx === activeProjectIdx;
     return /*#__PURE__*/React.createElement("button", {
-      key: art.num,
+      key: art.key,
       type: "button",
       onClick: () => handleDotClick(idx),
-      "aria-label": `Go to slide ${art.num}`,
-      style: {
-        width: isActive ? '28px' : '8px',
-        height: '8px',
-        borderRadius: '999px',
-        background: isActive ? '#2563eb' : '#d1d5db',
-        border: 'none',
-        padding: '0',
-        cursor: 'pointer',
-        transition: 'width 300ms ease, background 300ms ease'
-      }
-    });
-  })), /*#__PURE__*/React.createElement("div", {
-    className: "w-full max-w-7xl mx-auto",
+      "aria-label": `Show slide ${idx + 1}: ${art.title}`,
+      "aria-current": isActive ? 'true' : undefined
+      // 44 px hit area; the visible dot stays small.
+      ,
+      className: "inline-flex items-center justify-center w-11 h-11 rounded-full cursor-pointer group"
+    }, /*#__PURE__*/React.createElement("span", {
+      "aria-hidden": "true",
+      className: `block h-2 rounded-full transition-all duration-300 ${isActive ? 'w-7 bg-sky-700' : 'w-2 bg-slate-300 group-hover:bg-slate-400'}`
+    }));
+  })), /*#__PURE__*/React.createElement("p", {
+    className: "sr-only",
+    "aria-live": isCarouselStill ? 'polite' : 'off'
+  }, `Slide ${activeProjectIdx + 1} of ${ARTWORKS.length}: ${ARTWORKS[activeProjectIdx].title}`), /*#__PURE__*/React.createElement("div", {
+    className: "mx-auto mb-10 flex max-w-5xl flex-col items-start gap-3 rounded-2xl border border-slate-200 bg-slate-50 px-6 py-4 sm:flex-row sm:items-center sm:justify-between",
     style: {
-      display: 'flex',
-      alignItems: 'center',
-      justifyContent: 'space-between',
-      border: '1px solid #e5e7eb',
-      borderRadius: '999px',
-      padding: '14px 32px',
-      marginLeft: 'auto',
-      marginRight: 'auto',
-      marginBottom: '0',
-      background: '#fafafa',
-      maxWidth: '1280px',
       width: 'calc(100% - 48px)'
     }
   }, /*#__PURE__*/React.createElement("p", {
-    className: "font-bebas text-neutral-500 uppercase",
-    style: {
-      fontSize: '11px',
-      letterSpacing: '0.18em'
-    }
-  }, "FROM RIVERS TO COASTLINES TO URBAN STREETS \u2014 TURNING REAL-TIME DATA INTO SAFER, MORE RESILIENT CITIES."), /*#__PURE__*/React.createElement("div", {
-    style: {
-      display: 'flex',
-      alignItems: 'center',
-      gap: '20px',
-      flexShrink: '0'
-    }
-  }, /*#__PURE__*/React.createElement("span", {
-    style: {
-      width: '1px',
-      height: '18px',
-      background: '#d1d5db'
-    }
-  }), /*#__PURE__*/React.createElement("button", {
+    className: "text-sm text-slate-700"
+  }, "Every figure on this site says where it came from: live forecast, estimate or sample."), /*#__PURE__*/React.createElement("button", {
     type: "button",
-    onClick: () => {
-      const el = document.getElementById('cities');
-      if (el) el.scrollIntoView({
-        behavior: 'smooth'
-      });
-    },
-    className: "font-bebas text-sky-600 uppercase hover:text-sky-800 transition-colors cursor-pointer",
-    style: {
-      fontSize: '11px',
-      letterSpacing: '0.18em',
-      background: 'none',
-      border: 'none',
-      padding: '0'
-    }
-  }, "LEARN MORE"))), /*#__PURE__*/React.createElement("div", {
-    style: {
-      height: '32px'
-    }
-  })), showreelModalOpen && /*#__PURE__*/React.createElement("div", {
-    className: "fixed inset-0 bg-black/90 z-50 flex items-center justify-center p-4 sm:p-10 transition-opacity duration-500",
-    onClick: () => setShowreelModalOpen(false)
-  }, /*#__PURE__*/React.createElement("div", {
-    className: "relative w-full max-w-4xl aspect-video bg-black rounded-xl overflow-hidden shadow-2xl border border-white/20",
-    onClick: e => e.stopPropagation()
-  }, /*#__PURE__*/React.createElement("button", {
-    onClick: () => setShowreelModalOpen(false),
-    "aria-label": "Close modal",
-    className: "absolute top-4 right-4 z-10 px-4 py-2 rounded bg-black/80 text-white font-bebas text-sm tracking-widest hover:bg-white hover:text-black transition-all cursor-pointer"
-  }, "CLOSE"), /*#__PURE__*/React.createElement("video", {
-    id: "modal-video",
-    controls: true,
-    autoPlay: true,
-    playsInline: true,
-    className: "w-full h-full object-cover",
-    poster: ARTWORKS[modalArtworkIdx ?? activeProjectIdx]?.img
-  }, /*#__PURE__*/React.createElement("source", {
-    src: "/static/VEDIO/RAIN.mp4",
-    type: "video/mp4"
+    onClick: () => scrollTo('data'),
+    className: "inline-flex shrink-0 items-center gap-1.5 min-h-[44px] text-sm font-bold text-sky-800 hover:text-sky-900 cursor-pointer"
+  }, "How the estimate works", /*#__PURE__*/React.createElement(ArrowRight, {
+    className: "w-4 h-4",
+    "aria-hidden": "true"
   })))), /*#__PURE__*/React.createElement("div", {
     className: "w-full bg-gradient-to-b from-[#D4E8F2] via-[#C5E1EE] to-[#B3D7E9] text-slate-900 relative"
   }, /*#__PURE__*/React.createElement("div", {
@@ -4386,23 +4368,25 @@ function HeroView({
   }, /*#__PURE__*/React.createElement("div", {
     className: "flex flex-col lg:flex-row lg:items-end justify-between gap-8 border-b border-[#9DC6DA] pb-8 sm:pb-10"
   }, /*#__PURE__*/React.createElement("div", {
-    className: "max-w-4xl"
-  }, /*#__PURE__*/React.createElement("div", {
-    className: "inline-flex items-center gap-2.5 px-3.5 py-1.5 rounded-md bg-sky-100/90 border border-sky-300 text-sky-900 font-mono text-xs font-bold tracking-wider uppercase shadow-xs"
-  }, /*#__PURE__*/React.createElement(Layers, {
-    className: "w-3.5 h-3.5 text-sky-700"
-  }), /*#__PURE__*/React.createElement("span", null, "SYSTEM PILLARS // 01")), /*#__PURE__*/React.createElement("h2", {
-    className: "font-editorial text-4xl sm:text-5xl lg:text-6xl font-normal text-slate-900 mt-4 tracking-tight leading-[1.12]"
-  }, "How RainDrop Sees & Understands Urban Rainfall"), /*#__PURE__*/React.createElement("p", {
-    className: "text-slate-700 text-lg sm:text-xl lg:text-2xl mt-4 leading-relaxed font-sans font-light"
-  }, "From high-accuracy street terrain heights to real-time weather radar, four integrated intelligence layers predict street runoff before storm centers peak.")), /*#__PURE__*/React.createElement("button", {
-    onClick: () => {
-      if (window._openGisSpecsModal) window._openGisSpecsModal();else if (pushToast) pushToast("Opening Data Specifications");
-    },
-    className: "flex items-center gap-2.5 px-7 py-3.5 rounded-xl bg-sky-700 hover:bg-sky-800 text-white text-sm font-bold tracking-wide uppercase transition-all duration-200 shadow-md hover:shadow-lg cursor-pointer shrink-0"
-  }, /*#__PURE__*/React.createElement(Sliders, {
-    className: "w-4 h-4 text-sky-200"
-  }), /*#__PURE__*/React.createElement("span", null, "Inspect Data Layers"))), /*#__PURE__*/React.createElement("div", {
+    className: "max-w-3xl"
+  }, /*#__PURE__*/React.createElement("h2", {
+    className: "font-editorial text-4xl sm:text-5xl lg:text-6xl font-semibold text-slate-900 tracking-[-0.01em] leading-[1.05]",
+    style: {
+      textWrap: 'balance'
+    }
+  }, "How the estimate is made"), /*#__PURE__*/React.createElement("p", {
+    className: "text-slate-700 text-lg sm:text-xl mt-4 leading-relaxed font-sans",
+    style: {
+      textWrap: 'pretty'
+    }
+  }, "Four steps, from the shape of the ground to the depth of the water. Each one says what it is based on and what it cannot see.")), /*#__PURE__*/React.createElement("button", {
+    type: "button",
+    onClick: () => onOpenMap(null, "Chennai"),
+    className: "inline-flex items-center gap-2 min-h-[44px] px-6 rounded-xl bg-sky-700 hover:bg-sky-800 text-white text-sm font-bold transition-colors cursor-pointer shrink-0"
+  }, "See it on the map", /*#__PURE__*/React.createElement(ArrowRight, {
+    className: "w-4 h-4",
+    "aria-hidden": "true"
+  }))), /*#__PURE__*/React.createElement("div", {
     className: "grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5 sm:gap-6"
   }, GIS_PILLARS.map((pillar, idx) => /*#__PURE__*/React.createElement("button", {
     key: pillar.num,
@@ -4429,54 +4413,55 @@ function HeroView({
     loading: "lazy",
     decoding: "async",
     src: GIS_PILLARS[activePillarTab].img,
-    alt: GIS_PILLARS[activePillarTab].title,
-    className: "w-full h-full object-cover group-hover:scale-105 transition-transform duration-700 ease-out"
+    alt: GIS_PILLARS[activePillarTab].alt,
+    className: "absolute inset-0 w-full h-full object-cover"
   }), /*#__PURE__*/React.createElement("div", {
-    className: "absolute inset-0 bg-gradient-to-t from-slate-950/85 via-slate-950/20 to-transparent"
-  }), /*#__PURE__*/React.createElement("div", {
-    className: "absolute top-4 left-4 right-4 flex items-center justify-between pointer-events-none"
-  }, /*#__PURE__*/React.createElement("div", {
-    className: "flex items-center gap-2 bg-white/90 backdrop-blur-md border border-slate-200 px-3.5 py-1.5 rounded-md font-mono text-xs text-sky-950 font-bold uppercase tracking-wider shadow-xs"
-  }, /*#__PURE__*/React.createElement(Activity, {
-    className: "w-3.5 h-3.5 text-sky-700 animate-pulse"
-  }), /*#__PURE__*/React.createElement("span", null, "SENSOR STREAM: ", GIS_PILLARS[activePillarTab].tag)), /*#__PURE__*/React.createElement("div", {
-    className: "hidden sm:block font-mono text-xs text-slate-700 bg-white/90 backdrop-blur-md px-3 py-1.5 rounded-md border border-slate-200 font-semibold shadow-xs"
-  }, "FPS: 60 \xB7 LATENCY: 11.2ms")), /*#__PURE__*/React.createElement("div", {
-    className: "absolute bottom-5 left-5 right-5 sm:bottom-6 sm:left-6 sm:right-6"
-  }, /*#__PURE__*/React.createElement("span", {
-    className: "font-mono text-xs uppercase tracking-widest text-sky-400 font-bold block mb-1"
-  }, "LIVE ENVIRONMENTAL OBSERVATION"), /*#__PURE__*/React.createElement("h4", {
-    className: "text-2xl sm:text-3xl font-editorial text-white"
-  }, GIS_PILLARS[activePillarTab].title))), /*#__PURE__*/React.createElement("div", {
+    className: "absolute inset-0 bg-gradient-to-t from-slate-950/85 via-slate-950/20 to-transparent",
+    "aria-hidden": "true"
+  }), /*#__PURE__*/React.createElement("span", {
+    className: "absolute top-4 left-4 inline-flex items-center rounded-full bg-white/95 px-3 py-1 text-xs font-semibold text-slate-900"
+  }, "Step ", activePillarTab + 1, " of 4: ", GIS_PILLARS[activePillarTab].badge), /*#__PURE__*/React.createElement("h3", {
+    className: "absolute bottom-5 left-5 right-5 sm:bottom-6 sm:left-6 sm:right-6 text-3xl sm:text-4xl font-editorial font-semibold text-white leading-[1.05]",
+    style: {
+      textWrap: 'balance'
+    }
+  }, GIS_PILLARS[activePillarTab].title)), /*#__PURE__*/React.createElement("div", {
     className: "lg:col-span-5 flex flex-col justify-between gap-6 sm:gap-8"
   }, /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("div", {
-    className: "flex items-center justify-between border-b border-[#B3D6E6] pb-3 mb-5"
+    className: "flex flex-wrap items-center gap-x-3 gap-y-1 border-b border-[#B3D6E6] pb-3 mb-5"
   }, /*#__PURE__*/React.createElement("span", {
-    className: "font-mono text-xs uppercase tracking-widest text-slate-500 font-bold"
-  }, "LAYER ANALYSIS // SPEC 0", activePillarTab + 1), /*#__PURE__*/React.createElement("span", {
-    className: "font-mono text-xs text-sky-700 font-bold"
-  }, "REAL-TIME DATA READY")), /*#__PURE__*/React.createElement("p", {
-    className: "text-base sm:text-lg text-slate-800 leading-relaxed font-sans"
-  }, GIS_PILLARS[activePillarTab].desc), /*#__PURE__*/React.createElement("div", {
-    className: "mt-6 sm:mt-7 space-y-3.5"
+    className: `inline-flex items-center gap-1.5 rounded-full border px-2.5 py-0.5 text-xs font-bold ${GIS_PILLARS[activePillarTab].status === "Live" ? "border-emerald-300 bg-emerald-50 text-emerald-900" : "border-sky-300 bg-sky-50 text-sky-900"}`
   }, /*#__PURE__*/React.createElement("span", {
-    className: "font-mono text-xs uppercase tracking-widest text-slate-500 font-bold block"
-  }, "OPERATIONAL CAPABILITIES"), GIS_PILLARS[activePillarTab].benefits.map(benefit => /*#__PURE__*/React.createElement("div", {
+    "aria-hidden": "true",
+    className: `h-1.5 w-1.5 rounded-full ${GIS_PILLARS[activePillarTab].status === "Live" ? "bg-emerald-600" : "bg-sky-600"}`
+  }), GIS_PILLARS[activePillarTab].status), /*#__PURE__*/React.createElement("span", {
+    className: "text-sm text-slate-700"
+  }, GIS_PILLARS[activePillarTab].statusNote)), /*#__PURE__*/React.createElement("p", {
+    className: "text-base sm:text-lg text-slate-800 leading-relaxed font-sans max-w-[60ch]",
+    style: {
+      textWrap: 'pretty'
+    }
+  }, GIS_PILLARS[activePillarTab].desc), /*#__PURE__*/React.createElement("h4", {
+    className: "mt-6 sm:mt-7 text-sm font-bold text-slate-900"
+  }, "What it does today"), /*#__PURE__*/React.createElement("ul", {
+    className: "mt-3 space-y-3"
+  }, GIS_PILLARS[activePillarTab].benefits.map(benefit => /*#__PURE__*/React.createElement("li", {
     key: benefit,
-    className: "flex items-start gap-3 text-base text-slate-800 font-medium"
-  }, /*#__PURE__*/React.createElement("div", {
-    className: "w-2.5 h-2.5 rounded-full bg-sky-600 mt-1.5 shrink-0"
+    className: "flex items-start gap-3 text-base text-slate-800"
+  }, /*#__PURE__*/React.createElement("span", {
+    "aria-hidden": "true",
+    className: "w-2 h-2 rounded-full bg-sky-600 mt-2 shrink-0"
   }), /*#__PURE__*/React.createElement("span", null, benefit))))), /*#__PURE__*/React.createElement("div", {
-    className: "pt-5 border-t border-[#B3D6E6] flex items-center justify-between"
-  }, /*#__PURE__*/React.createElement("div", {
-    className: "font-mono text-xs text-slate-600"
-  }, "UPDATE CADENCE: ", /*#__PURE__*/React.createElement("strong", {
-    className: "text-slate-900"
-  }, "EVERY 60 SEC")), /*#__PURE__*/React.createElement("button", {
-    onClick: () => onOpenMap(ward, "Chennai"),
-    className: "flex items-center gap-1.5 font-sans text-sm font-bold text-sky-700 hover:text-sky-800 transition-colors cursor-pointer"
-  }, /*#__PURE__*/React.createElement("span", null, "Open City Map"), /*#__PURE__*/React.createElement(ArrowRight, {
-    className: "w-4 h-4"
+    className: "pt-5 border-t border-[#B3D6E6] flex flex-wrap items-center justify-between gap-3"
+  }, /*#__PURE__*/React.createElement("p", {
+    className: "text-sm text-slate-700"
+  }, "Rainfall updates hourly. Depths recompute with it."), /*#__PURE__*/React.createElement("button", {
+    type: "button",
+    onClick: () => onOpenMap(null, "Chennai"),
+    className: "inline-flex items-center gap-1.5 min-h-[44px] font-sans text-sm font-bold text-sky-800 hover:text-sky-900 transition-colors cursor-pointer"
+  }, "Open the map", /*#__PURE__*/React.createElement(ArrowRight, {
+    className: "w-4 h-4",
+    "aria-hidden": "true"
   })))))), /*#__PURE__*/React.createElement("section", {
     id: "coverage",
     className: "relative py-20 sm:py-28 w-full flex flex-col gap-10 sm:gap-12 border-b border-[#9DC6DA]"
@@ -4484,210 +4469,250 @@ function HeroView({
     className: "flex flex-col lg:flex-row lg:items-end justify-between gap-8 border-b border-[#9DC6DA] pb-8 sm:pb-10"
   }, /*#__PURE__*/React.createElement("div", {
     className: "max-w-4xl"
-  }, /*#__PURE__*/React.createElement("div", {
-    className: "inline-flex items-center gap-2.5 px-3.5 py-1.5 rounded-md bg-sky-100/90 border border-sky-300 text-sky-900 font-mono text-xs font-bold tracking-wider uppercase shadow-xs"
-  }, /*#__PURE__*/React.createElement(Waves, {
-    className: "w-3.5 h-3.5 text-sky-700"
-  }), /*#__PURE__*/React.createElement("span", null, "URBAN BASIN MATRIX // 02")), /*#__PURE__*/React.createElement("h2", {
-    className: "font-editorial text-4xl sm:text-5xl lg:text-6xl font-normal text-slate-900 mt-4 tracking-tight leading-[1.12]"
+  }, /*#__PURE__*/React.createElement("h2", {
+    className: "font-editorial text-4xl sm:text-5xl lg:text-6xl font-semibold text-slate-900 tracking-[-0.01em] leading-[1.05]",
+    style: {
+      textWrap: 'balance'
+    }
   }, "Flood estimates for six Indian cities"), /*#__PURE__*/React.createElement("p", {
     className: "text-slate-700 text-lg sm:text-xl lg:text-2xl mt-4 leading-relaxed font-sans font-light"
   }, "Rainfall forecasts refreshed through the day for six Indian cities, turned into ward-level flood depth estimates. Chennai, Mumbai and Delhi are the best covered. Select a city to see the current estimate and how it was produced.")), /*#__PURE__*/React.createElement("button", {
+    type: "button",
     onClick: onEnter,
-    className: "flex items-center gap-2 px-7 py-3.5 rounded-xl bg-slate-900 hover:bg-slate-800 text-white text-sm font-bold uppercase tracking-wider transition-all duration-200 shadow-md hover:shadow-lg cursor-pointer shrink-0"
-  }, /*#__PURE__*/React.createElement("span", null, "Explore All Metros"), /*#__PURE__*/React.createElement(ArrowRight, {
-    className: "w-4 h-4 text-sky-400"
+    className: "inline-flex items-center gap-2 min-h-[44px] px-6 rounded-xl bg-slate-900 hover:bg-slate-800 text-white text-sm font-bold transition-colors cursor-pointer shrink-0"
+  }, "Compare all cities", /*#__PURE__*/React.createElement(ArrowRight, {
+    className: "w-4 h-4",
+    "aria-hidden": "true"
   }))), /*#__PURE__*/React.createElement("div", {
     className: "grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 sm:gap-8"
-  }, cityCards.map(item => /*#__PURE__*/React.createElement("div", {
-    key: item.city,
-    onClick: () => {
-      if (onSelectCity) onSelectCity(item.city);else onEnter();
-    },
-    className: "group relative rounded-2xl bg-white/95 border border-[#9DC6DA] hover:border-sky-600 shadow-sm hover:shadow-xl transition-all duration-300 ease-out cursor-pointer flex flex-col justify-between hover:-translate-y-1.5 overflow-hidden"
-  }, /*#__PURE__*/React.createElement("div", {
-    className: "relative h-64 sm:h-72 w-full overflow-hidden bg-slate-900"
-  }, /*#__PURE__*/React.createElement("img", {
-    loading: "lazy",
-    decoding: "async",
-    src: item.img,
-    alt: `${item.city} Skyline and Waterway`,
-    className: "w-full h-full object-cover group-hover:scale-105 transition-transform duration-700 ease-out"
-  }), /*#__PURE__*/React.createElement("div", {
-    className: "absolute inset-0 bg-gradient-to-t from-slate-950/85 via-slate-950/20 to-transparent"
-  }), /*#__PURE__*/React.createElement("div", {
-    className: "absolute top-4 right-4"
-  }, /*#__PURE__*/React.createElement("span", {
-    className: `px-3 py-1 rounded-sm text-xs font-bold uppercase tracking-wider ${item.riskType === "high" ? "bg-rose-100 text-rose-900 border border-rose-300" : "bg-amber-100 text-amber-900 border border-amber-300"}`
-  }, item.risk)), /*#__PURE__*/React.createElement("div", {
-    className: "absolute bottom-4 left-6 right-6"
-  }, /*#__PURE__*/React.createElement("span", {
-    className: "font-mono text-xs text-sky-300 font-bold uppercase tracking-widest"
-  }, item.state), /*#__PURE__*/React.createElement("h3", {
-    className: "font-editorial text-3xl sm:text-4xl text-white group-hover:text-sky-300 transition-colors mt-0.5"
-  }, item.city))), /*#__PURE__*/React.createElement("div", {
-    className: "p-6 sm:p-8 flex flex-col justify-between flex-1"
-  }, /*#__PURE__*/React.createElement("div", {
-    className: "space-y-3.5 text-base text-slate-700 font-sans"
-  }, /*#__PURE__*/React.createElement("div", {
-    className: "flex items-center justify-between border-b border-[#B3D6E6]/70 pb-3"
-  }, /*#__PURE__*/React.createElement("span", {
-    className: "text-slate-500 font-mono text-xs uppercase tracking-wider"
-  }, "Primary Waterway"), /*#__PURE__*/React.createElement("span", {
-    className: "font-bold text-slate-900"
-  }, item.river)), /*#__PURE__*/React.createElement("div", {
-    className: "flex items-center justify-between border-b border-[#B3D6E6]/70 pb-3"
-  }, /*#__PURE__*/React.createElement("span", {
-    className: "text-slate-500 font-mono text-xs uppercase tracking-wider"
-  }, "Key Focus"), /*#__PURE__*/React.createElement("span", {
-    className: "text-slate-800 font-medium"
-  }, item.focus)), /*#__PURE__*/React.createElement("div", {
-    className: "flex items-center justify-between"
-  }, /*#__PURE__*/React.createElement("span", {
-    className: "text-slate-500 font-mono text-xs uppercase tracking-wider"
-  }, "Elevation Profile"), /*#__PURE__*/React.createElement("span", {
-    className: "text-sky-800 font-mono text-sm font-semibold"
-  }, item.elevation))), /*#__PURE__*/React.createElement("div", {
-    className: "mt-7 pt-5 border-t border-[#B3D6E6] flex items-center justify-between"
-  }, /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("span", {
-    className: "text-base font-bold text-slate-900 block"
-  }, item.pumps), /*#__PURE__*/React.createElement("span", {
-    className: "text-xs text-slate-500 block"
-  }, "Drainage Pumps Ready")), /*#__PURE__*/React.createElement("div", {
-    className: "flex items-center gap-1.5 text-base font-bold text-sky-700 group-hover:text-sky-800 transition-colors"
-  }, /*#__PURE__*/React.createElement("span", null, "Open City Map"), /*#__PURE__*/React.createElement(ArrowRight, {
-    className: "w-4 h-4 group-hover:translate-x-1 transition-transform"
-  })))))))), /*#__PURE__*/React.createElement("section", {
+  }, cityCards.map(item => {
+    const wardCount = Object.values(WARDS_DATA).filter(ward => ward.city === item.city).length;
+    return /*#__PURE__*/React.createElement("button", {
+      key: item.city,
+      type: "button",
+      onClick: () => {
+        if (onSelectCity) onSelectCity(item.city);else onEnter();
+      },
+      className: "group relative text-left rounded-2xl bg-white border border-[#9DC6DA] hover:border-sky-600 shadow-sm hover:shadow-lg transition-[border-color,box-shadow,transform] duration-300 ease-out cursor-pointer flex flex-col justify-between hover:-translate-y-1 overflow-hidden"
+    }, /*#__PURE__*/React.createElement("div", {
+      className: "relative h-64 sm:h-72 w-full overflow-hidden bg-slate-900"
+    }, /*#__PURE__*/React.createElement("img", {
+      loading: "lazy",
+      decoding: "async",
+      src: item.img,
+      alt: "",
+      width: "1600",
+      height: "1067",
+      className: "w-full h-full object-cover group-hover:scale-[1.03] transition-transform duration-700 ease-out"
+    }), /*#__PURE__*/React.createElement("div", {
+      className: "absolute inset-0 bg-gradient-to-t from-slate-950/85 via-slate-950/20 to-transparent",
+      "aria-hidden": "true"
+    }), /*#__PURE__*/React.createElement("span", {
+      className: `absolute top-4 right-4 rounded-full px-3 py-1 text-xs font-semibold border ${item.focusCity ? "bg-white text-slate-900 border-white" : "bg-slate-900/70 text-white border-white/30"}`
+    }, item.focusCity ? "Focus city" : "Less calibrated"), /*#__PURE__*/React.createElement("div", {
+      className: "absolute bottom-4 left-6 right-6"
+    }, /*#__PURE__*/React.createElement("span", {
+      className: "text-sm font-semibold text-sky-200"
+    }, item.state), /*#__PURE__*/React.createElement("h3", {
+      className: "font-editorial font-semibold text-4xl text-white leading-none mt-1"
+    }, item.city))), /*#__PURE__*/React.createElement("div", {
+      className: "p-6 sm:p-7 flex flex-col justify-between flex-1"
+    }, /*#__PURE__*/React.createElement("dl", {
+      className: "space-y-3 text-base text-slate-700 font-sans"
+    }, /*#__PURE__*/React.createElement("div", {
+      className: "flex flex-col gap-0.5 border-b border-[#B3D6E6]/70 pb-3"
+    }, /*#__PURE__*/React.createElement("dt", {
+      className: "text-sm text-slate-600"
+    }, "Main waterway"), /*#__PURE__*/React.createElement("dd", {
+      className: "font-semibold text-slate-900"
+    }, item.river)), /*#__PURE__*/React.createElement("div", {
+      className: "flex flex-col gap-0.5 border-b border-[#B3D6E6]/70 pb-3"
+    }, /*#__PURE__*/React.createElement("dt", {
+      className: "text-sm text-slate-600"
+    }, "Floods first at"), /*#__PURE__*/React.createElement("dd", {
+      className: "text-slate-900"
+    }, item.focus)), /*#__PURE__*/React.createElement("div", {
+      className: "flex flex-col gap-0.5"
+    }, /*#__PURE__*/React.createElement("dt", {
+      className: "text-sm text-slate-600"
+    }, "Ground"), /*#__PURE__*/React.createElement("dd", {
+      className: "text-slate-900"
+    }, item.elevation))), /*#__PURE__*/React.createElement("div", {
+      className: "mt-6 pt-5 border-t border-[#B3D6E6] flex flex-wrap items-center justify-between gap-x-4 gap-y-2"
+    }, /*#__PURE__*/React.createElement("span", {
+      className: "text-sm text-slate-700 whitespace-nowrap"
+    }, wardCount, " ", wardCount === 1 ? "ward" : "wards", " on the map"), /*#__PURE__*/React.createElement("span", {
+      className: "inline-flex items-center gap-1.5 text-base font-bold text-sky-800 whitespace-nowrap"
+    }, "Open ", item.city, /*#__PURE__*/React.createElement(ArrowRight, {
+      className: "w-4 h-4 group-hover:translate-x-0.5 transition-transform",
+      "aria-hidden": "true"
+    })))));
+  }))), /*#__PURE__*/React.createElement("section", {
     id: "solutions",
     className: "relative py-20 sm:py-28 w-full flex flex-col gap-10 sm:gap-12"
   }, /*#__PURE__*/React.createElement("div", {
-    className: "flex flex-col lg:flex-row lg:items-end justify-between gap-8 border-b border-[#9DC6DA] pb-8 sm:pb-10"
-  }, /*#__PURE__*/React.createElement("div", {
-    className: "max-w-4xl"
-  }, /*#__PURE__*/React.createElement("div", {
-    className: "inline-flex items-center gap-2.5 px-3.5 py-1.5 rounded-md bg-sky-100/90 border border-sky-300 text-sky-900 font-mono text-xs font-bold tracking-wider uppercase shadow-xs"
-  }, /*#__PURE__*/React.createElement(ShieldCheck, {
-    className: "w-3.5 h-3.5 text-sky-700"
-  }), /*#__PURE__*/React.createElement("span", null, "CIVIL PROTECTION & CITIZEN SAFETY // 03")), /*#__PURE__*/React.createElement("h2", {
-    className: "font-editorial text-4xl sm:text-5xl lg:text-6xl font-normal text-slate-900 mt-4 tracking-tight leading-[1.12]"
-  }, "Real Problems Citizens Face \u2014 And How We Solve Them"), /*#__PURE__*/React.createElement("p", {
-    className: "text-slate-700 text-lg sm:text-xl lg:text-2xl mt-4 leading-relaxed font-sans font-light"
-  }, "Monsoon deluges shouldn't cause flooded vehicles, stranded commuters, or waterlogged neighborhoods. Here is how real-time insights protect daily life.")), /*#__PURE__*/React.createElement("button", {
+    className: "max-w-3xl border-b border-[#9DC6DA] pb-8 sm:pb-10"
+  }, /*#__PURE__*/React.createElement("h2", {
+    className: "font-editorial text-4xl sm:text-5xl lg:text-6xl font-semibold text-slate-900 tracking-[-0.01em] leading-[1.05]",
+    style: {
+      textWrap: 'balance'
+    }
+  }, "What the estimate helps with"), /*#__PURE__*/React.createElement("p", {
+    className: "text-slate-700 text-lg sm:text-xl mt-4 leading-relaxed font-sans",
+    style: {
+      textWrap: 'pretty'
+    }
+  }, "Four everyday decisions during a heavy monsoon, and what RainDrop can and cannot tell you about each.")), /*#__PURE__*/React.createElement("div", {
+    className: "grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-6 sm:gap-7"
+  }, /*#__PURE__*/React.createElement("button", {
+    type: "button",
     onClick: onEnter,
-    className: "flex items-center gap-1.5 text-base font-bold text-sky-800 hover:text-sky-900 transition-colors cursor-pointer shrink-0"
-  }, /*#__PURE__*/React.createElement("span", null, "Explore All Hotspots"), /*#__PURE__*/React.createElement(ArrowRight, {
-    className: "w-4 h-4"
-  }))), /*#__PURE__*/React.createElement("div", {
-    className: "grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 sm:gap-8"
+    className: "group text-left rounded-2xl bg-white border border-[#9DC6DA] hover:border-sky-600 transition-[border-color,box-shadow,transform] duration-300 ease-out overflow-hidden flex flex-col cursor-pointer hover:-translate-y-1 shadow-sm hover:shadow-lg"
   }, /*#__PURE__*/React.createElement("div", {
-    onClick: () => {
-      if (onSelectCity) onSelectCity("Kolkata");else onEnter();
-    },
-    className: "group rounded-2xl bg-white/95 border border-[#9DC6DA] hover:border-sky-600 transition-all duration-300 ease-out overflow-hidden flex flex-col cursor-pointer hover:-translate-y-1.5 shadow-sm hover:shadow-xl"
-  }, /*#__PURE__*/React.createElement("div", {
-    className: "relative h-64 sm:h-72 overflow-hidden bg-slate-900"
+    className: "relative h-56 sm:h-64 w-full overflow-hidden bg-slate-900"
   }, /*#__PURE__*/React.createElement("img", {
     loading: "lazy",
     decoding: "async",
     src: "/static/images/hero-monsoon-bus-splash.webp",
-    alt: "City Bus moving through heavy rainwater",
-    className: "w-full h-full object-cover group-hover:scale-105 transition-transform duration-700 ease-out"
-  }), /*#__PURE__*/React.createElement("div", {
-    className: "absolute top-4 left-4 bg-white/95 text-slate-900 text-xs font-bold px-3 py-1 rounded-sm border border-slate-200 shadow-xs"
-  }, "Public Transit")), /*#__PURE__*/React.createElement("div", {
-    className: "p-6 sm:p-8 flex flex-col justify-between flex-1"
+    alt: "",
+    width: "1600",
+    height: "1067",
+    className: "w-full h-full object-cover group-hover:scale-[1.03] transition-transform duration-700 ease-out"
+  }), /*#__PURE__*/React.createElement("span", {
+    className: "absolute top-4 left-4 rounded-full bg-white/95 px-3 py-1 text-xs font-semibold text-slate-900"
+  }, "Commuting")), /*#__PURE__*/React.createElement("div", {
+    className: "p-6 sm:p-7 flex flex-col justify-between flex-1"
   }, /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("h3", {
-    className: "font-sans font-bold text-slate-900 text-xl group-hover:text-sky-700 transition-colors"
-  }, "Keeping Public Buses Moving"), /*#__PURE__*/React.createElement("p", {
-    className: "text-base text-slate-700 mt-3.5 leading-relaxed font-sans"
-  }, "Routes city buses away from submerged lowlands onto dry flyover bypasses before main arterial roads flood.")), /*#__PURE__*/React.createElement("div", {
-    className: "mt-7 flex items-center justify-between text-sm border-t border-[#B3D6E6] pt-4"
+    className: "font-sans font-bold text-slate-900 text-xl",
+    style: {
+      textWrap: 'balance'
+    }
+  }, "Planning around flooded roads"), /*#__PURE__*/React.createElement("p", {
+    className: "text-base text-slate-700 mt-3 leading-relaxed font-sans",
+    style: {
+      textWrap: 'pretty'
+    }
+  }, "See which wards are likely to flood over the next few hours, so commuters and transit crews can avoid the worst stretches. Routes are not planned for you.")), /*#__PURE__*/React.createElement("div", {
+    className: "mt-6 flex flex-wrap items-center justify-between gap-2 border-t border-[#B3D6E6] pt-4"
   }, /*#__PURE__*/React.createElement("span", {
-    className: "font-bold text-sky-800"
-  }, "\u2713 Zero Stranded Commuters"), /*#__PURE__*/React.createElement("span", {
-    className: "text-sky-700 font-bold group-hover:translate-x-1 transition-transform"
-  }, "See Live \u2192")))), /*#__PURE__*/React.createElement("div", {
-    onClick: () => {
-      if (onSelectCity) onSelectCity("Kolkata");else onEnter();
-    },
-    className: "group rounded-2xl bg-white/95 border border-[#9DC6DA] hover:border-amber-600 transition-all duration-300 ease-out overflow-hidden flex flex-col cursor-pointer hover:-translate-y-1.5 shadow-sm hover:shadow-xl"
+    className: "text-sm text-slate-600"
+  }, "Ward estimates, refreshed hourly"), /*#__PURE__*/React.createElement("span", {
+    className: "inline-flex items-center gap-1.5 text-sm font-bold text-sky-800"
+  }, "Compare wards", /*#__PURE__*/React.createElement(ArrowRight, {
+    className: "w-4 h-4 group-hover:translate-x-0.5 transition-transform",
+    "aria-hidden": "true"
+  }))))), /*#__PURE__*/React.createElement("button", {
+    type: "button",
+    onClick: () => onCheckRoute ? onCheckRoute("Chennai") : onOpenMap(null, "Chennai"),
+    className: "group text-left rounded-2xl bg-white border border-[#9DC6DA] hover:border-sky-600 transition-[border-color,box-shadow,transform] duration-300 ease-out overflow-hidden flex flex-col cursor-pointer hover:-translate-y-1 shadow-sm hover:shadow-lg"
   }, /*#__PURE__*/React.createElement("div", {
-    className: "relative h-64 sm:h-72 overflow-hidden bg-slate-900"
+    className: "relative h-56 sm:h-64 w-full overflow-hidden bg-slate-900"
   }, /*#__PURE__*/React.createElement("img", {
     loading: "lazy",
     decoding: "async",
     src: "/static/images/pexels-dibakar-roy-2432543-18192646.webp",
-    alt: "Car driving through rain street reflection",
-    className: "w-full h-full object-cover group-hover:scale-105 transition-transform duration-700 ease-out"
-  }), /*#__PURE__*/React.createElement("div", {
-    className: "absolute top-4 left-4 bg-white/95 text-amber-900 text-xs font-bold px-3 py-1 rounded-sm border border-amber-200 shadow-xs"
-  }, "Vehicle Safety")), /*#__PURE__*/React.createElement("div", {
-    className: "p-6 sm:p-8 flex flex-col justify-between flex-1"
+    alt: "",
+    width: "1600",
+    height: "1067",
+    className: "w-full h-full object-cover group-hover:scale-[1.03] transition-transform duration-700 ease-out"
+  }), /*#__PURE__*/React.createElement("span", {
+    className: "absolute top-4 left-4 rounded-full bg-white/95 px-3 py-1 text-xs font-semibold text-slate-900"
+  }, "Driving")), /*#__PURE__*/React.createElement("div", {
+    className: "p-6 sm:p-7 flex flex-col justify-between flex-1"
   }, /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("h3", {
-    className: "font-sans font-bold text-slate-900 text-xl group-hover:text-amber-800 transition-colors"
-  }, "Preventing Engine Damage"), /*#__PURE__*/React.createElement("p", {
-    className: "text-base text-slate-700 mt-3.5 leading-relaxed font-sans"
-  }, "Flags exact street puddle depths before you drive in, preventing engine water intake and expensive vehicle repairs.")), /*#__PURE__*/React.createElement("div", {
-    className: "mt-7 flex items-center justify-between text-sm border-t border-[#B3D6E6] pt-4"
+    className: "font-sans font-bold text-slate-900 text-xl",
+    style: {
+      textWrap: 'balance'
+    }
+  }, "Before you drive in"), /*#__PURE__*/React.createElement("p", {
+    className: "text-base text-slate-700 mt-3 leading-relaxed font-sans",
+    style: {
+      textWrap: 'pretty'
+    }
+  }, "Enter the depth you can see and get a plain answer for a two-wheeler, a car or a bus. Moving water is more dangerous than any number suggests.")), /*#__PURE__*/React.createElement("div", {
+    className: "mt-6 flex flex-wrap items-center justify-between gap-2 border-t border-[#B3D6E6] pt-4"
   }, /*#__PURE__*/React.createElement("span", {
-    className: "font-semibold text-slate-700"
-  }, "Depth estimate, not a measurement"), /*#__PURE__*/React.createElement("span", {
-    className: "text-sky-700 font-bold group-hover:translate-x-1 transition-transform"
-  }, "See Live \u2192")))), /*#__PURE__*/React.createElement("div", {
-    onClick: () => {
-      if (onSelectCity) onSelectCity("Delhi");else onEnter();
-    },
-    className: "group rounded-2xl bg-white/95 border border-[#9DC6DA] hover:border-teal-600 transition-all duration-300 ease-out overflow-hidden flex flex-col cursor-pointer hover:-translate-y-1.5 shadow-sm hover:shadow-xl"
+    className: "text-sm text-slate-600"
+  }, "Advice per vehicle, not a guarantee"), /*#__PURE__*/React.createElement("span", {
+    className: "inline-flex items-center gap-1.5 text-sm font-bold text-sky-800"
+  }, "Check a depth", /*#__PURE__*/React.createElement(ArrowRight, {
+    className: "w-4 h-4 group-hover:translate-x-0.5 transition-transform",
+    "aria-hidden": "true"
+  }))))), /*#__PURE__*/React.createElement("button", {
+    type: "button",
+    onClick: () => onOpenMap(null, "Delhi"),
+    className: "group text-left rounded-2xl bg-white border border-[#9DC6DA] hover:border-sky-600 transition-[border-color,box-shadow,transform] duration-300 ease-out overflow-hidden flex flex-col cursor-pointer hover:-translate-y-1 shadow-sm hover:shadow-lg"
   }, /*#__PURE__*/React.createElement("div", {
-    className: "relative h-64 sm:h-72 overflow-hidden bg-slate-900"
+    className: "relative h-56 sm:h-64 w-full overflow-hidden bg-slate-900"
   }, /*#__PURE__*/React.createElement("img", {
     loading: "lazy",
     decoding: "async",
     src: "/static/images/hero-river-ghats-aerial-hd.webp",
-    alt: "Riverside community and riverfront view",
-    className: "w-full h-full object-cover group-hover:scale-105 transition-transform duration-700 ease-out"
-  }), /*#__PURE__*/React.createElement("div", {
-    className: "absolute top-4 left-4 bg-white/95 text-teal-900 text-xs font-bold px-3 py-1 rounded-sm border border-teal-200 shadow-xs"
-  }, "River Safety")), /*#__PURE__*/React.createElement("div", {
-    className: "p-6 sm:p-8 flex flex-col justify-between flex-1"
+    alt: "",
+    width: "1600",
+    height: "1067",
+    className: "w-full h-full object-cover group-hover:scale-[1.03] transition-transform duration-700 ease-out"
+  }), /*#__PURE__*/React.createElement("span", {
+    className: "absolute top-4 left-4 rounded-full bg-white/95 px-3 py-1 text-xs font-semibold text-slate-900"
+  }, "Near a river")), /*#__PURE__*/React.createElement("div", {
+    className: "p-6 sm:p-7 flex flex-col justify-between flex-1"
   }, /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("h3", {
-    className: "font-sans font-bold text-slate-900 text-xl group-hover:text-teal-800 transition-colors"
-  }, "Protecting Riverside Areas"), /*#__PURE__*/React.createElement("p", {
-    className: "text-base text-slate-700 mt-3.5 leading-relaxed font-sans"
-  }, "Continuous river gauges upstream give residents and authorities up to 6 hours of advance notice before river levels peak.")), /*#__PURE__*/React.createElement("div", {
-    className: "mt-7 flex items-center justify-between text-sm border-t border-[#B3D6E6] pt-4"
+    className: "font-sans font-bold text-slate-900 text-xl",
+    style: {
+      textWrap: 'balance'
+    }
+  }, "Living near a river"), /*#__PURE__*/React.createElement("p", {
+    className: "text-base text-slate-700 mt-3 leading-relaxed font-sans",
+    style: {
+      textWrap: 'pretty'
+    }
+  }, "Shows how close each ward's river is to its danger level. The level is estimated from rainfall, because no river gauge is connected yet.")), /*#__PURE__*/React.createElement("div", {
+    className: "mt-6 flex flex-wrap items-center justify-between gap-2 border-t border-[#B3D6E6] pt-4"
   }, /*#__PURE__*/React.createElement("span", {
-    className: "font-bold text-teal-800"
-  }, "\u2713 6h Advance Surge Notice"), /*#__PURE__*/React.createElement("span", {
-    className: "text-sky-700 font-bold group-hover:translate-x-1 transition-transform"
-  }, "See Live \u2192")))), /*#__PURE__*/React.createElement("div", {
-    onClick: () => {
-      if (onSelectCity) onSelectCity("Chennai");else onEnter();
-    },
-    className: "group rounded-2xl bg-white/95 border border-[#9DC6DA] hover:border-sky-600 transition-all duration-300 ease-out overflow-hidden flex flex-col cursor-pointer hover:-translate-y-1.5 shadow-sm hover:shadow-xl"
+    className: "text-sm text-slate-600"
+  }, "Estimated, not gauged"), /*#__PURE__*/React.createElement("span", {
+    className: "inline-flex items-center gap-1.5 text-sm font-bold text-sky-800"
+  }, "Open Delhi", /*#__PURE__*/React.createElement(ArrowRight, {
+    className: "w-4 h-4 group-hover:translate-x-0.5 transition-transform",
+    "aria-hidden": "true"
+  }))))), /*#__PURE__*/React.createElement("button", {
+    type: "button",
+    onClick: () => onOpenMap(null, "Chennai"),
+    className: "group text-left rounded-2xl bg-white border border-[#9DC6DA] hover:border-sky-600 transition-[border-color,box-shadow,transform] duration-300 ease-out overflow-hidden flex flex-col cursor-pointer hover:-translate-y-1 shadow-sm hover:shadow-lg"
   }, /*#__PURE__*/React.createElement("div", {
-    className: "relative h-64 sm:h-72 overflow-hidden bg-slate-900"
+    className: "relative h-56 sm:h-64 w-full overflow-hidden bg-slate-900"
   }, /*#__PURE__*/React.createElement("img", {
     loading: "lazy",
     decoding: "async",
     src: "/static/images/pexels-dibakar-roy-2432543-19391751.webp",
-    alt: "Drainage canal pumps in action",
-    className: "w-full h-full object-cover group-hover:scale-105 transition-transform duration-700 ease-out"
-  }), /*#__PURE__*/React.createElement("div", {
-    className: "absolute top-4 left-4 bg-white/95 text-sky-900 text-xs font-bold px-3 py-1 rounded-sm border border-sky-200 shadow-xs"
-  }, "Pump Activation")), /*#__PURE__*/React.createElement("div", {
-    className: "p-6 sm:p-8 flex flex-col justify-between flex-1"
+    alt: "",
+    width: "1600",
+    height: "1067",
+    className: "w-full h-full object-cover group-hover:scale-[1.03] transition-transform duration-700 ease-out"
+  }), /*#__PURE__*/React.createElement("span", {
+    className: "absolute top-4 left-4 rounded-full bg-white/95 px-3 py-1 text-xs font-semibold text-slate-900"
+  }, "Control rooms")), /*#__PURE__*/React.createElement("div", {
+    className: "p-6 sm:p-7 flex flex-col justify-between flex-1"
   }, /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("h3", {
-    className: "font-sans font-bold text-slate-900 text-xl group-hover:text-sky-700 transition-colors"
-  }, "Proactive Pump Activation"), /*#__PURE__*/React.createElement("p", {
-    className: "text-base text-slate-700 mt-3.5 leading-relaxed font-sans"
-  }, "Alerts municipal drainage teams where stormwater will pool so heavy pumps start draining sumps well before water overflows.")), /*#__PURE__*/React.createElement("div", {
-    className: "mt-7 flex items-center justify-between text-sm border-t border-[#B3D6E6] pt-4"
+    className: "font-sans font-bold text-slate-900 text-xl",
+    style: {
+      textWrap: 'balance'
+    }
+  }, "Deciding where to send pumps"), /*#__PURE__*/React.createElement("p", {
+    className: "text-base text-slate-700 mt-3 leading-relaxed font-sans",
+    style: {
+      textWrap: 'pretty'
+    }
+  }, "Operators sign in to see which sectors are likely to pond first. Pump running status is not connected, so availability is confirmed with the ward office.")), /*#__PURE__*/React.createElement("div", {
+    className: "mt-6 flex flex-wrap items-center justify-between gap-2 border-t border-[#B3D6E6] pt-4"
   }, /*#__PURE__*/React.createElement("span", {
-    className: "font-bold text-sky-800"
-  }, "\u2713 Automated Sump Clearing"), /*#__PURE__*/React.createElement("span", {
-    className: "text-sky-700 font-bold group-hover:translate-x-1 transition-transform"
-  }, "See Live \u2192")))))))));
+    className: "text-sm text-slate-600"
+  }, "Operator sign-in required"), /*#__PURE__*/React.createElement("span", {
+    className: "inline-flex items-center gap-1.5 text-sm font-bold text-sky-800"
+  }, "Open the control room", /*#__PURE__*/React.createElement(ArrowRight, {
+    className: "w-4 h-4 group-hover:translate-x-0.5 transition-transform",
+    "aria-hidden": "true"
+  }))))))))));
 }
 
 /**
@@ -6642,6 +6667,25 @@ function RainDrop() {
       pushToast(`${request.title} failed: ${err.message}`, "error");
     }
   };
+
+  /**
+   * Open the map for a city, always with one of that city's own wards.
+   *
+   * This used to set the city and keep whatever ward was current, so choosing
+   * Mumbai from the landing page opened Chennai's Velachery ward under a
+   * "Mumbai" label, and the live forecast never matched the ward on screen.
+   */
+  const openCityMap = (targetWard, targetCity) => {
+    const cityName = targetCity || selectedCity;
+    const belongsToCity = wardKey => WARDS_DATA[wardKey] && WARDS_DATA[wardKey].city.toLowerCase() === String(cityName).toLowerCase();
+    const nextWard = targetWard && belongsToCity(targetWard) ? targetWard : Object.keys(WARDS_DATA).find(belongsToCity) || ward;
+    setSelectedCity(cityName);
+    setWard(nextWard);
+    setSelectedSector(null);
+    setIsMapEnabled(true);
+    setView("command");
+    // No explicit fetch: the effect watching [ward, selectedCity] loads it.
+  };
   const handleEnableMap = () => setIsMapEnabled(true);
   const handleDisableMap = () => setIsMapEnabled(false);
 
@@ -6822,14 +6866,13 @@ function RainDrop() {
         const firstWard = cityWards[0] || Object.keys(WARDS_DATA)[0];
         setWard(firstWard);
         setSelectedSector(null);
-        loadWardForecast(firstWard, cityName);
         setView("overview");
       },
-      onOpenMap: (targetWard, targetCity) => {
-        if (targetCity) setSelectedCity(targetCity);
-        if (targetWard) setWard(targetWard);
-        setIsMapEnabled(true);
-        setView("command");
+      onOpenMap: (targetWard, targetCity) => openCityMap(targetWard, targetCity),
+      onCheckRoute: targetCity => {
+        openCityMap(null, targetCity);
+        setRouteCheckResult(null);
+        setRouteCheckOpen(true);
       },
       pushToast: pushToast
     }));
@@ -6868,12 +6911,7 @@ function RainDrop() {
       liveForecast: liveForecast,
       loadWardForecast: loadWardForecast,
       isFetchingForecast: isFetchingForecast,
-      onOpenMap: (targetWard, targetCity) => {
-        if (targetCity) setSelectedCity(targetCity);
-        if (targetWard) setWard(targetWard);
-        setIsMapEnabled(true);
-        setView("command");
-      },
+      onOpenMap: (targetWard, targetCity) => openCityMap(targetWard, targetCity),
       onOpenSitRep: targetWard => {
         if (targetWard) setWard(targetWard);
         setSitRepOpen(true);

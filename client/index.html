@@ -30,18 +30,20 @@
     <meta name="twitter:creator" content="@KrishanuBuilds">
 
     <!-- Preconnect for performance -->
+    <!-- The display face is above the fold on every page: fetch it with the HTML. -->
+    <link rel="preload" href="/static/fonts/cormorant-garamond-latin.woff2" as="font" type="font/woff2" crossorigin>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
     
     <!-- Production Compiled Tailwind CSS (No CDN Warning) -->
-    <link rel="stylesheet" href="/static/tailwind.min.css?v=5.0.1" />
+    <link rel="stylesheet" href="/static/tailwind.min.css?v=5.1.2" />
     
     <!-- Local Leaflet CSS (Zero third-party storage tracking warnings) -->
     <link rel="stylesheet" href="/static/vendor/leaflet.css" />
     
     <!-- Custom Application CSS -->
-    <link rel="stylesheet" href="/static/styles.css?v=5.0.1" />
+    <link rel="stylesheet" href="/static/styles.css?v=5.1.2" />
 
     <!-- React 18 & ReactDOM 18 UMD (Local Bundled Vendors) -->
     <script src="/static/vendor/react.production.min.js" defer></script>
@@ -51,7 +53,7 @@
     <script src="/static/vendor/leaflet.js" defer></script>
 
     <!-- Main Application Script (Loaded with defer for immediate first-frame mount) -->
-    <script src="/static/frontend.js?v=5.0.1" defer></script>
+    <script src="/static/frontend.js?v=5.1.2" defer></script>
 </head>
 <body class="bg-white text-slate-900 min-h-screen font-sans antialiased m-0 p-0 overflow-x-hidden selection:bg-emerald-600 selection:text-white">
     <div id="root">
