@@ -35,6 +35,9 @@ def initialize_database() -> None:
         connection.execute(text("ALTER TABLE terrain_datasets ADD COLUMN IF NOT EXISTS min_slope FLOAT"))
         connection.execute(text("ALTER TABLE terrain_datasets ADD COLUMN IF NOT EXISTS max_slope FLOAT"))
         connection.execute(text("ALTER TABLE terrain_datasets ADD COLUMN IF NOT EXISTS crs VARCHAR(100)"))
+        connection.execute(text("ALTER TABLE terrain_datasets ADD COLUMN IF NOT EXISTS dataset_file VARCHAR(200)"))
+        # file_path held caller-supplied absolute paths, which the API no longer accepts.
+        connection.execute(text("ALTER TABLE terrain_datasets DROP COLUMN IF EXISTS file_path"))
         connection.execute(text("ALTER TABLE terrain_datasets ADD COLUMN IF NOT EXISTS processed_at TIMESTAMP WITH TIME ZONE"))
         connection.execute(text("ALTER TABLE flood_predictions ADD COLUMN IF NOT EXISTS water_depth_cm FLOAT NOT NULL DEFAULT 0"))
         connection.execute(text("ALTER TABLE flood_predictions ADD COLUMN IF NOT EXISTS valid_until TIMESTAMP WITH TIME ZONE"))

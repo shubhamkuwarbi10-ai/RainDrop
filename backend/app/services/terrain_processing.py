@@ -3,18 +3,50 @@ from pathlib import Path
 
 import numpy as np
 
+from app.core.paths import RAW_DIR
 
-def analyze_dem(file_path: str) -> dict[str, float | str | datetime | None]:
+#: Terrain rasters must live here. Nothing outside it is readable through the API.
+TERRAIN_SOURCE_DIR = RAW_DIR / "terrain"
+
+#: Guard against a request that asks the server to load a continent into memory.
+MAX_RASTER_CELLS = 120_000_000  # ~960 MB as float64, read band by band.
+
+
+def resolve_dataset_path(dataset_file: str) -> Path:
+    """Map a registered filename onto a path inside the terrain folder.
+
+    The API accepts a bare filename, never a path. Resolving and then checking
+    containment defeats `..` traversal, absolute paths and symlinks that point
+    out of the folder.
+    """
+    if not dataset_file or "/" in dataset_file or "\\" in dataset_file or dataset_file.startswith("."):
+        raise ValueError("Terrain dataset names must be a plain filename.")
+
+    root = TERRAIN_SOURCE_DIR.resolve()
+    candidate = (root / dataset_file).resolve()
+    if not candidate.is_relative_to(root):
+        raise ValueError("Terrain dataset names must resolve inside the terrain data folder.")
+    if not candidate.is_file():
+        raise FileNotFoundError("Registered terrain file is not present.")
+    return candidate
+
+
+def analyze_dem(path: Path | str) -> dict[str, float | str | datetime | None]:
     try:
         import rasterio
     except ImportError as exc:
         raise RuntimeError("rasterio is required for DEM processing") from exc
 
-    path = Path(file_path)
+    path = Path(path)
     if not path.is_file():
-        raise FileNotFoundError(f"Terrain file not found: {file_path}")
+        raise FileNotFoundError("Terrain file not found.")
 
     with rasterio.open(path) as dataset:
+        if dataset.width * dataset.height > MAX_RASTER_CELLS:
+            raise ValueError(
+                f"Raster is too large to process in one request "
+                f"({dataset.width} x {dataset.height} cells). Tile it first."
+            )
         elevation = dataset.read(1, masked=True).astype("float64")
         values = elevation.compressed()
         if values.size == 0:

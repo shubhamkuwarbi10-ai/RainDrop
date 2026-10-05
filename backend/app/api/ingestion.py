@@ -3,6 +3,7 @@ from geoalchemy2.elements import WKTElement
 from sqlalchemy import select
 from sqlalchemy.orm import Session
 
+from app.core.security import require_api_key
 from app.db.session import get_db
 from app.models.tables import DrainageEdge, DrainageNode, RadarRainfallGrid, Road, TerrainDataset
 from app.schemas.common import (
@@ -11,7 +12,12 @@ from app.schemas.common import (
     TerrainDatasetCreate, TerrainDatasetResponse,
 )
 
-router = APIRouter(prefix="/api/v1/ingestion", tags=["phase-1-ingestion"])
+router = APIRouter(
+    prefix="/api/v1/ingestion",
+    tags=["phase-1-ingestion"],
+    # Every route here writes to the database. Reads live on the public routers.
+    dependencies=[Depends(require_api_key)],
+)
 
 
 def _point_wkt(point: GeoPoint) -> WKTElement:

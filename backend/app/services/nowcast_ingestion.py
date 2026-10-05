@@ -29,17 +29,23 @@ def ingest_nowcast(payload: NowcastIngestRequest, db: Session) -> dict:
     predictions: list[FloodPrediction] = []
     alerts: list[Alert] = []
 
-    for index, rainfall_mm in enumerate(model.forecast.timeseries_mm_hr, start=1):
+    # The series is a rate in mm/hr. Depth over one step is rate * step_hours.
+    # Treating the rate as if it were the depth for a 15-minute step overstated
+    # every runoff volume by a factor of four.
+    step_hours = payload.duration_minutes / 60.0
+
+    for index, rainfall_rate_mm_hr in enumerate(model.forecast.timeseries_mm_hr, start=1):
         label = model.forecast.timeseries_labels[index - 1] if index <= len(model.forecast.timeseries_labels) else None
         forecast_at = _forecast_time(label, generated_at, index)
+        step_depth_mm = rainfall_rate_mm_hr * step_hours
         forecasts.append(Forecast(
             forecast_at=forecast_at,
-            rainfall_mm=rainfall_mm,
+            rainfall_mm=step_depth_mm,
             source=model.source,
             location=point,
         ))
         runoff = estimate_runoff(
-            rainfall_mm=rainfall_mm,
+            rainfall_mm=step_depth_mm,
             duration_minutes=payload.duration_minutes,
             catchment_area_m2=payload.catchment_area_m2,
             impervious_fraction=payload.impervious_fraction,

@@ -3,6 +3,7 @@ from geoalchemy2.elements import WKTElement
 from sqlalchemy import func, select
 from sqlalchemy.orm import Session
 
+from app.core.security import require_api_key
 from app.db.session import get_db
 from app.models.tables import Alert, FloodPrediction
 from app.schemas.common import (
@@ -25,6 +26,8 @@ def _point_wkt(latitude: float, longitude: float) -> WKTElement:
     "/flood-predictions",
     response_model=FloodPredictionResponse,
     status_code=status.HTTP_201_CREATED,
+    # Unauthenticated writes here let anyone publish a fake "critical" alert.
+    dependencies=[Depends(require_api_key)],
 )
 def create_flood_prediction(
     payload: FloodPredictionCreate,
@@ -79,7 +82,12 @@ def list_flood_predictions(
     ]
 
 
-@router.post("/alerts", response_model=AlertResponse, status_code=status.HTTP_201_CREATED)
+@router.post(
+    "/alerts",
+    response_model=AlertResponse,
+    status_code=status.HTTP_201_CREATED,
+    dependencies=[Depends(require_api_key)],
+)
 def create_alert(payload: AlertCreate, db: Session = Depends(get_db)):
     geometry = None
     if payload.location:

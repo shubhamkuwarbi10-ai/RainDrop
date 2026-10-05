@@ -3,6 +3,7 @@ from geoalchemy2.elements import WKTElement
 from sqlalchemy import func, select
 from sqlalchemy.orm import Session
 
+from app.core.security import require_api_key
 from app.db.session import get_db
 from app.models.tables import Forecast, Rainfall
 from app.services.ml_client import sync_prediction
@@ -23,7 +24,12 @@ def _point_wkt(latitude: float, longitude: float) -> WKTElement:
     return WKTElement(f"POINT({longitude} {latitude})", srid=4326)
 
 
-@router.post("/rainfall", response_model=RainfallResponse, status_code=status.HTTP_201_CREATED)
+@router.post(
+    "/rainfall",
+    response_model=RainfallResponse,
+    status_code=status.HTTP_201_CREATED,
+    dependencies=[Depends(require_api_key)],
+)
 def create_rainfall(payload: RainfallCreate, db: Session = Depends(get_db)):
     record = Rainfall(
         observed_at=payload.observed_at,
@@ -70,7 +76,12 @@ def list_rainfall(
     ]
 
 
-@router.post("/forecasts", response_model=ForecastResponse, status_code=status.HTTP_201_CREATED)
+@router.post(
+    "/forecasts",
+    response_model=ForecastResponse,
+    status_code=status.HTTP_201_CREATED,
+    dependencies=[Depends(require_api_key)],
+)
 def create_forecast(payload: ForecastCreate, db: Session = Depends(get_db)):
     record = Forecast(
         forecast_at=payload.forecast_at,
@@ -116,6 +127,10 @@ def list_forecasts(
     ]
 
 
-@router.post("/forecasts/sync", response_model=MLSyncResponse)
+@router.post(
+    "/forecasts/sync",
+    response_model=MLSyncResponse,
+    dependencies=[Depends(require_api_key)],
+)
 def sync_ml_forecast(lat: float = Query(..., ge=-90, le=90), lon: float = Query(..., ge=-180, le=180)):
     return sync_prediction(lat, lon)

@@ -1,73 +1,72 @@
-import json
+"""Persist a forecast into PostGIS.
+
+This used to issue an HTTP request to ML_API_URL, which pointed back at this
+same process. Under a single worker that deadlocks: the request handler blocks
+waiting for a response only that handler could serve. The forecast function is
+in this codebase, so we call it directly.
+"""
 from datetime import datetime, timedelta, timezone
-from urllib.parse import urlencode
-from urllib.request import Request, urlopen
 
 from fastapi import HTTPException
+from geoalchemy2.elements import WKTElement
 
-from app.core.config import ML_API_URL
+from app.api.ml_gis import predict
 from app.db.session import SessionLocal
 from app.models.tables import Forecast
 from app.schemas.common import GeoPoint, MLSyncResponse
-from geoalchemy2.elements import WKTElement
+
+_MAX_FORECAST_ROWS = 288  # 24 h at 5-minute resolution; a sane upper bound.
 
 
 def _forecast_time(label: str | None, generated_at: datetime, index: int) -> datetime:
-    if label and label.startswith("+") and label.endswith(" min"):
-        try:
-            minutes = int(label[1:-4])
-            return generated_at + timedelta(minutes=minutes)
-        except ValueError:
-            pass
+    """Turn a series label into a timestamp.
+
+    Handles "+30 min" offsets and "HH:MM" local clock labels, and falls back to
+    hourly spacing, which matches the Open-Meteo series the API returns.
+    """
     if label:
+        if label.startswith("+") and label.endswith(" min"):
+            try:
+                return generated_at + timedelta(minutes=int(label[1:-4]))
+            except ValueError:
+                pass
         try:
-            clock_time = datetime.strptime(label, "%H:%M").time()
-            return generated_at.replace(
-                hour=clock_time.hour,
-                minute=clock_time.minute,
-                second=0,
-                microsecond=0,
-            )
+            clock = datetime.strptime(label, "%H:%M").time()
+            return generated_at.replace(hour=clock.hour, minute=clock.minute, second=0, microsecond=0)
         except ValueError:
             pass
-    return generated_at + timedelta(minutes=index * 15)
+    return generated_at + timedelta(hours=index)
 
 
 def sync_prediction(lat: float, lon: float) -> MLSyncResponse:
-    query = urlencode({"lat": lat, "lon": lon})
-    request = Request(
-        f"{ML_API_URL.rstrip('/')}/api/predict?{query}",
-        headers={"Accept": "application/json"},
-    )
-    try:
-        with urlopen(request, timeout=15) as response:
-            payload = json.loads(response.read().decode("utf-8"))
-    except Exception as exc:
-        raise HTTPException(status_code=502, detail=f"ML service unavailable: {exc}") from exc
-
+    payload = predict(lat=lat, lon=lon)
     forecast = payload.get("forecast") or {}
-    values = forecast.get("timeseries_mm_hr") or []
-    labels = forecast.get("timeseries_labels") or []
-    if not isinstance(values, list):
-        raise HTTPException(status_code=502, detail="ML service returned an invalid forecast series")
+    values = forecast.get("hourly_rainfall_mm") or []
+    labels = forecast.get("hourly_labels") or []
+
+    if not values:
+        raise HTTPException(
+            status_code=503,
+            detail="No rainfall forecast is currently available for that location.",
+        )
+    if len(values) > _MAX_FORECAST_ROWS:
+        raise HTTPException(status_code=502, detail="The forecast series was unexpectedly long.")
 
     generated_at = datetime.now(timezone.utc)
+    point = WKTElement(f"POINT({lon} {lat})", srid=4326)
+    source = payload.get("provenance", {}).get("method", "RainDrop forecast")
+
     records = []
-    for index, value in enumerate(values, start=1):
-        try:
-            rainfall_rate = float(value)
-        except (TypeError, ValueError) as exc:
-            raise HTTPException(status_code=502, detail="ML service returned a non-numeric forecast value") from exc
-        if rainfall_rate < 0:
-            raise HTTPException(status_code=502, detail="ML service returned negative rainfall")
-        records.append(
-            Forecast(
-                forecast_at=_forecast_time(labels[index - 1] if index <= len(labels) else None, generated_at, index),
-                rainfall_mm=rainfall_rate,
-                source=payload.get("source", "RainDrop ML"),
-                location=WKTElement(f"POINT({lon} {lat})", srid=4326),
-            )
-        )
+    for index, value in enumerate(values):
+        rainfall_mm = float(value)
+        if rainfall_mm < 0:
+            raise HTTPException(status_code=502, detail="The forecast contained a negative rainfall value.")
+        records.append(Forecast(
+            forecast_at=_forecast_time(labels[index] if index < len(labels) else None, generated_at, index),
+            rainfall_mm=rainfall_mm,
+            source=source[:100],
+            location=point,
+        ))
 
     db = SessionLocal()
     try:
@@ -81,7 +80,7 @@ def sync_prediction(lat: float, lon: float) -> MLSyncResponse:
 
     return MLSyncResponse(
         location=GeoPoint(latitude=lat, longitude=lon),
-        source=payload.get("source", "RainDrop ML"),
+        source=source[:100],
         imported_forecasts=len(records),
         risk_level=forecast.get("risk_level"),
     )

@@ -2,6 +2,7 @@ from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy import select
 from sqlalchemy.orm import Session
 
+from app.core.security import require_api_key
 from app.db.session import get_db
 from geoalchemy2.elements import WKTElement
 
@@ -14,10 +15,19 @@ from app.schemas.common import (
     RunoffEstimateResponse,
     TerrainProcessResponse,
 )
-from app.services.terrain_processing import analyze_dem, classify_flood_risk, estimate_runoff
+from app.services.terrain_processing import (
+    analyze_dem,
+    classify_flood_risk,
+    estimate_runoff,
+    resolve_dataset_path,
+)
 
 
-router = APIRouter(prefix="/api/v1/processing", tags=["phase-2-processing"])
+router = APIRouter(
+    prefix="/api/v1/processing",
+    tags=["phase-2-processing"],
+    dependencies=[Depends(require_api_key)],
+)
 
 
 @router.post("/terrain/{dataset_id}", response_model=TerrainProcessResponse)
@@ -27,11 +37,17 @@ def process_terrain(dataset_id: int, db: Session = Depends(get_db)):
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Terrain dataset not found")
     if dataset.dataset_type != "dem":
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Dataset must be a DEM")
-    if not dataset.file_path:
-        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="DEM dataset has no file_path")
+    if not dataset.dataset_file:
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="DEM dataset has no file registered")
     try:
-        result = analyze_dem(dataset.file_path)
-    except (FileNotFoundError, ValueError, RuntimeError) as exc:
+        result = analyze_dem(resolve_dataset_path(dataset.dataset_file))
+    except FileNotFoundError:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="The registered terrain file is not present on the server.",
+        ) from None
+    except (ValueError, RuntimeError) as exc:
+        # The message is ours, not an OS error string, so it is safe to return.
         raise HTTPException(status_code=status.HTTP_422_UNPROCESSABLE_ENTITY, detail=str(exc)) from exc
     for key, value in result.items():
         setattr(dataset, key, value)
