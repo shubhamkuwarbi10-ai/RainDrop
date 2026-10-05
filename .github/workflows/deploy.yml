@@ -41,6 +41,25 @@ jobs:
         run: pip-audit -r requirements.txt
         continue-on-error: true
 
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+
+      # The stylesheet is committed, so it can go stale against the markup. A
+      # stale build drops every class added since it was generated, silently:
+      # that is how z-[400] stopped applying and a button rendered white text
+      # on a transparent background.
+      - name: Check the committed stylesheet matches the source
+        run: |
+          npm install
+          npm run build:css
+          if ! git diff --quiet -- client/tailwind.min.css; then
+            echo "::error::client/tailwind.min.css is stale. Run 'npm run build:css' and commit the result."
+            git diff --stat -- client/tailwind.min.css
+            exit 1
+          fi
+          echo "Stylesheet is up to date."
+
   deploy:
     name: Deploy to EC2
     needs: test

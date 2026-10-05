@@ -249,3 +249,22 @@ python -m pytest              # 94 tests
 The database and the backend are reachable only on the Docker network. All
 traffic goes through nginx, which applies the rate limits, body-size caps and
 security headers.
+
+### Changing the frontend
+
+Both build artefacts are committed, so both can go stale against their source.
+
+```bash
+npm install          # once
+npm run build:css    # after changing any className
+npm run watch:css    # or leave this running while you work
+
+python pipeline/transpile_frontend.py   # after changing anything in client/src
+```
+
+`client/tailwind.min.css` used to be a checked-in build with no way to
+regenerate it, which meant **every utility class written after that build
+produced no CSS at all, silently**. `z-[400]` never applied, so the offline
+banner rendered behind the toolbar, and a button could end up with white text
+on a transparent background. `setup.sh` and `setup.ps1` now run the build, and
+CI fails if the committed stylesheet does not match a fresh one.

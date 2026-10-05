@@ -1,0 +1,25 @@
+{
+  "name": "raindrop-client",
+  "version": "5.0.0",
+  "private": true,
+  "description": "Tailwind build for the RainDrop client stylesheet.",
+  "comments": {
+    "why": [
+      "client/tailwind.min.css used to be a checked-in build with no way to regenerate it.",
+      "Any utility class written after that build produced no CSS at all, silently:",
+      "z-[400] never applied, and a button could render white text on a transparent",
+      "background. Run build:css after changing any className.",
+      "",
+      "The JSX bundle is built by pipeline/transpile_frontend.py, which setup.sh and",
+      "setup.ps1 already call. It is not duplicated here because it needs Python on",
+      "PATH, and an npm script that fails on a clean machine is worse than no script."
+    ]
+  },
+  "scripts": {
+    "build:css": "tailwindcss -i client/tailwind-input.css -o client/tailwind.min.css --minify",
+    "watch:css": "tailwindcss -i client/tailwind-input.css -o client/tailwind.min.css --watch"
+  },
+  "devDependencies": {
+    "tailwindcss": "3.4.17"
+  }
+}

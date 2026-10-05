@@ -79,6 +79,16 @@ pip install --upgrade pip
 pip install -r requirements.txt
 
 # 5. Build/Verify Frontend Bundle
+# Build the stylesheet. A stale client/tailwind.min.css silently drops every
+# class added since it was last generated.
+if (Get-Command npm -ErrorAction SilentlyContinue) {
+    Write-Host "Building Tailwind stylesheet..." -ForegroundColor Yellow
+    npm install --silent
+    npm run build:css
+} else {
+    Write-Host "[!] npm not found. client/tailwind.min.css will not be rebuilt." -ForegroundColor Yellow
+}
+
 Write-Host "Building modular client bundle..." -ForegroundColor Yellow
 python pipeline/transpile_frontend.py
 

@@ -75,7 +75,19 @@ echo "Installing Python dependencies from requirements.txt..."
 pip install --upgrade pip
 pip install -r requirements.txt
 
-# 5. Build/Verify Frontend Bundle
+# 5. Build the stylesheet.
+# Skipping this leaves client/tailwind.min.css stale, and a stale build silently
+# drops every class added since it was generated.
+if command -v npm &> /dev/null; then
+    echo "Building Tailwind stylesheet..."
+    npm install --silent
+    npm run build:css
+else
+    echo "[!] npm not found. client/tailwind.min.css will not be rebuilt."
+    echo "    Any class added since the last build will have no CSS."
+fi
+
+# 6. Build the client bundle.
 echo "Building modular client bundle..."
 python3 pipeline/transpile_frontend.py
 
