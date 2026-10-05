@@ -3556,6 +3556,26 @@ function TopNavbar(props) {
 // ============================================================================
 
 // --- MODULE: client/src/components/hero/HeroView.jsx ---
+/**
+ * Should we download the 46 MB background video?
+ *
+ * Only on a wide screen, over a connection that has not asked us to save data,
+ * for someone who has not asked for reduced motion. Everyone else gets the
+ * 204 KB poster, which carries the same meaning. During the monsoon, on a
+ * phone, on a congested network, this is the difference between a page that
+ * loads and one that does not.
+ */
+function useBackgroundVideo() {
+  const [shouldLoad, setShouldLoad] = useState(false);
+  useEffect(() => {
+    const connection = navigator.connection || {};
+    const wantsLessData = connection.saveData === true || /^(slow-2g|2g|3g)$/.test(connection.effectiveType || "");
+    const wantsLessMotion = window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+    const isWideScreen = window.matchMedia && window.matchMedia("(min-width: 1024px)").matches;
+    setShouldLoad(Boolean(isWideScreen && !wantsLessData && !wantsLessMotion));
+  }, []);
+  return shouldLoad;
+}
 function HeroView({
   ward,
   wardData,
@@ -3564,6 +3584,7 @@ function HeroView({
   onOpenMap,
   pushToast
 }) {
+  const showBackgroundVideo = useBackgroundVideo();
   const [activeRailStep, setActiveRailStep] = useState(0); // 0: DATA, 1: COVERAGE, 2: IMPACT, 3: FUTURE
   const [activePillarTab, setActivePillarTab] = useState(0);
   const [scenarioRain, setScenarioRain] = useState(45); // mm/hr
@@ -3821,14 +3842,12 @@ function HeroView({
     loop: true,
     muted: true,
     playsInline: true,
-    preload: "auto",
+    preload: showBackgroundVideo ? "metadata" : "none",
     poster: "/static/images/rain-video-poster.webp",
-    className: "w-full h-full object-cover scale-[1.01] transition-transform duration-1000"
-  }, /*#__PURE__*/React.createElement("source", {
+    "aria-hidden": "true",
+    className: "w-full h-full object-cover scale-[1.01]"
+  }, showBackgroundVideo && /*#__PURE__*/React.createElement("source", {
     src: "/static/VEDIO/RAIN.mp4",
-    type: "video/mp4"
-  }), /*#__PURE__*/React.createElement("source", {
-    src: "https://strvid.nyc3.cdn.digitaloceanspaces.com/motionsite/nature-sunset.mp4",
     type: "video/mp4"
   })), /*#__PURE__*/React.createElement("div", {
     className: "absolute inset-0 bg-gradient-to-b from-black/75 via-black/30 to-black/85 pointer-events-none"
@@ -3993,7 +4012,7 @@ function HeroView({
     onClick: () => scrollTo("coverage"),
     className: "inline-flex items-center justify-center min-h-[48px] px-6 border-2 border-white/80 text-white font-semibold text-base rounded-lg transition-colors hover:bg-white/15 cursor-pointer"
   }, "Other cities")), /*#__PURE__*/React.createElement("p", {
-    className: "mt-3.5 text-sm text-white/75 max-w-lg"
+    className: "mt-3.5 text-sm font-medium text-white max-w-lg text-glow"
   }, "Estimates from rainfall forecasts. Not an official IMD or NDMA warning.")))), /*#__PURE__*/React.createElement("div", {
     className: "absolute bottom-0 right-0 z-30 bg-white text-black px-6 sm:px-10 py-4 sm:py-5 rounded-tl-[24px] flex items-center gap-3 shadow-2xl"
   }, /*#__PURE__*/React.createElement("svg", {
@@ -4356,9 +4375,6 @@ function HeroView({
     poster: ARTWORKS[modalArtworkIdx ?? activeProjectIdx]?.img
   }, /*#__PURE__*/React.createElement("source", {
     src: "/static/VEDIO/RAIN.mp4",
-    type: "video/mp4"
-  }), /*#__PURE__*/React.createElement("source", {
-    src: "https://strvid.nyc3.cdn.digitaloceanspaces.com/motionsite/nature-sunset.mp4",
     type: "video/mp4"
   })))), /*#__PURE__*/React.createElement("div", {
     className: "w-full bg-gradient-to-b from-[#D4E8F2] via-[#C5E1EE] to-[#B3D7E9] text-slate-900 relative"

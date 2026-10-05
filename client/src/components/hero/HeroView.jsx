@@ -1,4 +1,32 @@
+/**
+ * Should we download the 46 MB background video?
+ *
+ * Only on a wide screen, over a connection that has not asked us to save data,
+ * for someone who has not asked for reduced motion. Everyone else gets the
+ * 204 KB poster, which carries the same meaning. During the monsoon, on a
+ * phone, on a congested network, this is the difference between a page that
+ * loads and one that does not.
+ */
+function useBackgroundVideo() {
+    const [shouldLoad, setShouldLoad] = useState(false);
+
+    useEffect(() => {
+        const connection = navigator.connection || {};
+        const wantsLessData = connection.saveData === true ||
+            /^(slow-2g|2g|3g)$/.test(connection.effectiveType || "");
+        const wantsLessMotion = window.matchMedia &&
+            window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+        const isWideScreen = window.matchMedia &&
+            window.matchMedia("(min-width: 1024px)").matches;
+
+        setShouldLoad(Boolean(isWideScreen && !wantsLessData && !wantsLessMotion));
+    }, []);
+
+    return shouldLoad;
+}
+
 function HeroView({ ward, wardData, onEnter, onSelectCity, onOpenMap, pushToast }) {
+    const showBackgroundVideo = useBackgroundVideo();
     const [activeRailStep, setActiveRailStep] = useState(0); // 0: DATA, 1: COVERAGE, 2: IMPACT, 3: FUTURE
     const [activePillarTab, setActivePillarTab] = useState(0);
     const [scenarioRain, setScenarioRain] = useState(45); // mm/hr
@@ -288,12 +316,12 @@ function HeroView({ ward, wardData, onEnter, onSelectCity, onOpenMap, pushToast 
                         loop
                         muted
                         playsInline
-                        preload="auto"
+                        preload={showBackgroundVideo ? "metadata" : "none"}
                         poster="/static/images/rain-video-poster.webp"
-                        className="w-full h-full object-cover scale-[1.01] transition-transform duration-1000"
+                        aria-hidden="true"
+                        className="w-full h-full object-cover scale-[1.01]"
                     >
-                        <source src="/static/VEDIO/RAIN.mp4" type="video/mp4" />
-                        <source src="https://strvid.nyc3.cdn.digitaloceanspaces.com/motionsite/nature-sunset.mp4" type="video/mp4" />
+                        {showBackgroundVideo && <source src="/static/VEDIO/RAIN.mp4" type="video/mp4" />}
                     </video>
                     {/* Linear Top-to-Bottom Gradient */}
                     <div className="absolute inset-0 bg-gradient-to-b from-black/75 via-black/30 to-black/85 pointer-events-none" />
@@ -454,7 +482,7 @@ function HeroView({ ward, wardData, onEnter, onSelectCity, onOpenMap, pushToast 
                                     Other cities
                                 </button>
                             </div>
-                            <p className="mt-3.5 text-sm text-white/75 max-w-lg">
+                            <p className="mt-3.5 text-sm font-medium text-white max-w-lg text-glow">
                                 Estimates from rainfall forecasts. Not an official IMD or NDMA warning.
                             </p>
                         </div>
@@ -875,7 +903,6 @@ function HeroView({ ward, wardData, onEnter, onSelectCity, onOpenMap, pushToast 
                             poster={ARTWORKS[modalArtworkIdx ?? activeProjectIdx]?.img}
                         >
                             <source src="/static/VEDIO/RAIN.mp4" type="video/mp4" />
-                            <source src="https://strvid.nyc3.cdn.digitaloceanspaces.com/motionsite/nature-sunset.mp4" type="video/mp4" />
                         </video>
                     </div>
                 </div>

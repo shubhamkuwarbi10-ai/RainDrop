@@ -6,6 +6,29 @@ echo "=========================================================="
 echo "   RainDrop GIS - Cross-Device Automated Environment Setup"
 echo "=========================================================="
 
+# 0. Ensure .env exists, with real secrets.
+# docker compose refuses to start when these are empty, which is deliberate:
+# the old defaults shipped "postgres" as the database password to production.
+if [ ! -f ".env" ] && [ -f ".env.example" ]; then
+    cp .env.example .env
+    echo "[✓] Initialized .env from .env.example"
+
+    if command -v openssl &> /dev/null; then
+        for key in POSTGRES_PASSWORD RAINDROP_SESSION_SECRET RAINDROP_INGEST_KEY; do
+            secret=$(openssl rand -base64 32 | tr -d "=+/" | cut -c1-40)
+            # Only fill a key that is present and empty.
+            sed -i.bak "s|^${key}=$|${key}=${secret}|" .env && rm -f .env.bak
+        done
+        db_password=$(grep "^POSTGRES_PASSWORD=" .env | cut -d= -f2-)
+        sed -i.bak "s|^DATABASE_URL=.*|DATABASE_URL=postgresql+psycopg2://raindrop:${db_password}@db:5432/raindrop|" .env && rm -f .env.bak
+        echo "[✓] Generated secrets into .env. Keep this file out of version control."
+    else
+        echo "[!] openssl not found. Fill in POSTGRES_PASSWORD, RAINDROP_SESSION_SECRET"
+        echo "    and RAINDROP_INGEST_KEY in .env before starting."
+        exit 1
+    fi
+fi
+
 # 1. Check for Docker
 if command -v docker &> /dev/null; then
     echo "[✓] Docker detected."
@@ -14,10 +37,16 @@ if command -v docker &> /dev/null; then
         echo "Launching multi-container production stack via Docker Compose..."
         docker compose up -d
         echo ""
-        echo "RainDrop GIS is now live:"
-        echo "  - Frontend Dashboard: http://localhost (Port 80)"
-        echo "  - ML / GIS Server:    http://localhost:8000"
-        echo "  - Backend PostGIS:    http://localhost:8001"
+        echo "RainDrop is now live:"
+        echo "  - Everything is served through http://localhost"
+        echo ""
+        echo "The API and the database are reachable only on the Docker network."
+        echo "Publishing them put the database on the internet and let clients"
+        echo "bypass the rate limits in nginx."
+        echo ""
+        echo "Create a control-room operator before using the dashboard:"
+        echo "  python backend/scripts/manage_operators.py add \\"
+        echo "      --username chennai.ops --name \"GCC Control Room\" --cities chennai"
         exit 0
     else
         echo "[!] Docker installed but daemon is not running. Falling back to native Python..."
@@ -51,5 +80,13 @@ echo "Building modular client bundle..."
 python3 pipeline/transpile_frontend.py
 
 echo ""
-echo "[✓] Setup complete! Start the services with:"
-echo "    uvicorn server.main:app --host 0.0.0.0 --port 8000 --reload"
+echo "[✓] Setup complete."
+echo ""
+echo "Start the backend:"
+echo "    uvicorn backend.main:app --host 127.0.0.1 --port 8000 --reload"
+echo ""
+echo "Create a control-room operator:"
+echo "    python backend/scripts/manage_operators.py add --username chennai.ops --cities chennai"
+echo ""
+echo "Run the tests:"
+echo "    python -m pytest"
