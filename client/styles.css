@@ -7,8 +7,11 @@
     letter-spacing: 0.03em;
 }
 
+/* Display face. Cormorant Garamond is no longer downloaded: five families
+   over 21 files was most of the font budget. Georgia ships with every target
+   platform and needs no request. */
 .font-editorial {
-    font-family: 'Cormorant Garamond', Georgia, serif;
+    font-family: Georgia, 'Times New Roman', serif;
     font-weight: 600;
 }
 
@@ -449,58 +452,7 @@ code, .font-mono { font-family: 'JetBrains Mono', ui-monospace, monospace; }
     display: none !important;
 }
 
-/* ============================================================
-   Editorial Hero Page Design System (Playfair Display + Inter)
-   ============================================================ */
-.hero-title {
-    font-family: "Playfair Display", Georgia, serif !important;
-    font-size: 68px !important;
-    line-height: 0.98 !important;
-    font-weight: 600 !important;
-    letter-spacing: -0.03em !important;
-}
 
-.hero-title em {
-    font-style: italic !important;
-    font-weight: 500 !important;
-    color: #1D68BD !important;
-}
-
-.section-title {
-    font-family: "Playfair Display", Georgia, serif !important;
-    font-size: 42px !important;
-    line-height: 1.15 !important;
-    font-weight: 600 !important;
-    letter-spacing: -0.02em !important;
-}
-
-.card-title-inter {
-    font-family: "Inter", sans-serif !important;
-    font-size: 17px !important;
-    font-weight: 600 !important;
-    line-height: 1.35 !important;
-}
-
-.body-inter {
-    font-family: "Inter", sans-serif !important;
-    font-size: 16px !important;
-    line-height: 1.6 !important;
-}
-
-.nav-inter {
-    font-family: "Inter", sans-serif !important;
-    font-size: 14px !important;
-    font-weight: 500 !important;
-}
-
-.metric-serif {
-    font-family: "Playfair Display", Georgia, serif !important;
-    font-size: 32px !important;
-    font-weight: 600 !important;
-    line-height: 1.1 !important;
-    letter-spacing: -0.01em !important;
-    white-space: nowrap !important;
-}
 
 .badge-label-inter {
     font-family: "Inter", sans-serif !important;
@@ -534,3 +486,177 @@ code, .font-mono { font-family: 'JetBrains Mono', ui-monospace, monospace; }
 
 
 
+
+
+/* ============================================================
+   Accessibility baseline
+   ============================================================ */
+
+/*
+  Visible keyboard focus. The app had zero focus-visible styles on buttons, so
+  a keyboard or switch user had no idea where they were. :focus-visible only
+  paints for keyboard navigation, so mouse users see nothing new.
+*/
+:focus-visible {
+    outline: 3px solid #1d4ed8;
+    outline-offset: 2px;
+    border-radius: 4px;
+}
+
+/* Against a dark background the blue ring disappears; add a white halo. */
+.bg-slate-900 :focus-visible,
+.bg-slate-950 :focus-visible,
+[data-dark] :focus-visible {
+    outline-color: #ffffff;
+    box-shadow: 0 0 0 5px rgba(29, 78, 216, 0.65);
+}
+
+/*
+  Minimum readable size. 143 places used 9-11px text. 12px is the floor, and
+  secondary text uses slate-600 (4.54:1 on white) rather than slate-400
+  (2.56:1), which failed WCAG AA at any size.
+*/
+.text-\[9px\],
+.text-\[9\.5px\],
+.text-\[10px\],
+.text-\[11px\],
+.text-\[11\.5px\] {
+    font-size: 12px !important;
+}
+
+.text-slate-400 {
+    color: #475569 !important; /* slate-600 */
+}
+
+/* Tap targets. 24px controls are below the 44px minimum for touch. */
+button,
+[role="button"],
+a.btn {
+    min-height: 44px;
+}
+
+/* Inline text links and chips inside dense toolbars are exempt. */
+button.inline-link,
+button.chip {
+    min-height: 0;
+}
+
+/*
+  Respect a request for reduced motion. The page had pulsing dots, pinging
+  rings, sliding toasts, a looping background video and a carousel, none of
+  which were gated.
+*/
+@media (prefers-reduced-motion: reduce) {
+    *,
+    *::before,
+    *::after {
+        animation-duration: 0.01ms !important;
+        animation-iteration-count: 1 !important;
+        transition-duration: 0.01ms !important;
+        scroll-behavior: auto !important;
+    }
+}
+
+/* Screen-reader-only text, for table captions and icon-button labels. */
+.sr-only {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    padding: 0;
+    margin: -1px;
+    overflow: hidden;
+    clip: rect(0, 0, 0, 0);
+    white-space: nowrap;
+    border-width: 0;
+}
+
+/* Skip link, revealed on focus. */
+.skip-link {
+    position: absolute;
+    left: -9999px;
+    top: 0;
+    z-index: 200;
+    padding: 12px 20px;
+    background: #ffffff;
+    color: #0f172a;
+    font-weight: 700;
+    border: 2px solid #1d4ed8;
+    border-radius: 0 0 8px 0;
+}
+
+.skip-link:focus {
+    left: 0;
+}
+
+
+/* ============================================================
+   Arbitrary-value utilities
+   ============================================================
+   client/tailwind.min.css is compiled and checked in, and there is no Tailwind
+   build step in this repo, so arbitrary-value classes written in JSX after that
+   compile produce no CSS at all. z-[400] and friends were already silently
+   doing nothing, which is why the offline banner rendered behind the toolbar.
+
+   These are declared by hand so the layering and tap targets actually apply.
+   If a Tailwind build is added later, delete this block.
+   ============================================================ */
+
+.z-\[120\] { z-index: 120; }
+.z-\[130\] { z-index: 130; }
+.z-\[140\] { z-index: 140; }
+.z-\[400\] { z-index: 400; }
+.z-\[600\] { z-index: 600; }
+.z-\[700\] { z-index: 700; }
+.z-\[900\] { z-index: 900; }
+.z-\[940\] { z-index: 940; }
+.z-\[950\] { z-index: 950; }
+.z-\[960\] { z-index: 960; }
+.z-\[1000\] { z-index: 1000; }
+
+.min-h-\[40px\] { min-height: 40px; }
+.min-h-\[44px\] { min-height: 44px; }
+.min-h-\[48px\] { min-height: 48px; }
+.min-h-\[200px\] { min-height: 200px; }
+.min-h-\[340px\] { min-height: 340px; }
+.min-h-\[420px\] { min-height: 420px; }
+.min-h-\[460px\] { min-height: 460px; }
+.min-h-\[480px\] { min-height: 480px; }
+.min-h-\[500px\] { min-height: 500px; }
+.min-w-\[44px\] { min-width: 44px; }
+
+/* Focus ring utilities used on individual controls. The global :focus-visible
+   rule above already covers everything; these keep the intent explicit where
+   the markup asks for a specific offset. */
+.focus-visible\:outline-2:focus-visible { outline-width: 2px; outline-style: solid; }
+.focus-visible\:outline-offset-1:focus-visible { outline-offset: 1px; }
+.focus-visible\:outline-offset-2:focus-visible { outline-offset: 2px; }
+.focus-visible\:outline-blue-700:focus-visible { outline-color: #1d4ed8; }
+.focus-visible\:outline-blue-900:focus-visible { outline-color: #1e3a8a; }
+.focus-visible\:outline-red-900:focus-visible { outline-color: #7f1d1d; }
+.focus-visible\:outline-slate-900:focus-visible { outline-color: #0f172a; }
+.focus-visible\:outline-current:focus-visible { outline-color: currentColor; }
+
+.max-w-\[min\(92vw\,26rem\)\] { max-width: min(92vw, 26rem); }
+
+
+/* ============================================================
+   Palette utilities missing from the compiled Tailwind build
+   ============================================================
+   client/tailwind.min.css is checked in and there is no Tailwind build
+   step in this repo, so any utility written after that build produces no
+   CSS. That is how the sign-in button ended up white-on-transparent.
+   Generated from the Tailwind v3 default palette. If a build step is
+   added later (npx tailwindcss -i client/tailwind-input.css -o
+   client/tailwind.min.css --minify), delete this block.
+   ============================================================ */
+
+.bg-blue-700 { background-color: #1d4ed8; }
+.bg-red-700 { background-color: #b91c1c; }
+.bg-violet-100 { background-color: #ede9fe; }
+.bg-violet-50 { background-color: #f5f3ff; }
+.border-red-300 { border-color: #fca5a5; }
+.border-violet-300 { border-color: #c4b5fd; }
+.hover\:bg-blue-800:hover { background-color: #1e40af; }
+.hover\:bg-red-800:hover { background-color: #991b1b; }
+.text-red-800 { color: #991b1b; }
+.text-violet-900 { color: #4c1d95; }

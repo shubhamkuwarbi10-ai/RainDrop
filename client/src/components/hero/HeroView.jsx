@@ -33,7 +33,7 @@ function HeroView({ ward, wardData, onEnter, onSelectCity, onOpenMap, pushToast 
             title: "Historic River City Ghats",
             subtitle: "Varanasi Riverfront Topography",
             desc: "High-resolution spatial elevation models mapping riverbank gradient steps and sacred hydrological corridors.",
-            img: "/static/images/hero-river-ghats-aerial-hd.jpg",
+            img: "/static/images/hero-river-ghats-aerial-hd.webp",
             tag: "RIVER TOPOGRAPHY",
             stats: "25.3176° N, 82.8739° E"
         },
@@ -42,7 +42,7 @@ function HeroView({ ward, wardData, onEnter, onSelectCity, onOpenMap, pushToast 
             title: "Harbor Tides & Coastal Fleets",
             subtitle: "Mumbai Harbor Tidal Basin",
             desc: "Coastal surge modeling and astronomical high-tide boundary conditions for peninsular megacities.",
-            img: "/static/images/hero-mumbai-harbor-boats.jpg",
+            img: "/static/images/hero-mumbai-harbor-boats.webp",
             tag: "COASTAL DYNAMICS",
             stats: "18.9220° N, 72.8347° E"
         },
@@ -51,7 +51,7 @@ function HeroView({ ward, wardData, onEnter, onSelectCity, onOpenMap, pushToast 
             title: "Urban Monsoons & Street Reflections",
             subtitle: "Kolkata Metropolitan Grid",
             desc: "Street-level micro-inundation nowcasting tracking waterlogged taxi avenues and low-elevation sumps.",
-            img: "/static/images/hero-kolkata-taxi-reflection.jpg",
+            img: "/static/images/hero-kolkata-taxi-reflection.webp",
             tag: "URBAN INUNDATION",
             stats: "22.5726° N, 88.3639° E"
         },
@@ -60,7 +60,7 @@ function HeroView({ ward, wardData, onEnter, onSelectCity, onOpenMap, pushToast 
             title: "Highway Drainage & Storm Surges",
             subtitle: "Corridor Transit Bypass",
             desc: "Dual-corridor safe elevation routing bypassing flooded underpasses and high-velocity stormwater splash zones.",
-            img: "/static/images/hero-monsoon-bus-splash.jpg",
+            img: "/static/images/hero-monsoon-bus-splash.webp",
             tag: "TRANSIT RESILIENCE",
             stats: "22.6200° N, 88.4200° E"
         }
@@ -168,7 +168,7 @@ function HeroView({ ward, wardData, onEnter, onSelectCity, onOpenMap, pushToast 
             riskType: "high",
             pumps: "49 / 54 Active",
             elevation: "Sea Level Basin",
-            img: "/static/images/pexels-wanderinglenses-13670217.jpg"
+            img: "/static/images/pexels-wanderinglenses-13670217.webp"
         },
         {
             city: "Mumbai",
@@ -179,7 +179,7 @@ function HeroView({ ward, wardData, onEnter, onSelectCity, onOpenMap, pushToast 
             riskType: "high",
             pumps: "51 / 58 Active",
             elevation: "Coastal Lowland",
-            img: "/static/images/zoshua-colah-1fradOPdjBM-unsplash.jpg"
+            img: "/static/images/zoshua-colah-1fradOPdjBM-unsplash.webp"
         },
         {
             city: "Delhi",
@@ -190,7 +190,7 @@ function HeroView({ ward, wardData, onEnter, onSelectCity, onOpenMap, pushToast 
             riskType: "high",
             pumps: "62 / 69 Active",
             elevation: "River Floodplain",
-            img: "/static/images/dibakar-roy-KbG3OsDKkCM-unsplash.jpg"
+            img: "/static/images/dibakar-roy-KbG3OsDKkCM-unsplash.webp"
         },
         {
             city: "Kolkata",
@@ -201,7 +201,7 @@ function HeroView({ ward, wardData, onEnter, onSelectCity, onOpenMap, pushToast 
             riskType: "high",
             pumps: "44 / 50 Active",
             elevation: "Delta Lowland",
-            img: "/static/images/hero-kolkata-taxi-reflection.jpg"
+            img: "/static/images/hero-kolkata-taxi-reflection.webp"
         },
         {
             city: "Bengaluru",
@@ -212,7 +212,7 @@ function HeroView({ ward, wardData, onEnter, onSelectCity, onOpenMap, pushToast 
             riskType: "mod",
             pumps: "38 / 42 Active",
             elevation: "Elevated Plateau",
-            img: "/static/images/hero-aerial-drone.jpg"
+            img: "/static/images/hero-aerial-drone.webp"
         },
         {
             city: "Hyderabad",
@@ -223,7 +223,7 @@ function HeroView({ ward, wardData, onEnter, onSelectCity, onOpenMap, pushToast 
             riskType: "mod",
             pumps: "34 / 38 Active",
             elevation: "Deccan Basin",
-            img: "/static/images/dibakar-roy-aby-GGLtD-A-unsplash.jpg"
+            img: "/static/images/dibakar-roy-aby-GGLtD-A-unsplash.webp"
         }
     ];
 
@@ -234,7 +234,7 @@ function HeroView({ ward, wardData, onEnter, onSelectCity, onOpenMap, pushToast 
             badge: "Terrain Heights",
             tagline: "Pinpoints low road dips and hollows where stormwater gathers first.",
             desc: "By reading high-accuracy satellite terrain heights across every street, RainDrop reveals exactly which intersections, underpasses, and neighborhood lanes sit in natural low points.",
-            img: "/static/images/dibakar-roy-FbOchRlXaPs-unsplash.jpg",
+            img: "/static/images/dibakar-roy-FbOchRlXaPs-unsplash.webp",
             benefits: ["Sub-meter street height precision", "Highlights deep road hollows", "Calculates downhill water flow", "Flags trapped water pockets"],
             tag: "Elevation Topography"
         },
@@ -244,7 +244,7 @@ function HeroView({ ward, wardData, onEnter, onSelectCity, onOpenMap, pushToast 
             badge: "Weather Radar",
             tagline: "Follows heavy cloudbursts minute-by-minute hours before rainfall peaks.",
             desc: "Streams live weather radar across every metropolitan area. It tracks storm clouds in motion so residents and municipal crews know exactly when and where heavy downpours will hit.",
-            img: "/static/images/dibakar-roy-DccG84ivd3k-unsplash.jpg",
+            img: "/static/images/dibakar-roy-DccG84ivd3k-unsplash.webp",
             benefits: ["Live radar precipitation feed", "Storm direction and speed tracking", "5-minute cloud updates", "Up to 6 hours advance warning"],
             tag: "Radar Telemetry"
         },
@@ -254,7 +254,7 @@ function HeroView({ ward, wardData, onEnter, onSelectCity, onOpenMap, pushToast 
             badge: "Waterway Movement",
             tagline: "Monitors city canals, sea tides, and stormwater drainage lines.",
             desc: "Watches how water travels through underground pipes, open city canals, and river outfall gates, accounting for ocean high tides that push seawater back into neighborhood drains.",
-            img: "/static/images/dibakar-roy-P7Z3HwNWPeQ-unsplash.jpg",
+            img: "/static/images/dibakar-roy-P7Z3HwNWPeQ-unsplash.webp",
             benefits: ["Underground pipe capacity checks", "Tide and river backflow tracking", "Canal blockage detection", "Gate opening advisories"],
             tag: "Hydrodynamics"
         },
@@ -264,7 +264,7 @@ function HeroView({ ward, wardData, onEnter, onSelectCity, onOpenMap, pushToast 
             badge: "Real-Time Depth",
             tagline: "Calculates standing water depth across every neighborhood in milliseconds.",
             desc: "Instead of waiting hours for slow simulations, our smart predictive model calculates whether a street will have 5 cm or 45 cm of water in milliseconds as rain falls.",
-            img: "/static/images/hero-aerial-drone.jpg",
+            img: "/static/images/hero-aerial-drone.webp",
             benefits: ["Instant depth forecasts in cm", "Door-to-door street accuracy", "Clear vehicle safety limits", "Fast response advisories"],
             tag: "Surrogate Intelligence"
         }
@@ -289,7 +289,7 @@ function HeroView({ ward, wardData, onEnter, onSelectCity, onOpenMap, pushToast 
                         muted
                         playsInline
                         preload="auto"
-                        poster="/static/images/rain-video-poster.jpg"
+                        poster="/static/images/rain-video-poster.webp"
                         className="w-full h-full object-cover scale-[1.01] transition-transform duration-1000"
                     >
                         <source src="/static/VEDIO/RAIN.mp4" type="video/mp4" />
@@ -365,9 +365,9 @@ function HeroView({ ward, wardData, onEnter, onSelectCity, onOpenMap, pushToast 
                                 if (onOpenMap) onOpenMap(ward, "Chennai");
                                 else onEnter();
                             }}
-                            className="px-6 py-2.5 rounded-full border border-white/80 text-white text-[11px] font-semibold tracking-[0.2em] uppercase transition-all duration-300 hover:bg-white hover:text-black active:scale-95 cursor-pointer"
+                            className="min-h-[44px] px-6 rounded-full border border-white/80 text-white text-sm font-semibold transition-colors hover:bg-white hover:text-black cursor-pointer"
                         >
-                            VIEW LIVE MAP
+                            Open the map
                         </button>
                     </div>
 
@@ -403,9 +403,9 @@ function HeroView({ ward, wardData, onEnter, onSelectCity, onOpenMap, pushToast 
                                     if (onOpenMap) onOpenMap(ward, "Chennai");
                                     else onEnter();
                                 }}
-                                className="w-full text-center py-3 rounded-full border border-white/80 text-white text-xs font-semibold tracking-[0.2em] uppercase hover:bg-white hover:text-black transition-all"
+                                className="w-full text-center min-h-[48px] rounded-full border border-white/80 text-white text-base font-semibold hover:bg-white hover:text-black transition-colors"
                             >
-                                VIEW LIVE MAP
+                                Open the map
                             </button>
                         </div>
                     </div>
@@ -414,28 +414,49 @@ function HeroView({ ward, wardData, onEnter, onSelectCity, onOpenMap, pushToast 
                 {/* 3. Main Hero Core Content */}
                 <div className="relative z-10 w-full max-w-7xl mx-auto px-6 sm:px-10 lg:px-14 my-auto pb-16 sm:pb-20">
                     <div className="max-w-3xl">
-                        {/* Serif Headline with Cormorant Garamond */}
-                        <h1 className="font-editorial text-5xl sm:text-6xl md:text-7xl lg:text-[95px] leading-[0.95] tracking-[-0.01em] font-bold text-white text-glow">
-                            Predict Floods.<br />Protect Cities.
+                        <h1 className="font-editorial text-5xl sm:text-6xl md:text-7xl lg:text-[88px] leading-[0.98] tracking-[-0.01em] font-bold text-white text-glow">
+                            Is my street<br />going to flood?
                         </h1>
 
-                        {/* Subtitle */}
-                        <p className="mt-4 sm:mt-6 text-base sm:text-lg md:text-xl text-white/90 font-medium max-w-lg leading-relaxed text-glow">
-                            Real-time street water level alerts, storm drain tracking, and safe evacuation routes before floodwaters rise.
+                        <p className="mt-4 sm:mt-6 text-base sm:text-lg md:text-xl text-white/90 font-medium max-w-xl leading-relaxed text-glow">
+                            Pick your city to see the estimated water depth in your ward, and whether you can
+                            get through on foot, on a two-wheeler or by car.
                         </p>
 
-                        {/* CTA Action (Clean Single Pill Button Without Video Play Button) */}
-                        <div className="mt-7 sm:mt-9 flex items-center">
-                            <button
-                                type="button"
-                                onClick={() => {
-                                    if (onOpenMap) onOpenMap(ward, "Chennai");
-                                    else onEnter();
-                                }}
-                                className="inline-flex items-center justify-center px-8 py-4 bg-white text-black font-semibold text-xs sm:text-sm tracking-[0.18em] uppercase rounded-md shadow-xl transition-all duration-300 hover:bg-white/90 hover:scale-105 hover:shadow-2xl hover:shadow-white/20 active:scale-95 cursor-pointer"
-                            >
-                                EXPLORE LIVE NOWCAST
-                            </button>
+                        {/*
+                          Primary action, placed above everything else on the page. A citizen
+                          deciding whether to set out should not have to scroll past a video
+                          hero and a carousel to find out.
+                        */}
+                        <div className="mt-7 sm:mt-9">
+                            <p className="text-sm font-semibold text-white/80 mb-2.5" id="city-picker-label">
+                                Check my street
+                            </p>
+                            <div className="flex flex-wrap gap-2.5" role="group" aria-labelledby="city-picker-label">
+                                {["Chennai", "Mumbai", "Delhi"].map((city) => (
+                                    <button
+                                        key={city}
+                                        type="button"
+                                        onClick={() => {
+                                            if (onOpenMap) onOpenMap(ward, city);
+                                            else onEnter();
+                                        }}
+                                        className="inline-flex items-center justify-center min-h-[48px] px-6 bg-white text-slate-900 font-bold text-base rounded-lg shadow-xl transition-colors hover:bg-slate-100 active:scale-[0.98] cursor-pointer"
+                                    >
+                                        {city}
+                                    </button>
+                                ))}
+                                <button
+                                    type="button"
+                                    onClick={() => scrollTo("coverage")}
+                                    className="inline-flex items-center justify-center min-h-[48px] px-6 border-2 border-white/80 text-white font-semibold text-base rounded-lg transition-colors hover:bg-white/15 cursor-pointer"
+                                >
+                                    Other cities
+                                </button>
+                            </div>
+                            <p className="mt-3.5 text-sm text-white/75 max-w-lg">
+                                Estimates from rainfall forecasts. Not an official IMD or NDMA warning.
+                            </p>
                         </div>
                     </div>
                 </div>
@@ -454,11 +475,11 @@ function HeroView({ ward, wardData, onEnter, onSelectCity, onOpenMap, pushToast 
                         <path d="M12 15C12 11.134 15.134 8 19 8C19 11.866 15.866 15 12 15Z"></path>
                     </svg>
                     <div className="flex items-center gap-2 sm:gap-3 text-[10px] sm:text-xs font-semibold tracking-[0.2em] uppercase text-black">
-                        <span className="hover:text-emerald-700 transition-colors">REAL-TIME RADAR</span>
+                        <span>HOURLY RAINFALL FORECAST</span>
                         <span className="text-black/40">•</span>
-                        <span className="hover:text-emerald-700 transition-colors">ZERO FLOOD DELAYS</span>
+                        <span>WARD-LEVEL DEPTH ESTIMATES</span>
                         <span className="text-black/40">•</span>
-                        <span className="hover:text-emerald-700 transition-colors">6 INDIAN BASINS</span>
+                        <span>6 INDIAN CITIES</span>
                     </div>
                 </div>
 
@@ -573,6 +594,8 @@ function HeroView({ ward, wardData, onEnter, onSelectCity, onOpenMap, pushToast 
                                 >
                                     {/* Full-card background image */}
                                     <img
+                                        loading="lazy"
+                                        decoding="async"
                                         src={art.img}
                                         alt={art.title}
                                         style={{
@@ -949,6 +972,8 @@ function HeroView({ ward, wardData, onEnter, onSelectCity, onOpenMap, pushToast 
                             {/* Left: Large Photography Viewport (7 Cols) */}
                             <div className="lg:col-span-7 relative min-h-[340px] sm:min-h-[420px] lg:min-h-[460px] rounded-2xl overflow-hidden bg-slate-950 border border-[#B3D6E6] group shadow-inner">
                                 <img
+                                    loading="lazy"
+                                    decoding="async"
                                     src={GIS_PILLARS[activePillarTab].img}
                                     alt={GIS_PILLARS[activePillarTab].title}
                                     className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700 ease-out"
@@ -1033,10 +1058,12 @@ function HeroView({ ward, wardData, onEnter, onSelectCity, onOpenMap, pushToast 
                                     <span>URBAN BASIN MATRIX // 02</span>
                                 </div>
                                 <h2 className="font-editorial text-4xl sm:text-5xl lg:text-6xl font-normal text-slate-900 mt-4 tracking-tight leading-[1.12]">
-                                    Live City Waterways Across 6 Indian Metros
+                                    Flood estimates for six Indian cities
                                 </h2>
                                 <p className="text-slate-700 text-lg sm:text-xl lg:text-2xl mt-4 leading-relaxed font-sans font-light">
-                                    Continuous 24/7 water monitoring across India's premier coastal and river basins. Select any metro to load real-time municipal diagnostics.
+                                    Rainfall forecasts refreshed through the day for six Indian cities, turned into
+                                    ward-level flood depth estimates. Chennai, Mumbai and Delhi are the best covered.
+                                    Select a city to see the current estimate and how it was produced.
                                 </p>
                             </div>
 
@@ -1063,6 +1090,8 @@ function HeroView({ ward, wardData, onEnter, onSelectCity, onOpenMap, pushToast 
                                     {/* City Photo Header */}
                                     <div className="relative h-64 sm:h-72 w-full overflow-hidden bg-slate-900">
                                         <img
+                                            loading="lazy"
+                                            decoding="async"
                                             src={item.img}
                                             alt={`${item.city} Skyline and Waterway`}
                                             className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700 ease-out"
@@ -1163,7 +1192,9 @@ function HeroView({ ward, wardData, onEnter, onSelectCity, onOpenMap, pushToast 
                             >
                                 <div className="relative h-64 sm:h-72 overflow-hidden bg-slate-900">
                                     <img
-                                        src="/static/images/hero-monsoon-bus-splash.jpg"
+                                        loading="lazy"
+                                        decoding="async"
+                                        src="/static/images/hero-monsoon-bus-splash.webp"
                                         alt="City Bus moving through heavy rainwater"
                                         className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700 ease-out"
                                     />
@@ -1194,7 +1225,9 @@ function HeroView({ ward, wardData, onEnter, onSelectCity, onOpenMap, pushToast 
                             >
                                 <div className="relative h-64 sm:h-72 overflow-hidden bg-slate-900">
                                     <img
-                                        src="/static/images/pexels-dibakar-roy-2432543-18192646.jpg"
+                                        loading="lazy"
+                                        decoding="async"
+                                        src="/static/images/pexels-dibakar-roy-2432543-18192646.webp"
                                         alt="Car driving through rain street reflection"
                                         className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700 ease-out"
                                     />
@@ -1212,7 +1245,7 @@ function HeroView({ ward, wardData, onEnter, onSelectCity, onOpenMap, pushToast 
                                         </p>
                                     </div>
                                     <div className="mt-7 flex items-center justify-between text-sm border-t border-[#B3D6E6] pt-4">
-                                        <span className="font-bold text-amber-800">✓ 100% Engine Safety</span>
+                                        <span className="font-semibold text-slate-700">Depth estimate, not a measurement</span>
                                         <span className="text-sky-700 font-bold group-hover:translate-x-1 transition-transform">See Live →</span>
                                     </div>
                                 </div>
@@ -1225,7 +1258,9 @@ function HeroView({ ward, wardData, onEnter, onSelectCity, onOpenMap, pushToast 
                             >
                                 <div className="relative h-64 sm:h-72 overflow-hidden bg-slate-900">
                                     <img
-                                        src="/static/images/hero-river-ghats-aerial-hd.jpg"
+                                        loading="lazy"
+                                        decoding="async"
+                                        src="/static/images/hero-river-ghats-aerial-hd.webp"
                                         alt="Riverside community and riverfront view"
                                         className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700 ease-out"
                                     />
@@ -1256,7 +1291,9 @@ function HeroView({ ward, wardData, onEnter, onSelectCity, onOpenMap, pushToast 
                             >
                                 <div className="relative h-64 sm:h-72 overflow-hidden bg-slate-900">
                                     <img
-                                        src="/static/images/pexels-dibakar-roy-2432543-19391751.jpg"
+                                        loading="lazy"
+                                        decoding="async"
+                                        src="/static/images/pexels-dibakar-roy-2432543-19391751.webp"
                                         alt="Drainage canal pumps in action"
                                         className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700 ease-out"
                                     />
