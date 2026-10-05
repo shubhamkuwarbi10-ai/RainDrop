@@ -36,8 +36,11 @@ frontend/screenshot-*.png
 *.tmp
 
 # Large Geospatial Datasets & Raw Satellite Files (Mount via volume/cloud storage)
-data/
-dataset/
+# Anchored to the repo root. Unanchored, `data/` also matched client/src/data/,
+# so client/src/data/mockData.js was never committed and a fresh clone could
+# not build the frontend.
+/data/
+/dataset/
 *.HDF5
 *.hdf5
 *.h5
