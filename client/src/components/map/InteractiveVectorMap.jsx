@@ -199,7 +199,7 @@ function InteractiveVectorMap(props) {
                         'Not a measurement, and not an official warning.' +
                     '</div>' +
 
-                    '<button type="button" onclick="window._openSectorDrawer && window._openSectorDrawer(' + Number(idx) + ')" ' +
+                    '<button type="button" data-open-sector="' + Number(idx) + '" ' +
                     'style="width:100%; min-height:44px; background:#0f2942; color:#ffffff; border:none; padding:10px 12px; ' +
                     'border-radius:12px; font-size:13px; font-weight:700; cursor:pointer;">' +
                         'Open details' +
@@ -208,6 +208,20 @@ function InteractiveVectorMap(props) {
 
                 marker.bindPopup(popupHtml, { maxWidth: 300, offset: [0, -10] });
                 circle.bindPopup(popupHtml, { maxWidth: 300, offset: [0, -10] });
+
+                // Wire the popup button with a real listener. An inline onclick=
+                // attribute is blocked by the site's CSP (script-src 'self'), so
+                // the button silently did nothing once served through nginx.
+                const wirePopupButton = (event) => {
+                    const root = event.popup && event.popup.getElement();
+                    const button = root && root.querySelector('[data-open-sector]');
+                    if (button && !button.dataset.wired) {
+                        button.dataset.wired = 'true';
+                        button.addEventListener('click', () => onSelectSector(idx));
+                    }
+                };
+                marker.on('popupopen', wirePopupButton);
+                circle.on('popupopen', wirePopupButton);
 
                 const handleNodeClick = () => {
                     onSelectSector(idx);

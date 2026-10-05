@@ -29,6 +29,27 @@ if [ ! -f ".env" ] && [ -f ".env.example" ]; then
     fi
 fi
 
+# 0b. Top up an existing .env that predates the required secrets.
+# A .env created from the old template has no RAINDROP_* keys, and docker
+# compose refuses to start without them. The database password is never
+# regenerated: the existing Postgres volume was initialised with it.
+if [ -f ".env" ]; then
+    for key in RAINDROP_SESSION_SECRET RAINDROP_INGEST_KEY; do
+        if ! grep -q "^${key}=." .env; then
+            if command -v openssl &> /dev/null; then
+                secret=$(openssl rand -base64 32 | tr -d "=+/" | cut -c1-40)
+            else
+                secret=$(python3 -c "import secrets; print(secrets.token_urlsafe(32))")
+            fi
+            sed -i.bak "/^${key}=$/d" .env && rm -f .env.bak
+            printf '
+%s=%s
+' "$key" "$secret" >> .env
+            echo "[✓] Added missing ${key} to .env"
+        fi
+    done
+fi
+
 # 1. Check for Docker
 if command -v docker &> /dev/null; then
     echo "[✓] Docker detected."

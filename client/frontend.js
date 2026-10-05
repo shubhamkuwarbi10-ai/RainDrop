@@ -4848,7 +4848,7 @@ function InteractiveVectorMap(props) {
         // Flow velocity and drainage-culvert percentages used to appear
         // here. Nothing measures either, so they are gone rather than
         // fabricated from the depth.
-        '<div style="font-size:11px; color:#475569; margin-bottom:9px; line-height:1.4;">' + 'Modelled estimate from forecast rainfall and sample ground levels. ' + 'Not a measurement, and not an official warning.' + '</div>' + '<button type="button" onclick="window._openSectorDrawer && window._openSectorDrawer(' + Number(idx) + ')" ' + 'style="width:100%; min-height:44px; background:#0f2942; color:#ffffff; border:none; padding:10px 12px; ' + 'border-radius:12px; font-size:13px; font-weight:700; cursor:pointer;">' + 'Open details' + '</button>' + '</div>';
+        '<div style="font-size:11px; color:#475569; margin-bottom:9px; line-height:1.4;">' + 'Modelled estimate from forecast rainfall and sample ground levels. ' + 'Not a measurement, and not an official warning.' + '</div>' + '<button type="button" data-open-sector="' + Number(idx) + '" ' + 'style="width:100%; min-height:44px; background:#0f2942; color:#ffffff; border:none; padding:10px 12px; ' + 'border-radius:12px; font-size:13px; font-weight:700; cursor:pointer;">' + 'Open details' + '</button>' + '</div>';
         marker.bindPopup(popupHtml, {
           maxWidth: 300,
           offset: [0, -10]
@@ -4857,6 +4857,20 @@ function InteractiveVectorMap(props) {
           maxWidth: 300,
           offset: [0, -10]
         });
+
+        // Wire the popup button with a real listener. An inline onclick=
+        // attribute is blocked by the site's CSP (script-src 'self'), so
+        // the button silently did nothing once served through nginx.
+        const wirePopupButton = event => {
+          const root = event.popup && event.popup.getElement();
+          const button = root && root.querySelector('[data-open-sector]');
+          if (button && !button.dataset.wired) {
+            button.dataset.wired = 'true';
+            button.addEventListener('click', () => onSelectSector(idx));
+          }
+        };
+        marker.on('popupopen', wirePopupButton);
+        circle.on('popupopen', wirePopupButton);
         const handleNodeClick = () => {
           onSelectSector(idx);
           try {

@@ -1,4 +1,6 @@
-FROM python:3.11-slim AS builder
+# Pinned to a Debian release: the floating 3.11-slim tag moved from bookworm to
+# trixie, which renamed libgdal32 to libgdal36 and broke the runtime stage.
+FROM python:3.11-slim-trixie AS builder
 
 WORKDIR /app
 
@@ -15,7 +17,7 @@ RUN pip install --no-cache-dir --prefix=/install -r requirements.txt
 # ─────────────────────────────────────────────
 # Runtime image
 # ─────────────────────────────────────────────
-FROM python:3.11-slim
+FROM python:3.11-slim-trixie
 
 WORKDIR /app
 
@@ -23,7 +25,7 @@ WORKDIR /app
 # running container has no use for.
 RUN apt-get update && apt-get install -y --no-install-recommends \
     libpq5 \
-    libgdal32 \
+    libgdal36 \
     curl \
     && rm -rf /var/lib/apt/lists/*
 

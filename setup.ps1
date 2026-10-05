@@ -30,6 +30,23 @@ if (-not (Test-Path ".env")) {
     }
 }
 
+# 0b. Top up an existing .env that predates the required secrets.
+# docker compose refuses to start without them. The database password is
+# never regenerated: the existing Postgres volume was initialised with it.
+if (Test-Path ".env") {
+    $envText = Get-Content ".env" -Raw
+    foreach ($key in @("RAINDROP_SESSION_SECRET", "RAINDROP_INGEST_KEY")) {
+        if ($envText -notmatch "(?m)^$key=.+") {
+            $bytes = New-Object byte[] 32
+            [System.Security.Cryptography.RandomNumberGenerator]::Create().GetBytes($bytes)
+            $secret = ([Convert]::ToBase64String($bytes) -replace "[=+/]", "").Substring(0, 40)
+            $envText = ($envText -replace "(?m)^$key=\s*$", "").TrimEnd() + "`n$key=$secret`n"
+            Write-Host "[✓] Added missing $key to .env" -ForegroundColor Green
+        }
+    }
+    Set-Content ".env" $envText -Encoding utf8 -NoNewline
+}
+
 # 1. Check for Docker
 $hasDocker = Get-Command docker -ErrorAction SilentlyContinue
 if ($hasDocker) {

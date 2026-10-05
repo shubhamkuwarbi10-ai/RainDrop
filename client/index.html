@@ -35,13 +35,13 @@
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
     
     <!-- Production Compiled Tailwind CSS (No CDN Warning) -->
-    <link rel="stylesheet" href="/static/tailwind.min.css?v=5.0.0" />
+    <link rel="stylesheet" href="/static/tailwind.min.css?v=5.0.1" />
     
     <!-- Local Leaflet CSS (Zero third-party storage tracking warnings) -->
     <link rel="stylesheet" href="/static/vendor/leaflet.css" />
     
     <!-- Custom Application CSS -->
-    <link rel="stylesheet" href="/static/styles.css?v=5.0.0" />
+    <link rel="stylesheet" href="/static/styles.css?v=5.0.1" />
 
     <!-- React 18 & ReactDOM 18 UMD (Local Bundled Vendors) -->
     <script src="/static/vendor/react.production.min.js" defer></script>
@@ -51,7 +51,7 @@
     <script src="/static/vendor/leaflet.js" defer></script>
 
     <!-- Main Application Script (Loaded with defer for immediate first-frame mount) -->
-    <script src="/static/frontend.js?v=5.0.0" defer></script>
+    <script src="/static/frontend.js?v=5.0.1" defer></script>
 </head>
 <body class="bg-white text-slate-900 min-h-screen font-sans antialiased m-0 p-0 overflow-x-hidden selection:bg-emerald-600 selection:text-white">
     <div id="root">
@@ -134,37 +134,10 @@
     </div>
 
     <!--
-      Progressive enhancement for the hero background.
-
-      The 46 MB video is attached only when it is reasonable to download it:
-      a wide viewport, a connection that has not asked us to save data, and a
-      visitor who has not asked for reduced motion. Everyone else sees the
-      poster image, which is 204 KB.
-
-      There is no analytics and no tracking, so there is no consent banner.
+      No inline scripts: the CSP is script-src 'self'. The pre-render skeleton
+      above shows only the poster; HeroView decides whether to attach the
+      background video once React mounts.
     -->
-    <script>
-        (function () {
-            var video = document.getElementById('bg-video');
-            if (!video) return;
-
-            var connection = navigator.connection || {};
-            var wantsLessData = connection.saveData === true ||
-                /^(slow-2g|2g|3g)$/.test(connection.effectiveType || '');
-            var wantsLessMotion = window.matchMedia &&
-                window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-            var isWideScreen = window.matchMedia &&
-                window.matchMedia('(min-width: 1024px)').matches;
-
-            if (!isWideScreen || wantsLessData || wantsLessMotion) return;
-
-            var source = document.createElement('source');
-            source.src = video.getAttribute('data-src');
-            source.type = 'video/mp4';
-            video.appendChild(source);
-            video.load();
-        })();
-    </script>
 </body>
 </html>
 
