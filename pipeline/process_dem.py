@@ -16,6 +16,15 @@ except ImportError:
 logging.basicConfig(level=logging.INFO, format='%(levelname)s: %(message)s')
 
 
+def synthetic_seed(city_key):
+    """
+    Seed for a city's synthetic fallback terrain. zlib.crc32, not hash(): Python
+    salts str hashes per process (PYTHONHASHSEED), so hash() gave every run
+    different terrain and nothing downstream was reproducible.
+    """
+    return zlib.crc32(city_key.encode("utf-8")) % 10000
+
+
 def _overlaps_aoi(bounds, lon_min, lon_max, lat_min, lat_max):
     """
     True only when the raster actually shares area with the AOI.
@@ -170,10 +179,10 @@ def process_city_cartodem(city_key: str, output_dir: str = "data/processed", res
                 mosaic, out_trans = merge(srcs)
                 for s in srcs: s.close()
 
-                # Tiles were selected with a 0.25 deg pad, so the mosaic is LARGER than
-                # the AOI. Crop it to the AOI window before resampling -- otherwise the
-                # whole mosaic gets stretched onto the AOI grid and every pixel ends up
-                # at the wrong ground position, while still being labelled real DEM.
+                # A 1x1 degree tile is far larger than any city AOI, so the mosaic is
+                # LARGER than the AOI. Crop it to the AOI window before resampling --
+                # otherwise the whole mosaic gets stretched onto the AOI grid and every
+                # pixel ends up at the wrong ground position, still labelled real DEM.
                 win = rasterio.windows.from_bounds(
                     lon_min, lat_min, lon_max, lat_max, transform=out_trans
                 )
@@ -207,10 +216,7 @@ def process_city_cartodem(city_key: str, output_dir: str = "data/processed", res
             logging.warning(f"Could not crop raw CartoDEM mosaic for {cfg['name']} ({e}); using trend-fitted 30m grid.")
 
     if not real_dem_loaded:
-        # zlib.crc32, not hash(): Python's string hash is salted per process
-        # (PYTHONHASHSEED), so hash() produced a different synthetic terrain on
-        # every run and nothing downstream was reproducible.
-        np.random.seed(zlib.crc32(city_key.encode("utf-8")) % 10000)
+        np.random.seed(synthetic_seed(city_key))
         x = np.linspace(0, 1, cols)
         y = np.linspace(0, 1, rows)
         xx, yy = np.meshgrid(x, y)

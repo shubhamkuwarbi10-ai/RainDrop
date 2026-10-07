@@ -5892,8 +5892,18 @@ function RainDrop() {
           }));
           setHydrograph(newHydro);
         }
+      } else {
+        // Without this, a 404/503 left the PREVIOUS ward's river level, depth
+        // and risk on screen as if they were current for the new selection.
+        setLiveForecast(null);
+        let detail = `Forecast unavailable (${res.status})`;
+        try {
+          detail = (await res.json()).detail || detail;
+        } catch (_) {}
+        pushToast(detail);
       }
     } catch (err) {
+      setLiveForecast(null);
       console.warn("Backend API sync offline, using local model state:", err);
     } finally {
       setIsFetchingForecast(false);
@@ -5946,11 +5956,14 @@ function RainDrop() {
   const currentWardData = useMemo(() => {
     const base = WARDS_DATA[ward] || WARDS_DATA["Velachery"] || Object.values(WARDS_DATA)[0];
     if (!liveForecast || liveForecast.ward_name !== base.name) return base;
+    // A field the server sends as null means "unknown" (e.g. weather API down).
+    // Show that, rather than the literal "null" or a mock value from WARDS_DATA.
+    const live = (key, fmt = v => v) => key in liveForecast ? liveForecast[key] == null ? "—" : fmt(liveForecast[key]) : undefined;
     return {
       ...base,
-      riverLevel: liveForecast.river_level_m !== undefined ? liveForecast.river_level_m : base.riverLevel,
-      rainfallForecast: liveForecast.rainfall_forecast_mm !== undefined ? `${liveForecast.rainfall_forecast_mm} mm` : base.rainfallForecast,
-      activePumps: liveForecast.active_pumps || base.activePumps,
+      riverLevel: live("river_level_m") ?? base.riverLevel,
+      rainfallForecast: live("rainfall_forecast_mm", v => `${v} mm`) ?? base.rainfallForecast,
+      activePumps: live("active_pumps") ?? base.activePumps,
       riskLevel: liveForecast.status || base.riskLevel
     };
   }, [ward, liveForecast]);
@@ -6833,7 +6846,7 @@ function RainDrop() {
     className: "text-xs font-medium text-slate-600"
   }, "Stage:", " ", /*#__PURE__*/React.createElement("span", {
     className: "text-rose-600 font-bold font-mono"
-  }, liveForecast?.river_level_m ? `${liveForecast.river_level_m}m` : `${currentWardData.riverLevel}m`), /*#__PURE__*/React.createElement("span", {
+  }, currentWardData.riverLevel === "—" ? "—" : `${currentWardData.riverLevel}m`), /*#__PURE__*/React.createElement("span", {
     className: "text-[10px] text-slate-400 ml-1"
   }, "(Danger: ", currentWardData.dangerLevel, "m)")), /*#__PURE__*/React.createElement("button", {
     type: "button",

@@ -36,6 +36,24 @@ def test_unknown_ward_returns_none_not_a_substitute():
     assert resolve_ward_info("a") == (None, None)
 
 
+def test_every_city_has_a_working_default_ward():
+    """
+    Regression: /api/live_nowcast with no ward passed "Velachery" (a Chennai ward)
+    for every city, so once unknown wards stopped being substituted it 404'd for
+    5 of 6 cities. Each city must resolve its own default.
+    """
+    import server.main as M
+    for city, reg in M.METRO_REGISTRY.items():
+        first = next(iter(reg["wards"]))
+        assert resolve_ward_info(first, city) == (city, reg["wards"][first]), city
+
+
+def test_unrecognised_city_filter_is_ignored():
+    """The UI sends "All Cities"; that names no city and must not suppress every match."""
+    city, ward = resolve_ward_info("Velachery", "All Cities")
+    assert city == "chennai" and ward["name"] == "Velachery"
+
+
 def test_known_ward_resolves():
     city, ward = resolve_ward_info("Velachery")
     assert city == "chennai"

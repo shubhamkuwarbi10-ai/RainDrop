@@ -39,7 +39,9 @@ import subprocess
 import sys
 from pathlib import Path
 
-GRANULE_RE = re.compile(r"3IMERG\.(\d{8})-S(\d{6})")
+# Must match what ingest_imerg globs (Final run). Early/Late granules ("3B-HHR-E",
+# "3B-HHR-L") would download, then fail every crop and leave all raw data on disk.
+GRANULE_RE = re.compile(r"3B-HHR\.MS\.MRG\.3IMERG\.(\d{8})-S(\d{6})")
 
 
 def parse_urls(url_file):
@@ -90,8 +92,12 @@ def netrc_status():
 def fetch(url, dest_dir, cookie_jar, timeout=180):
     """Download one granule with curl. Returns the path, or None on failure."""
     out = dest_dir / url.rsplit("/", 1)[-1]
-    if out.is_file() and out.stat().st_size > 0:
-        return out                      # already have it
+    if out.is_file():
+        return out                      # only ever created by a completed rename below
+    # Download to .part and rename on success. A transfer killed mid-way (Ctrl-C,
+    # power loss) previously left a truncated file under the final name, which the
+    # next run skipped as already downloaded and h5py later failed to open.
+    part = out.with_name(out.name + ".part")
 
     cmd = [
         "curl", "-sS", "-L", "-f",
@@ -99,23 +105,23 @@ def fetch(url, dest_dir, cookie_jar, timeout=180):
         "-b", str(cookie_jar), "-c", str(cookie_jar),
         "--retry", "3", "--retry-delay", "2",
         "--max-time", str(timeout),
-        "-o", str(out),
+        "-o", str(part),
         url,
     ]
     res = subprocess.run(cmd, capture_output=True, text=True)
     if res.returncode != 0:
-        if out.exists():
-            out.unlink()                # don't leave a partial file behind
+        part.unlink(missing_ok=True)
         err = (res.stderr or "").strip().splitlines()
         print(f"    FAILED {out.name}: {err[-1] if err else 'curl exit ' + str(res.returncode)}")
         return None
-    if out.stat().st_size < 1024:
+    size = part.stat().st_size
+    if size < 1024:
         # Earthdata returns a small HTML login page when auth fails.
-        head = out.read_bytes()[:200].decode("utf-8", "replace")
-        out.unlink()
-        print(f"    FAILED {out.name}: got {len(head)} bytes, looks like a login page.")
-        print("           Check ~/.netrc and that you have accepted the GES DISC EULA.")
+        part.unlink()
+        print(f"    FAILED {out.name}: got {size} bytes, looks like a login page.")
+        print("           Check ~/.netrc and that GESDISC DATA ARCHIVE is an authorized app.")
         return None
+    part.replace(out)
     return out
 
 
@@ -135,8 +141,52 @@ def crop_day(day_dir, out_file, center, domain_deg):
 
     out_file.parent.mkdir(parents=True, exist_ok=True)
     shutil.move(str(work / "forecast.tif"), str(out_file))
+    # Keep the frame timestamps beside the day's raster. Without them validation
+    # cannot tell whether consecutive bands are really one timestep apart.
+    shutil.move(str(work / "frames.json"), str(out_file.with_suffix(".frames.json")))
     shutil.rmtree(work, ignore_errors=True)
     return out_file
+
+
+def stack_days(crop_dir, out_dir):
+    """
+    Concatenate per-day cropped rasters into one multiband forecast.tif plus a merged
+    frames.json, the layout nowcast_pysteps and validate_nowcast read.
+
+    Days are joined in date order; gaps between days stay visible in frames.json, so
+    validation still refuses to score across them.
+    """
+    import json
+    import numpy as np
+    import rasterio
+
+    days = sorted(Path(crop_dir).glob("imerg_*.tif"))
+    if not days:
+        raise FileNotFoundError(f"No imerg_*.tif files in {crop_dir}")
+
+    stacks, times, profile, transform = [], [], None, None
+    for tif in days:
+        side = tif.with_suffix(".frames.json")
+        if not side.is_file():
+            raise FileNotFoundError(f"{side.name} missing; re-crop {tif.name} to recover its timestamps")
+        with rasterio.open(tif) as src:
+            if transform is None:
+                profile, transform = src.profile.copy(), src.transform
+            elif src.transform != transform or (src.height, src.width) != (profile["height"], profile["width"]):
+                raise ValueError(f"{tif.name} has a different grid; all days must share one domain")
+            stacks.append(src.read())
+        times += json.loads(side.read_text())["frame_times"]
+
+    data = np.concatenate(stacks, axis=0)
+    out = Path(out_dir)
+    out.mkdir(parents=True, exist_ok=True)
+    profile.update(count=data.shape[0])
+    with rasterio.open(out / "forecast.tif", "w", **profile) as dst:
+        dst.write(data)
+    (out / "frames.json").write_text(json.dumps(
+        {"count": len(times), "timestep_minutes": 30, "frame_times": times}, indent=2))
+    print(f"stacked {len(days)} days -> {data.shape[0]} frames of {data.shape[1]}x{data.shape[2]} in {out}")
+    return out / "forecast.tif"
 
 
 def main():
@@ -149,6 +199,8 @@ def main():
     ap.add_argument("--domain-deg", type=float, default=8.0, help="domain width in degrees (default 8)")
     ap.add_argument("--keep-raw", action="store_true", help="do not delete granules after cropping")
     ap.add_argument("--limit-days", type=int, help="stop after N days (useful for a first test)")
+    ap.add_argument("--stack-to", help="after cropping, stack all days in --crop-to into one "
+                                       "forecast.tif + frames.json here (input for validation)")
     args = ap.parse_args()
 
     if args.crop_to and not args.center:
@@ -222,6 +274,8 @@ def main():
                 failed += 1
 
     print(f"\ndone: {ok} granules downloaded, {failed} failures")
+    if args.stack_to and args.crop_to and failed == 0:
+        stack_days(args.crop_to, args.stack_to)
     return 0 if failed == 0 else 1
 
 

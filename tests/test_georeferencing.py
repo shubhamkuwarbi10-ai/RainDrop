@@ -12,7 +12,6 @@ Run:  python tests/test_georeferencing.py
 import glob
 import sys
 import tempfile
-import zlib
 from pathlib import Path
 
 import numpy as np
@@ -20,7 +19,7 @@ import numpy as np
 ROOT = Path(__file__).resolve().parent.parent
 sys.path.insert(0, str(ROOT))
 
-from pipeline.process_dem import _overlaps_aoi
+from pipeline.process_dem import _overlaps_aoi, synthetic_seed
 
 
 class _B:
@@ -46,17 +45,20 @@ def test_genuinely_overlapping_tile_matches():
 
 
 def test_synthetic_seed_is_stable_across_processes():
-    # hash() is salted by PYTHONHASHSEED, so it gave different terrain every run.
-    for city in ("chennai", "mumbai", "delhi"):
-        assert zlib.crc32(city.encode("utf-8")) % 10000 == zlib.crc32(city.encode("utf-8")) % 10000
-    # Distinct cities must not collide onto one terrain.
-    seeds = {c: zlib.crc32(c.encode("utf-8")) % 10000 for c in ("chennai", "mumbai", "delhi")}
-    assert len(set(seeds.values())) == 3, seeds
+    # Pinned values. hash() is salted per process (PYTHONHASHSEED), so with the old
+    # seeding these numbers would differ on every run; any value this test can pin
+    # is, by construction, stable across processes. Tests the function process_dem
+    # actually calls, not a re-derivation of it.
+    expected = {"chennai": 2956, "mumbai": 9682, "delhi": 3510}
+    assert {c: synthetic_seed(c) for c in expected} == expected
+    assert len(set(expected.values())) == 3   # cities must not share one terrain
 
 
 def test_imerg_raster_is_north_up():
     """Runs only when real granules are present."""
-    granules = sorted(glob.glob(str(ROOT / "data" / "raw" / "imerg" / "*.HDF5")))
+    # Same pattern ingest_imerg uses, so band N maps to granule N. A bare "*.HDF5"
+    # would also pick up Early/Late or partial files and misalign the comparison.
+    granules = sorted(glob.glob(str(ROOT / "data" / "raw" / "imerg" / "3B-HHR.MS.MRG.3IMERG.*.HDF5")))
     if not granules:
         print("skip  test_imerg_raster_is_north_up (no granules in data/raw/imerg)")
         return

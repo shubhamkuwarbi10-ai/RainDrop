@@ -541,7 +541,8 @@ def get_model_verification_metrics():
             detail=(
                 "No validation results available. Run: "
                 "python pipeline/validate_nowcast.py --input <frames.tif> "
-                f"--output {VALIDATION_FILE.name}"
+                "--output data/processed/nowcast_validation.json "
+                "(the server reads that exact path)"
             ),
         )
     try:
@@ -552,7 +553,11 @@ def get_model_verification_metrics():
     return {
         "model_name": report.get("method", "pySTEPS Lucas-Kanade + semi-Lagrangian"),
         "measured": True,
+        "primary_method": report.get("primary_method"),
         "verification_metrics": report.get("nowcast"),
+        # Every evaluated method, scored on the same launches and cells, so the
+        # choice of primary method can be checked rather than taken on trust.
+        "methods": report.get("methods"),
         "persistence_baseline": report.get("persistence_baseline"),
         "evaluation": {
             "launches_scored": report.get("launches_scored"),
@@ -732,8 +737,14 @@ def resolve_ward_info(ward_name: str, city_hint: str = None):
     if not cleaned_ward:
         return None, None
 
+    # Only a recognised city narrows the search. The UI sends values like
+    # "All Cities", which name no city; treating that as a filter skipped every ward.
+    hint = (city_hint or "").lower().strip()
+    if hint not in METRO_REGISTRY:
+        hint = None
+
     for city_key, reg in METRO_REGISTRY.items():
-        if city_hint and city_key != city_hint.lower().strip():
+        if hint and city_key != hint:
             continue
         for w_key, w_info in reg["wards"].items():
             key = w_key.lower().strip()
@@ -770,7 +781,7 @@ def get_ward_forecast(ward_name: str = Query("Velachery"), city: str = Query(Non
         timeseries_labels = open_meteo_res.get("hourly_times", [])[:12]
     else:
         # No live rainfall. These zeros are an absence of data, not an observation
-        # of zero rain -- every field derived from them is flagged below.
+        # of zero rain; every field derived from them is nulled before returning.
         timeseries = [0.0] * 12
         timeseries_labels = [f"+{i}h" for i in range(12)]
 
@@ -836,6 +847,15 @@ def get_ward_forecast(ward_name: str = Query("Velachery"), city: str = Query(Non
 
     synced_iso = datetime.datetime.now(timezone.utc).isoformat()
 
+    pumps_label = f"{active_pumps} / {total_pumps} Operating"
+    if not weather_available:
+        # Every value below was computed from placeholder zeros, not observations:
+        # river stage and pump count come from rainfall, depth from the surrogate run
+        # on that rainfall. Report them as unknown rather than as a calm reading.
+        river_stage = total_rain = peak_intensity = predicted_depth = None
+        pumps_label = None
+        timeseries, timeseries_labels, forecast_timeline = [], [], []
+
     return {
         "ward_name": ward_info["name"],
         "city": city_terrain["name"],
@@ -846,7 +866,7 @@ def get_ward_forecast(ward_name: str = Query("Velachery"), city: str = Query(Non
         "danger_level_m": danger_lvl,
         "rainfall_forecast_mm": total_rain,
         "current_weather": current_weather,
-        "active_pumps": f"{active_pumps} / {total_pumps} Operating",
+        "active_pumps": pumps_label,
         "status": risk_status,
         "high_risk_sectors_count": high_risk_count,
         "predicted_flood_depth_cm": predicted_depth,
@@ -890,7 +910,14 @@ def get_live_nowcast(city: str = Query("chennai"), ward: str = Query(None), lat:
         pred = predict_rainfall(lat=lat, lon=lon)
         return pred
     else:
-        return get_ward_forecast(ward_name="Velachery", city=city)
+        # No ward requested: use the city's own default ward. This used to pass
+        # "Velachery" (a Chennai ward) for every city, so once unknown wards stopped
+        # being silently substituted, the default path 404'd for 5 of 6 cities.
+        city_key = (city or "").lower().strip()
+        if city_key not in METRO_REGISTRY:
+            raise HTTPException(status_code=404, detail=f"Unknown city: {city!r}. See /api/cities.")
+        default_ward = next(iter(METRO_REGISTRY[city_key]["wards"]))
+        return get_ward_forecast(ward_name=default_ward, city=city_key)
 
 
 @app.get("/api/telemetry_status")

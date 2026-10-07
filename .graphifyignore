@@ -1,0 +1,14 @@
+# Keep the code graph about this project's source, not build output or vendored code.
+# Indexing these produced junk hub nodes (minified identifiers like "oi", "b", "Ce").
+client/vendor/
+client/frontend.js
+client/frontend.jsx
+client/tailwind.min.css
+# Local environments, data, and tool worktrees
+.venv/
+venv/
+data/
+dataset/
+.kilo/
+.agents/
+graphify-out/
