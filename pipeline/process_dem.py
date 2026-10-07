@@ -1,17 +1,33 @@
 import os
 import json
+import zlib
 import numpy as np
 from pathlib import Path
 import logging
 
 try:
     import rasterio
+    import rasterio.windows
     from rasterio.transform import from_bounds
     HAS_RASTERIO = True
 except ImportError:
     HAS_RASTERIO = False
 
 logging.basicConfig(level=logging.INFO, format='%(levelname)s: %(message)s')
+
+
+def _overlaps_aoi(bounds, lon_min, lon_max, lat_min, lat_max):
+    """
+    True only when the raster actually shares area with the AOI.
+
+    The previous test padded the AOI by 0.25 deg, which accepted adjacent tiles
+    contributing zero pixels inside the city. Those tiles were still mosaicked
+    and stretched over the AOI, and the output was then labelled real CartoDEM.
+    """
+    return not (
+        bounds.right <= lon_min or bounds.left >= lon_max
+        or bounds.top <= lat_min or bounds.bottom >= lat_max
+    )
 
 # City Bounding Boxes (WGS84)
 CITY_AOIS = {
@@ -132,8 +148,7 @@ def process_city_cartodem(city_key: str, output_dir: str = "data/processed", res
             if raw_cartodem_dir.exists():
                 for f in raw_cartodem_dir.glob("*.tif"):
                     with rasterio.open(f) as src:
-                        b = src.bounds
-                        if not (b.right < (lon_min - 0.25) or b.left > (lon_max + 0.25) or b.top < (lat_min - 0.25) or b.bottom > (lat_max + 0.25)):
+                        if _overlaps_aoi(src.bounds, lon_min, lon_max, lat_min, lat_max):
                             matching_sources.append(f)
                             
             # Check zip archives if no uncompressed tif found
@@ -145,8 +160,7 @@ def process_city_cartodem(city_key: str, output_dir: str = "data/processed", res
                             for tname in tifs:
                                 data = z.read(tname)
                                 with rasterio.open(io.BytesIO(data)) as src:
-                                    b = src.bounds
-                                    if not (b.right < (lon_min - 0.25) or b.left > (lon_max + 0.25) or b.top < (lat_min - 0.25) or b.bottom > (lat_max + 0.25)):
+                                    if _overlaps_aoi(src.bounds, lon_min, lon_max, lat_min, lat_max):
                                         matching_sources.append(io.BytesIO(data))
                     except Exception:
                         pass
@@ -155,8 +169,29 @@ def process_city_cartodem(city_key: str, output_dir: str = "data/processed", res
                 srcs = [rasterio.open(s) for s in matching_sources]
                 mosaic, out_trans = merge(srcs)
                 for s in srcs: s.close()
-                
-                elev_data = mosaic[0].astype(np.float32)
+
+                # Tiles were selected with a 0.25 deg pad, so the mosaic is LARGER than
+                # the AOI. Crop it to the AOI window before resampling -- otherwise the
+                # whole mosaic gets stretched onto the AOI grid and every pixel ends up
+                # at the wrong ground position, while still being labelled real DEM.
+                win = rasterio.windows.from_bounds(
+                    lon_min, lat_min, lon_max, lat_max, transform=out_trans
+                )
+                r0 = max(0, int(np.floor(win.row_off)))
+                c0 = max(0, int(np.floor(win.col_off)))
+                r1 = min(mosaic.shape[1], int(np.ceil(win.row_off + win.height)))
+                c1 = min(mosaic.shape[2], int(np.ceil(win.col_off + win.width)))
+                if r1 - r0 < 2 or c1 - c0 < 2:
+                    raise ValueError(
+                        f"CartoDEM mosaic does not cover the {cfg['name']} AOI "
+                        f"(window rows {r0}:{r1}, cols {c0}:{c1})"
+                    )
+
+                elev_data = mosaic[0, r0:r1, c0:c1].astype(np.float32)
+                logging.info(
+                    f"Cropped CartoDEM mosaic {mosaic.shape[1]}x{mosaic.shape[2]} -> "
+                    f"{elev_data.shape[0]}x{elev_data.shape[1]} over the {cfg['name']} AOI"
+                )
                 elev_data[elev_data < -100] = np.nan
                 valid_mean = float(np.nanmean(elev_data)) if not np.isnan(np.nanmean(elev_data)) else cfg["base_elevation"]
                 elev_data = np.nan_to_num(elev_data, nan=valid_mean)
@@ -172,7 +207,10 @@ def process_city_cartodem(city_key: str, output_dir: str = "data/processed", res
             logging.warning(f"Could not crop raw CartoDEM mosaic for {cfg['name']} ({e}); using trend-fitted 30m grid.")
 
     if not real_dem_loaded:
-        np.random.seed(hash(city_key) % 10000)
+        # zlib.crc32, not hash(): Python's string hash is salted per process
+        # (PYTHONHASHSEED), so hash() produced a different synthetic terrain on
+        # every run and nothing downstream was reproducible.
+        np.random.seed(zlib.crc32(city_key.encode("utf-8")) % 10000)
         x = np.linspace(0, 1, cols)
         y = np.linspace(0, 1, rows)
         xx, yy = np.meshgrid(x, y)
