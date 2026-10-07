@@ -54,7 +54,9 @@ def estimate_runoff(
         "catchment_area_m2": catchment_area_m2,
         "runoff_coefficient": coefficient,
         "runoff_volume_m3": runoff_volume_m3,
-        "average_runoff_lps": runoff_volume_m3 / duration_seconds,
+        # m3/s -> L/s. Without the x1000 this was 1000x too small, on a different scale
+        # from drainage_capacity_lps, which every caller compares it against.
+        "average_runoff_lps": runoff_volume_m3 * 1000 / duration_seconds,
     }
 
 

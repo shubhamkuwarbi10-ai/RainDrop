@@ -37,6 +37,8 @@ def read_root():
 
 # File Paths
 FORECAST_FILE = Path(__file__).parent.parent / "data" / "processed" / "pysteps_forecast.tif"
+# IMERG is half-hourly, so band i of pysteps_forecast.tif is the rate (mm/h) at t + (i+1) * 30 min.
+IMERG_STEP_MIN = 30
 DEM_SUMMARY_FILE = Path(__file__).parent.parent / "data" / "processed" / "chennai_dem_summary.json"
 SURROGATE_MODEL_FILE = Path(__file__).parent.parent / "models" / "artifacts" / "flood_surrogate.pkl"
 
@@ -590,22 +592,28 @@ def predict_rainfall(lat: float = Query(...), lon: float = Query(...)):
                     window = rasterio.windows.Window(col, row, 1, 1)
                     data = src.read(window=window)
                     timeseries = [round(float(val), 2) for val in data[:, 0, 0]]
-                    timeseries_labels = [f"+{i*5} min" for i in range(len(timeseries))]
+                    timeseries_labels = [f"+{(i + 1) * IMERG_STEP_MIN} min" for i in range(len(timeseries))]
+                    step_hours = IMERG_STEP_MIN / 60.0
                     source = "PySTEPS Radar Nowcast + Open-Meteo"
                     pysteps_used = True
         except Exception as e:
             print(f"Error reading raster: {e}")
             
     if not pysteps_used:
+        step_hours = 1.0  # Open-Meteo hourly precipitation: each value is that hour's total in mm
         if open_meteo_res.get("success"):
             timeseries = [round(float(val), 2) for val in open_meteo_res.get("hourly_precip", [])[:12]]
             timeseries_labels = open_meteo_res.get("hourly_times", [])[:12]
         else:
             timeseries = [0.0] * 12
-            timeseries_labels = [f"+{i*5} min" for i in range(12)]
+            timeseries_labels = [f"+{i + 1}h" for i in range(12)]
             source = "Fallback (API Unavailable)"
-            
-    total_rainfall = round(sum(timeseries), 2)
+
+    # Accumulation = rate x step length. Summing the pySTEPS bands directly treated
+    # 30-minute rates as totals and doubled the rainfall fed to the surrogate.
+    # ponytail: the surrogate was trained on 24 h totals; this is a 3 h (nowcast) or
+    # 12 h (Open-Meteo) total. Align the horizon when the surrogate is retrained.
+    total_rainfall = round(sum(timeseries) * step_hours, 2)
     peak_intensity = max(timeseries) if timeseries else 0.0
 
     # ML Surrogate Model Inference for Flood Depth (cm) using 30m CartoDEM Terrain Profile

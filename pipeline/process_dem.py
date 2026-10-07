@@ -92,14 +92,104 @@ def calculate_d8_flow_direction(elevation_grid: np.ndarray) -> np.ndarray:
     flow_dir[1:-1, 1:-1] = flow_dir_inner
     return flow_dir
 
-def calculate_flow_accumulation(flow_dir: np.ndarray) -> np.ndarray:
-    """Fast flow accumulation proxy based on cell drainage weighting."""
+def fill_depressions(elevation: np.ndarray) -> np.ndarray:
+    """
+    Priority-flood with epsilon (Barnes, Lehman & Mulla 2014).
+
+    Floods inward from the grid edge in order of height, raising every cell that
+    sits at or below the current spill level to just above it. Every cell then has
+    a strictly downhill path to the edge, and flats get the tiny gradient D8 needs.
+    Without this, 5.5% of Delhi's interior had no outflow and flow paths ended every
+    few dozen cells, so flow accumulation could never build up.
+
+    ponytail: pure-Python heap, O(N log N), ~22 s on the 5M-cell Delhi grid. Swap
+    in richdem/pysheds if grids grow or this runs per request instead of in batch.
+    """
+    import heapq
+
+    rows, cols = elevation.shape
+    z = elevation.astype(np.float64).ravel().tolist()
+    closed = bytearray(rows * cols)
+    heap = []
+    for r in range(rows):
+        for c in (0, cols - 1):
+            i = r * cols + c
+            if not closed[i]:
+                closed[i] = 1
+                heap.append((z[i], i))
+    for c in range(1, cols - 1):
+        for r in (0, rows - 1):
+            i = r * cols + c
+            if not closed[i]:
+                closed[i] = 1
+                heap.append((z[i], i))
+    heapq.heapify(heap)
+
+    nextafter, inf = np.nextafter, np.inf
+    while heap:
+        h, i = heapq.heappop(heap)
+        r, c = divmod(i, cols)
+        for rr in (r - 1, r, r + 1):
+            if rr < 0 or rr >= rows:
+                continue
+            base = rr * cols
+            for cc in (c - 1, c, c + 1):
+                if cc < 0 or cc >= cols:
+                    continue
+                j = base + cc
+                if closed[j]:
+                    continue
+                closed[j] = 1
+                if z[j] <= h:
+                    z[j] = float(nextafter(h, inf))
+                heapq.heappush(heap, (z[j], j))
+    return np.asarray(z, dtype=np.float64).reshape(rows, cols)
+
+
+# ESRI D8 code -> (row offset, col offset), matching calculate_d8_flow_direction.
+D8_OFFSETS = {1: (0, 1), 2: (1, 1), 4: (1, 0), 8: (1, -1),
+              16: (0, -1), 32: (-1, -1), 64: (-1, 0), 128: (-1, 1)}
+
+
+def downstream_index(flow_dir: np.ndarray) -> np.ndarray:
+    """Flat index of the cell each cell drains into, or -1 for pits and edges."""
     rows, cols = flow_dir.shape
-    accum = np.ones((rows, cols), dtype=np.float32)
-    # Simple flow accumulation proxy using valid non-zero flow directions
-    flow_active = (flow_dir > 0).astype(np.float32)
-    accum[1:-1, 1:-1] += (flow_active[:-2, 1:-1] + flow_active[2:, 1:-1] + flow_active[1:-1, :-2] + flow_active[1:-1, 2:])
-    return accum
+    fd = flow_dir.ravel()
+    r, c = np.divmod(np.arange(fd.size), cols)
+    down = np.full(fd.size, -1, dtype=np.int64)
+    for code, (dr, dc) in D8_OFFSETS.items():
+        idx = np.flatnonzero(fd == code)
+        rr, cc = r[idx] + dr, c[idx] + dc
+        ok = (rr >= 0) & (rr < rows) & (cc >= 0) & (cc < cols)
+        down[idx[ok]] = rr[ok] * cols + cc[ok]
+    return down
+
+
+def calculate_flow_accumulation(flow_dir: np.ndarray) -> np.ndarray:
+    """
+    Number of cells draining through each cell, itself included, following D8.
+
+    This used to count how many of the 4 orthogonal neighbours had any flow
+    direction, giving values of 1-5 with no upstream propagation, so the grid was
+    near-uniform and "high flow" selected most of the city. D8 only drains to a
+    strictly lower cell, so the flow graph is acyclic and a topological sweep from
+    the ridges down visits each cell once, vectorised per wavefront.
+    """
+    rows, cols = flow_dir.shape
+    down = downstream_index(flow_dir)
+    drains = down >= 0
+    indegree = np.bincount(down[drains], minlength=down.size)
+    accum = np.ones(down.size, dtype=np.float64)
+
+    front = np.flatnonzero(indegree == 0)          # ridge cells: nothing flows in
+    while front.size:
+        front = front[drains[front]]
+        target = down[front]
+        np.add.at(accum, target, accum[front])
+        np.subtract.at(indegree, target, 1)
+        front = np.unique(target[indegree[target] == 0])
+    return accum.reshape(rows, cols).astype(np.float32)
+
 
 def identify_depressions(elevation_grid: np.ndarray) -> np.ndarray:
     """Vectorized topographic sinks / depressions identification."""
@@ -231,7 +321,10 @@ def process_city_cartodem(city_key: str, output_dir: str = "data/processed", res
         elevation[elevation < 0.5] = 0.5
 
     slope = calculate_slope(elevation, cell_size_m=resolution_m)
-    flow_dir = calculate_d8_flow_direction(elevation)
+    # Routing runs on the filled surface; slope and the depression map stay on the
+    # real terrain, since filling erases exactly the pits that map is meant to show.
+    filled = fill_depressions(elevation)
+    flow_dir = calculate_d8_flow_direction(filled)
     flow_accum = calculate_flow_accumulation(flow_dir)
     depressions = identify_depressions(elevation)
 
@@ -244,7 +337,7 @@ def process_city_cartodem(city_key: str, output_dir: str = "data/processed", res
         
         # Save individual GeoTIFF rasters per city as requested
         rasters = {
-            f"{city_key}_dem_filled.tif": elevation,
+            f"{city_key}_dem_filled.tif": filled,   # was the unfilled DEM under this name
             f"{city_key}_slope.tif": slope,
             f"{city_key}_flow_direction.tif": flow_dir,
             f"{city_key}_flow_accumulation.tif": flow_accum,

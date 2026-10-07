@@ -29,7 +29,10 @@ def ingest_nowcast(payload: NowcastIngestRequest, db: Session) -> dict:
     predictions: list[FloodPrediction] = []
     alerts: list[Alert] = []
 
-    for index, rainfall_mm in enumerate(model.forecast.timeseries_mm_hr, start=1):
+    for index, rate_mm_hr in enumerate(model.forecast.timeseries_mm_hr, start=1):
+        # The nowcast gives a rate; runoff needs the depth that falls over the window.
+        # Passing the rate straight through overstated depth 4x at the 15 min default.
+        rainfall_mm = rate_mm_hr * payload.duration_minutes / 60
         label = model.forecast.timeseries_labels[index - 1] if index <= len(model.forecast.timeseries_labels) else None
         forecast_at = _forecast_time(label, generated_at, index)
         forecasts.append(Forecast(

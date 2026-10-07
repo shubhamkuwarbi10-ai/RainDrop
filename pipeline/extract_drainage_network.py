@@ -14,6 +14,45 @@ except ImportError:
 
 logging.basicConfig(level=logging.INFO, format='%(levelname)s: %(message)s')
 
+PROCESSED_DIR = Path(__file__).resolve().parent.parent / "data" / "processed"
+
+
+def trace_streams(flow_dir, accum, min_cells):
+    """
+    Channel polylines that follow D8 flow, as lists of (row, col).
+
+    Starts at every channel head (a channel cell no other channel cell drains
+    into) and walks downstream until the outlet or a cell already traced. That
+    confluence cell is kept, so each tributary ends on the stream it joins.
+    """
+    from pipeline.process_dem import downstream_index
+
+    cols = flow_dir.shape[1]
+    down = downstream_index(flow_dir)
+    channel = (accum.ravel() >= min_cells)
+
+    fed = np.zeros(down.size, dtype=bool)
+    feeding = np.flatnonzero(channel & (down >= 0))
+    fed[down[feeding]] = True
+    heads = np.flatnonzero(channel & ~fed)
+    # Longest streams first, so main stems are traced whole and tributaries end on them.
+    heads = heads[np.argsort(-accum.ravel()[heads])]
+
+    visited = np.zeros(down.size, dtype=bool)
+    lines = []
+    for cell in heads:
+        path = []
+        while cell >= 0 and channel[cell]:
+            path.append(divmod(int(cell), cols))
+            if visited[cell]:
+                break                      # joined an existing stream
+            visited[cell] = True
+            cell = down[cell]
+        if len(path) >= 2:
+            lines.append(path)
+    return lines
+
+
 CITY_AOIS = {
     "chennai": {
         "name": "Chennai",
@@ -38,66 +77,70 @@ CITY_AOIS = {
     }
 }
 
-def extract_dem_drainage_channels(city_key: str, data_dir: str = "data/processed", threshold_percentile: float = 85.0):
+def extract_dem_drainage_channels(city_key: str, data_dir=PROCESSED_DIR, min_area_km2: float = 5.0,
+                                  vertex_stride: int = 5):
     """
-    Extract natural drainage paths and outburst risk nodes from DEM flow accumulation & depressions rasters.
+    Drainage channels traced along D8 flow, plus depression hotspots on them.
+
+    A cell is a channel once at least `min_area_km2` drains through it. 5 km2 keeps
+    the major drainage paths a city map needs (218 for Delhi, ~256 KB); 1 km2, the
+    usual hydrology threshold, adds ~870 small tributaries and triples the payload. Lines keep every `vertex_stride`-th cell plus both
+    ends, which keeps the GeoJSON small without changing where the streams run.
     """
     out_path = Path(data_dir)
     accum_file = out_path / f"{city_key}_flow_accumulation.tif"
+    flowdir_file = out_path / f"{city_key}_flow_direction.tif"
     depress_file = out_path / f"{city_key}_depressions.tif"
     dem_file = out_path / f"{city_key}_dem_filled.tif"
 
     channels = []
     outburst_nodes = []
 
-    if not (HAS_RASTERIO and accum_file.exists() and depress_file.exists() and dem_file.exists()):
+    if not (HAS_RASTERIO and accum_file.exists() and flowdir_file.exists()
+            and depress_file.exists() and dem_file.exists()):
         logging.warning(f"Rasters missing or rasterio unavailable for {city_key}. Generating structural fallback channels.")
         return generate_synthetic_channel_geojson(city_key)
 
     try:
-        with rasterio.open(accum_file) as src_acc, rasterio.open(depress_file) as src_dep, rasterio.open(dem_file) as src_dem:
+        with rasterio.open(accum_file) as src_acc, rasterio.open(flowdir_file) as src_fd, \
+                rasterio.open(depress_file) as src_dep, rasterio.open(dem_file) as src_dem:
             accum = src_acc.read(1)
+            flow_dir = src_fd.read(1)
             depress = src_dep.read(1)
             dem = src_dem.read(1)
             bounds = src_acc.bounds
             rows, cols = accum.shape
 
-            # Threshold for high flow accumulation channels
-            threshold = np.percentile(accum, threshold_percentile)
-            high_flow_mask = accum >= threshold
-
             lon_step = (bounds.right - bounds.left) / cols
             lat_step = (bounds.top - bounds.bottom) / rows
+            lat_mid = (bounds.top + bounds.bottom) / 2.0
+            cell_km2 = (lon_step * 111.32 * np.cos(np.radians(lat_mid))) * (lat_step * 110.57)
+            min_cells = max(2, int(round(min_area_km2 / cell_km2)))
 
-            # Extract stream lines by tracing connected high flow pixels
-            y_indices, x_indices = np.where(high_flow_mask)
-            
-            # Sample continuous stream line segments
-            line_coords = []
-            step = max(1, len(y_indices) // 120)
-            for i in range(0, len(y_indices), step):
-                r, c = y_indices[i], x_indices[i]
-                lon = bounds.left + (c + 0.5) * lon_step
-                lat = bounds.top - (r + 0.5) * lat_step
-                line_coords.append([round(lon, 5), round(lat, 5)])
+            to_lonlat = lambda r, c: [round(bounds.left + (c + 0.5) * lon_step, 5),
+                                      round(bounds.top - (r + 0.5) * lat_step, 5)]
 
-            # Group coordinates into segments
-            segment_size = 15
-            for i in range(0, len(line_coords) - 1, segment_size):
-                seg = line_coords[i:i + segment_size + 1]
-                if len(seg) >= 2:
-                    channels.append({
-                        "type": "Feature",
-                        "geometry": {"type": "LineString", "coordinates": seg},
-                        "properties": {
-                            "name": f"{CITY_AOIS[city_key]['name']} Topographical Drain",
-                            "type": "topographical_drain",
-                            "source": "30m CartoDEM Hydro-Analysis"
-                        }
-                    })
+            dem_label = _dem_source_label(out_path, city_key)
+            for path in trace_streams(flow_dir, accum, min_cells):
+                keep = path[::vertex_stride]
+                if keep[-1] != path[-1]:
+                    keep.append(path[-1])
+                area = float(max(accum[r, c] for r, c in path)) * cell_km2
+                channels.append({
+                    "type": "Feature",
+                    "geometry": {"type": "LineString", "coordinates": [to_lonlat(r, c) for r, c in keep]},
+                    "properties": {
+                        "name": f"{CITY_AOIS[city_key]['name']} drainage path",
+                        "type": "topographical_drain",
+                        "contributing_area_km2": round(area, 2),
+                        "source": f"D8 flow on {dem_label}",
+                    }
+                })
+
+            channel_mask = accum >= min_cells
 
             # Identify outburst risk hotspots (High flow accumulation + Topographic depression)
-            outburst_mask = (accum >= np.percentile(accum, 90)) & (depress > 0.1)
+            outburst_mask = channel_mask & (depress > 0.1)
             oy_idx, ox_idx = np.where(outburst_mask)
             
             ob_step = max(1, len(oy_idx) // 10)
@@ -140,10 +183,19 @@ def extract_dem_drainage_channels(city_key: str, data_dir: str = "data/processed
         }
     }
 
+def _dem_source_label(data_dir, city_key):
+    """Say which terrain the channels were traced on; most cities are still synthetic."""
+    try:
+        summary = json.loads((Path(data_dir) / f"{city_key}_dem_summary.json").read_text())
+        return summary["dem_source"]["label"]
+    except (OSError, ValueError, KeyError):
+        return "unknown terrain"
+
+
 def fetch_osm_canals(city_key: str):
     """Fetch physical canal polylines from OpenStreetMap Overpass API with local caching."""
     cfg = CITY_AOIS[city_key]
-    cache_file = Path("data/processed") / f"{city_key}_osm_canals.geojson"
+    cache_file = PROCESSED_DIR / f"{city_key}_osm_canals.geojson"
 
     if cache_file.exists():
         try:
@@ -241,7 +293,7 @@ def generate_synthetic_channel_geojson(city_key: str):
         }
     }
 
-def process_all_drainage_networks(output_dir: str = "data/processed"):
+def process_all_drainage_networks(output_dir=PROCESSED_DIR):
     out_path = Path(output_dir)
     out_path.mkdir(parents=True, exist_ok=True)
     results = {}
