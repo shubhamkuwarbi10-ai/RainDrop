@@ -7,6 +7,10 @@ rasterio>=1.3.0
 shapely>=2.0.0
 geopandas>=0.13.0
 pysteps>=1.7.0
+# pysteps treats opencv as OPTIONAL, but dense_lucaskanade fails at runtime without
+# it (MissingOptionalDependency: opencv package is required for the morphologyEx
+# routine). Verified in python:3.11-slim. Headless build: no GUI libs needed.
+opencv-python-headless>=4.8.0
 
 # Machine Learning & Surrogate Model
 scikit-learn>=1.3.0
