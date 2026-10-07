@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>RainDrop GIS — Product Requirements Document (PRD)</title>
+  <title>RainDrop GIS — Product Requirements Document (PRD) & Architecture Report</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&family=Outfit:wght@400;500;600;700;800&display=swap" rel="stylesheet">
@@ -53,7 +53,7 @@
 
     /* Container Layout */
     .container {
-      max-width: 1200px;
+      max-width: 1240px;
       margin: 0 auto;
       padding: 2.5rem 1.5rem 5rem 1.5rem;
     }
@@ -63,14 +63,14 @@
       position: sticky;
       top: 0;
       z-index: 100;
-      background: rgba(10, 15, 29, 0.85);
+      background: rgba(10, 15, 29, 0.88);
       backdrop-filter: blur(16px);
       border-bottom: 1px solid var(--border-color);
       padding: 1rem 0;
       margin-bottom: 2.5rem;
     }
     .nav-inner {
-      max-width: 1200px;
+      max-width: 1240px;
       margin: 0 auto;
       padding: 0 1.5rem;
       display: flex;
@@ -94,13 +94,14 @@
     }
     .nav-links {
       display: flex;
-      gap: 1.5rem;
+      gap: 1.25rem;
       list-style: none;
+      flex-wrap: wrap;
     }
     .nav-links a {
       color: var(--text-muted);
       text-decoration: none;
-      font-size: 0.875rem;
+      font-size: 0.85rem;
       font-weight: 500;
       transition: color 0.2s ease;
     }
@@ -160,7 +161,7 @@
     .hero-subtitle {
       font-size: 1.125rem;
       color: var(--text-muted);
-      max-width: 850px;
+      max-width: 900px;
       margin-bottom: 2rem;
     }
 
@@ -200,58 +201,83 @@
     .section-card {
       background: var(--bg-card);
       border: 1px solid var(--border-color);
-      border-radius: 18px;
+      border-radius: 16px;
       padding: 2.25rem;
       margin-bottom: 2.5rem;
-      backdrop-filter: blur(12px);
       box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+      backdrop-filter: blur(12px);
     }
     .section-title {
       font-family: var(--font-heading);
       font-size: 1.75rem;
       font-weight: 700;
       color: #fff;
-      margin-bottom: 1.25rem;
+      margin-bottom: 1.5rem;
       display: flex;
       align-items: center;
       gap: 0.75rem;
-    }
-    .section-title::before {
-      content: '';
-      display: inline-block;
-      width: 4px;
-      height: 1.5rem;
-      background: linear-gradient(to bottom, var(--accent-cyan), var(--accent-blue));
-      border-radius: 2px;
+      border-bottom: 1px solid var(--border-color);
+      padding-bottom: 0.75rem;
     }
 
-    /* Table Styling */
-    .table-wrapper {
-      width: 100%;
-      overflow-x: auto;
+    /* Tier Visual Representation */
+    .tier-box {
+      background: rgba(15, 23, 42, 0.5);
       border: 1px solid var(--border-color);
       border-radius: 12px;
-      margin: 1.25rem 0;
+      padding: 1.5rem;
+      margin-bottom: 1.25rem;
+      position: relative;
+    }
+    .tier-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 0.75rem;
+    }
+    .tier-title {
+      font-size: 1.15rem;
+      font-weight: 700;
+      color: #fff;
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+    .tier-tag {
+      font-size: 0.75rem;
+      padding: 0.25rem 0.6rem;
+      border-radius: 6px;
+      font-weight: 600;
+      text-transform: uppercase;
+    }
+    .tag-blue { background: rgba(59, 130, 246, 0.15); color: #60a5fa; border: 1px solid rgba(59, 130, 246, 0.3); }
+    .tag-purple { background: rgba(168, 85, 247, 0.15); color: #c084fc; border: 1px solid rgba(168, 85, 247, 0.3); }
+    .tag-emerald { background: rgba(16, 185, 129, 0.15); color: #34d399; border: 1px solid rgba(16, 185, 129, 0.3); }
+
+    /* Tables */
+    .table-wrapper {
+      overflow-x: auto;
+      margin: 1.5rem 0;
+      border-radius: 10px;
+      border: 1px solid var(--border-color);
     }
     table {
       width: 100%;
       border-collapse: collapse;
-      text-align: left;
       font-size: 0.9rem;
+      text-align: left;
     }
     th {
-      background: rgba(30, 41, 59, 0.8);
-      color: var(--accent-cyan);
-      font-family: var(--font-heading);
+      background: rgba(15, 23, 42, 0.9);
+      color: #fff;
+      padding: 0.85rem 1rem;
       font-weight: 600;
-      padding: 1rem;
       border-bottom: 1px solid var(--border-color);
-      white-space: nowrap;
     }
     td {
-      padding: 1rem;
-      border-bottom: 1px solid var(--border-color);
-      color: var(--text-main);
+      padding: 0.85rem 1rem;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.04);
+      color: var(--text-muted);
     }
     tr:last-child td {
       border-bottom: none;
@@ -260,40 +286,33 @@
       background: rgba(255, 255, 255, 0.02);
     }
 
-    /* City Badges */
-    .city-badge {
-      display: inline-block;
-      padding: 0.25rem 0.6rem;
-      border-radius: 6px;
-      font-weight: 700;
-      font-size: 0.75rem;
-      text-transform: uppercase;
-    }
-    .city-chennai { background: rgba(56, 189, 248, 0.15); color: #38bdf8; border: 1px solid rgba(56, 189, 248, 0.3); }
-    .city-mumbai { background: rgba(168, 85, 247, 0.15); color: #c084fc; border: 1px solid rgba(168, 85, 247, 0.3); }
-    .city-delhi { background: rgba(245, 158, 11, 0.15); color: #fbbf24; border: 1px solid rgba(245, 158, 11, 0.3); }
-
-    /* Diagram / Flow Chart Styling */
-    .architecture-diagram {
-      background: rgba(15, 23, 42, 0.9);
-      border: 1px solid rgba(56, 189, 248, 0.2);
-      border-radius: 14px;
-      padding: 1.75rem;
-      margin: 1.5rem 0;
-      font-family: var(--font-code);
-      font-size: 0.825rem;
-      color: #94a3b8;
+    /* Code & Architecture Blocks */
+    pre {
+      background: #060913;
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      border-radius: 10px;
+      padding: 1.25rem;
       overflow-x: auto;
-      line-height: 1.4;
+      font-family: var(--font-code);
+      font-size: 0.85rem;
+      color: #e2e8f0;
+      margin: 1rem 0;
+      line-height: 1.5;
     }
-    .node-header { color: #38bdf8; font-weight: bold; }
-    .node-item { color: #cbd5e1; }
+    code {
+      font-family: var(--font-code);
+      font-size: 0.85em;
+      color: var(--accent-cyan);
+      background: rgba(56, 189, 248, 0.08);
+      padding: 0.15rem 0.35rem;
+      border-radius: 4px;
+    }
 
     /* API Cards */
     .api-card {
       background: rgba(15, 23, 42, 0.5);
       border: 1px solid var(--border-color);
-      border-radius: 12px;
+      border-radius: 10px;
       padding: 1.25rem;
       margin-bottom: 1.25rem;
     }
@@ -301,278 +320,302 @@
       display: flex;
       align-items: center;
       gap: 0.75rem;
-      font-family: var(--font-code);
-      font-size: 1rem;
-      font-weight: 600;
-      margin-bottom: 0.75rem;
+      margin-bottom: 0.5rem;
     }
     .method-get {
-      background: rgba(16, 185, 129, 0.2);
+      background: rgba(16, 185, 129, 0.15);
       color: #34d399;
-      border: 1px solid rgba(16, 185, 129, 0.4);
-      padding: 0.2rem 0.55rem;
-      border-radius: 6px;
+      border: 1px solid rgba(16, 185, 129, 0.3);
+      padding: 0.2rem 0.5rem;
+      border-radius: 4px;
+      font-family: var(--font-code);
       font-size: 0.75rem;
       font-weight: 700;
     }
-    .endpoint-path { color: #f3f4f6; }
-    .api-desc { font-size: 0.875rem; color: var(--text-muted); margin-bottom: 0.75rem; }
-
-    pre {
-      background: #090d16;
-      border: 1px solid rgba(255, 255, 255, 0.08);
-      border-radius: 8px;
-      padding: 1rem;
-      font-family: var(--font-code);
-      font-size: 0.825rem;
-      color: #e2e8f0;
-      overflow-x: auto;
-    }
-    code {
-      font-family: var(--font-code);
-      background: rgba(255, 255, 255, 0.08);
-      padding: 0.15rem 0.4rem;
+    .method-post {
+      background: rgba(59, 130, 246, 0.15);
+      color: #60a5fa;
+      border: 1px solid rgba(59, 130, 246, 0.3);
+      padding: 0.2rem 0.5rem;
       border-radius: 4px;
-      font-size: 0.85em;
-      color: var(--accent-cyan);
+      font-family: var(--font-code);
+      font-size: 0.75rem;
+      font-weight: 700;
+    }
+    .endpoint-path {
+      font-family: var(--font-code);
+      font-size: 0.95rem;
+      font-weight: 600;
+      color: #fff;
+    }
+    .api-desc {
+      font-size: 0.875rem;
+      color: var(--text-muted);
+      margin-bottom: 0.75rem;
     }
 
     /* Passability Matrix Tags */
     .pass-tag {
-      display: inline-flex;
-      align-items: center;
-      gap: 0.35rem;
+      font-weight: 700;
       padding: 0.25rem 0.6rem;
       border-radius: 6px;
-      font-size: 0.75rem;
-      font-weight: 700;
+      display: inline-block;
+      font-size: 0.8rem;
     }
     .pass-green { background: rgba(16, 185, 129, 0.15); color: #34d399; border: 1px solid rgba(16, 185, 129, 0.3); }
     .pass-amber { background: rgba(245, 158, 11, 0.15); color: #fbbf24; border: 1px solid rgba(245, 158, 11, 0.3); }
     .pass-red { background: rgba(244, 63, 94, 0.15); color: #fb7185; border: 1px solid rgba(244, 63, 94, 0.3); }
 
-    /* Footer */
     footer {
-      border-top: 1px solid var(--border-color);
-      padding-top: 2rem;
-      margin-top: 4rem;
       text-align: center;
-      font-size: 0.85rem;
+      padding: 3rem 0;
       color: var(--text-dim);
+      font-size: 0.875rem;
+      border-top: 1px solid var(--border-color);
     }
   </style>
 </head>
 <body>
 
-  <!-- Top Sticky Navigation -->
+  <!-- Top Header Navigation -->
   <nav class="top-nav">
     <div class="nav-inner">
       <a href="#" class="brand-logo">
-        🌧️ <span>RainDrop GIS</span>
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="color: #38bdf8;">
+          <path d="M12 2.69l5.66 5.66a8 8 0 1 1-11.31 0z"></path>
+        </svg>
+        <span>RainDrop GIS</span> PRD
       </a>
       <ul class="nav-links">
-        <li><a href="#vision">1. Vision</a></li>
-        <li><a href="#topography">2. Topography</a></li>
-        <li><a href="#architecture">3. Architecture</a></li>
-        <li><a href="#ml-models">4. Models</a></li>
-        <li><a href="#api-spec">5. REST API</a></li>
-        <li><a href="#execution">6. Setup Guide</a></li>
+        <li><a href="#summary">Executive Summary</a></li>
+        <li><a href="#architecture">Microservices</a></li>
+        <li><a href="#ui-tier">Modular UI/UX</a></li>
+        <li><a href="#topography">Topography</a></li>
+        <li><a href="#models">AI Models</a></li>
+        <li><a href="#api-spec">Dual API Suite</a></li>
+        <li><a href="#air-gap">Air-Gap Resilience</a></li>
+        <li><a href="#execution">Runbook</a></li>
       </ul>
     </div>
   </nav>
 
   <div class="container">
-    
-    <!-- Hero Banner Header -->
+
+    <!-- Hero Section -->
     <header class="hero-banner">
       <div class="badge-pill">
-        ⚡ Multi-City Intelligence Platform • Production PRD v2.4
+        <span style="display:inline-block; width:8px; height:8px; border-radius:50%; background:#38bdf8;"></span>
+        Product Requirements Document • Version 2.4.0-PROD
       </div>
       <h1 class="hero-title">
-        Product Requirements & <span>Technical Specification Report</span>
+        Enterprise <span>Urban Flood Nowcasting</span> & Emergency Navigation Platform
       </h1>
       <p class="hero-subtitle">
-        AI Urban Flood Nowcasting, 30m ISRO Bhuvan CartoDEM Hydrology & Dual-Corridor Emergency Route Safety Engine for Chennai, Mumbai, and Delhi.
+        Bridging satellite optical-flow precipitation tracking (pySTEPS), 30m ISRO Bhuvan CartoDEM surface hydrology, sub-15ms ML hydrodynamic surrogate models, 2D Glass Tile Ward Matrices, and Dual-Corridor safe emergency routing across 6 Indian metropolitan regions.
       </p>
 
       <div class="specs-grid">
         <div class="spec-card">
           <div class="spec-value cyan">&lt; 15 ms</div>
-          <div class="spec-label">ML Surrogate Latency</div>
+          <div class="spec-label">Surrogate Inference Latency</div>
         </div>
         <div class="spec-card">
-          <div class="spec-value emerald">R² = 0.9994</div>
-          <div class="spec-label">Surrogate Accuracy</div>
+          <div class="spec-value emerald">0.9994</div>
+          <div class="spec-label">Hydrodynamic R² Accuracy</div>
         </div>
         <div class="spec-card">
-          <div class="spec-value purple">30m</div>
-          <div class="spec-label">ISRO CartoDEM Grid</div>
+          <div class="spec-value purple">30-Meter</div>
+          <div class="spec-label">ISRO CartoDEM Resolution</div>
         </div>
         <div class="spec-card">
-          <div class="spec-value amber">3 Cities</div>
-          <div class="spec-label">Chennai • Mumbai • Delhi</div>
+          <div class="spec-value amber">6 Regions</div>
+          <div class="spec-label">Monitored Indian Metros</div>
         </div>
       </div>
     </header>
 
     <!-- Section 1: Executive Summary -->
-    <section id="vision" class="section-card">
-      <h2 class="section-title">1. Executive Summary & Core Mission</h2>
-      <p style="color: var(--text-muted); font-size: 1rem; margin-bottom: 1.25rem;">
-        <strong>RainDrop GIS</strong> is an enterprise-grade urban flood intelligence and emergency response navigation platform built to protect citizens, emergency services, and city planners across India's high-vulnerability metropolitan corridors during extreme monsoon precipitation events.
+    <section id="summary" class="section-card">
+      <h2 class="section-title">1. Executive Summary & Vision</h2>
+      <p style="color: var(--text-muted); margin-bottom: 1rem;">
+        <strong>RainDrop GIS</strong> is an enterprise climate resilience and spatial flood command platform engineered for municipal corporations, State Disaster Management Authorities (SDMA), the National Disaster Response Force (NDRF), emergency dispatchers, and metropolitan commuters across India's top 6 metropolitan hubs: <strong>Chennai</strong>, <strong>Mumbai</strong>, <strong>Delhi</strong>, <strong>Bengaluru</strong>, <strong>Kolkata</strong>, and <strong>Hyderabad</strong>.
       </p>
-      <p style="color: var(--text-muted); font-size: 0.95rem;">
-        By combining Doppler radar precipitation nowcasting via <code>pySTEPS</code> (optical flow advection) with 30-meter elevation raster models (ISRO Bhuvan CartoDEM), an ultra-fast Random Forest hydrodynamic ML surrogate model, and an OSRM-powered dual-corridor route navigator, RainDrop predicts street-level water depths and recommends 100% dry elevated bypass corridors before severe inundation occurs.
+      <p style="color: var(--text-muted); margin-bottom: 1rem;">
+        Traditional flood advisory systems rely on coarse NWP forecasts refreshed at 6- to 12-hour intervals and slow physical hydrodynamic solvers (SWMM, LISFLOOD-FP) requiring minutes or hours per simulation step. RainDrop GIS provides street-level flood depth forecasts ($0\text{--}3\text{ hr}$) within milliseconds by coupling pySTEPS Lucas-Kanade optical flow nowcasting with 30m CartoDEM digital elevation terrain parameters and trained machine learning surrogates.
       </p>
     </section>
 
-    <!-- Section 2: Multi-City Topography -->
-    <section id="topography" class="section-card">
-      <h2 class="section-title">2. Multi-City GIS Topography & Dataset Coverage</h2>
+    <!-- Section 2: Microservices Stack -->
+    <section id="architecture" class="section-card">
+      <h2 class="section-title">2. System Architecture & Multi-Service Stack</h2>
       <p style="color: var(--text-muted); margin-bottom: 1rem;">
-        RainDrop GIS evaluates and monitors three distinct topographical and hydrological testbeds:
+        The system is deployed via multi-service Docker Compose orchestration and unified through a hardened Nginx reverse proxy gateway:
       </p>
 
+      <div class="table-wrapper">
+        <table>
+          <thead>
+            <tr>
+              <th>Service Container</th>
+              <th>Base Runtime</th>
+              <th>Host Port</th>
+              <th>Architectural Role &amp; Responsibilities</th>
+              <th>Healthcheck Probe</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td><code>db</code></td>
+              <td><code>postgis/postgis:16-3.4</code></td>
+              <td><code>5432</code></td>
+              <td>PostGIS database with spatial indexing (GIST), administrative ward boundaries, flooded road segments, and historical rainfall series.</td>
+              <td><code>pg_isready -U postgres</code></td>
+            </tr>
+            <tr>
+              <td><code>ml-server</code></td>
+              <td><code>python:3.11-slim</code></td>
+              <td><code>8000</code></td>
+              <td>FastAPI ML inference server, pySTEPS optical flow engine, rasterio GeoTIFF spatial queries, and dynamic routing evaluations.</td>
+              <td><code>GET /health</code></td>
+            </tr>
+            <tr>
+              <td><code>backend</code></td>
+              <td><code>python:3.11-slim</code></td>
+              <td><code>8001</code></td>
+              <td>Enterprise FastAPI backend with SQLAlchemy + GeoAlchemy2, spatio-temporal queries, alert ingestion, and telemetry webhooks.</td>
+              <td><code>GET /health</code></td>
+            </tr>
+            <tr>
+              <td><code>frontend</code></td>
+              <td><code>nginx:1.25-alpine</code></td>
+              <td><code>80</code></td>
+              <td>Production reverse proxy, TLS termination, gzip compression, SPA fallback, security headers, legal endpoints (/privacy, /terms).</td>
+              <td>Nginx Master Process</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <!-- Section 3: Modular UI/UX Architecture -->
+    <section id="ui-tier" class="section-card">
+      <h2 class="section-title">3. Modular Client UI/UX Architecture (React 18)</h2>
+      <p style="color: var(--text-muted); margin-bottom: 1.25rem;">
+        The frontend is architected into modular React components in <code>client/src/</code>, compiled via <code>esbuild</code> into <code>client/frontend.js</code> for instant zero-flash rendering:
+      </p>
+
+      <div class="tier-box">
+        <div class="tier-header">
+          <div class="tier-title">
+            <svg width="20" height="20" fill="none" stroke="#60a5fa" stroke-width="2" viewBox="0 0 24 24"><polygon points="5 3 19 12 5 21 5 3"></polygon></svg>
+            Tier 1: Public Hero Page (HeroView.jsx)
+          </div>
+          <span class="tier-tag tag-blue">Public Gateway</span>
+        </div>
+        <p style="color: var(--text-muted); font-size: 0.9rem;">
+          Features a full-bleed background video hero (<code>client/VEDIO/Verde.mp4</code>) with zero-flash layout hydration, live Doppler radar sync indicators, 30m CartoDEM badge, sub-15ms ML response counter, and an interactive 1.75s continuous-loop nowcasting pipeline carousel.
+        </p>
+      </div>
+
+      <div class="tier-box">
+        <div class="tier-header">
+          <div class="tier-title">
+            <svg width="20" height="20" fill="none" stroke="#c084fc" stroke-width="2" viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7"></rect><rect x="14" y="3" width="7" height="7"></rect><rect x="14" y="14" width="7" height="7"></rect><rect x="3" y="14" width="7" height="7"></rect></svg>
+            Tier 2: 3:7 Metropolitan Matrix &amp; 2D Ward Deck (CityWardOverview.jsx)
+          </div>
+          <span class="tier-tag tag-purple">Operational Overview</span>
+        </div>
+        <p style="color: var(--text-muted); font-size: 0.9rem;">
+          Light-mode UX psychology eliminating dark hover states: Left 30% metropolitan city cards with terrain slope, elevation above MSL, and drainage trunks; Right 70% responsive 2D glass tile ward grid displaying water depths, river stage levels, storm pump status, and emergency relief shelters.
+        </p>
+      </div>
+
+      <div class="tier-box">
+        <div class="tier-header">
+          <div class="tier-title">
+            <svg width="20" height="20" fill="none" stroke="#34d399" stroke-width="2" viewBox="0 0 24 24"><polygon points="1 6 1 22 8 18 16 22 23 18 23 2 16 6 8 2 1 6"></polygon><line x1="8" y1="2" x2="8" y2="18"></line><line x1="16" y1="6" x2="16" y2="22"></line></svg>
+            Tier 3: Incident Command Center &amp; GIS Map (InteractiveVectorMap.jsx)
+          </div>
+          <span class="tier-tag tag-emerald">Tactical Operations</span>
+        </div>
+        <p style="color: var(--text-muted); font-size: 0.9rem;">
+          Hover-collapsible action sidebar (expands on hover, collapses to 68px icon rail to maximize map space), full-bleed Leaflet vector GIS viewport, Layman Terrain Elevation Heatmap toggle, Hydrodynamic What-If Simulation Engine, Audio Emergency Chime with silence control, and printable SitRep generator.
+        </p>
+      </div>
+    </section>
+
+    <!-- Section 4: Multi-City Topography -->
+    <section id="topography" class="section-card">
+      <h2 class="section-title">4. Multi-City Topography &amp; CartoDEM Pilot Coverage</h2>
       <div class="table-wrapper">
         <table>
           <thead>
             <tr>
               <th>Pilot City</th>
-              <th>AOI Bounding Box</th>
-              <th>Terrain Profile & 30m CartoDEM</th>
-              <th>Primary Drainage Basins</th>
-              <th>Monitored Wards & Hotspots</th>
+              <th>Geographic Zone</th>
+              <th>30m CartoDEM Attributes</th>
+              <th>Primary Drainage Trunks &amp; Basins</th>
+              <th>Monitored Pilot District Wards</th>
             </tr>
           </thead>
           <tbody>
             <tr>
-              <td><span class="city-badge city-chennai">Chennai</span></td>
-              <td><code>12.90°–13.30°N<br>80.10°–80.45°E</code></td>
-              <td>Coastal lowlands<br>Base Elev: 12.94m | Slope: 0.75°<br>Impermeability: 65%</td>
+              <td><strong>Chennai</strong></td>
+              <td>Tamil Nadu (Coastal Alluvial Plain)</td>
+              <td>Base Elev: <code>12.94 m</code> • Slope: <code>0.75°</code> • Impermeability: <code>65%</code></td>
               <td>Adyar River, Cooum River, Buckingham Canal, Otteri Nullah, Pallikaranai Marsh</td>
-              <td>Chennai Central (Adyar), Chennai North (Otteri), T. Nagar (Cooum), Velachery, Anna Nagar</td>
+              <td>Chennai Central, Chennai North, T. Nagar, Velachery, Anna Nagar, Madipakkam</td>
             </tr>
             <tr>
-              <td><span class="city-badge city-mumbai">Mumbai</span></td>
-              <td><code>18.90°–19.10°N<br>72.75°–72.95°E</code></td>
-              <td>Estuarine island<br>Base Elev: 8.50m | Slope: 1.85°<br>Impermeability: 75%</td>
+              <td><strong>Mumbai</strong></td>
+              <td>Maharashtra (Estuarine Island / Hills)</td>
+              <td>Base Elev: <code>8.50 m</code> • Slope: <code>1.85°</code> • Impermeability: <code>75%</code></td>
               <td>Mithi River, Vakola Nalla, Mahul Creek, Poisar River, Thane Creek Spillway</td>
-              <td>Kurla West, Kurla East, Chembur, Vikhroli, Andheri West, Dadar West</td>
+              <td>Kurla West, Kurla East, Chembur, Vikhroli, Andheri West, Dadar West, Sion</td>
             </tr>
             <tr>
-              <td><span class="city-badge city-delhi">Delhi</span></td>
-              <td><code>28.40°–29.00°N<br>76.80°–77.40°E</code></td>
-              <td>Inland river basin<br>Base Elev: 215.0m | Slope: 0.45°<br>Impermeability: 60%</td>
+              <td><strong>Delhi</strong></td>
+              <td>NCT (Inland Yamuna Basin)</td>
+              <td>Base Elev: <code>215.0 m</code> • Slope: <code>0.45°</code> • Impermeability: <code>60%</code></td>
               <td>Yamuna River Main Trunk, Najafgarh Drain, Barapullah Nallah, Agra Canal</td>
-              <td>Yamuna Floodplain (ITO), Najafgarh Basin, Barapullah Corridor, Okhla Industrial Zone, Minto Bridge Corridor</td>
+              <td>Yamuna Floodplain (ITO), Najafgarh Basin, Barapullah Corridor, Okhla Zone, Minto Bridge</td>
+            </tr>
+            <tr>
+              <td><strong>Bengaluru</strong></td>
+              <td>Karnataka (Deccan Plateau Ridge)</td>
+              <td>Base Elev: <code>920.0 m</code> • Slope: <code>1.45°</code> • Impermeability: <code>70%</code></td>
+              <td>Vrishabhavathi Valley, Koramangala-Challaghatta (KC) Valley, Hebbal Valley</td>
+              <td>Bellandur Catchment, Silk Board Junction, Outer Ring Road (ORR), Koramangala, HSR Layout</td>
+            </tr>
+            <tr>
+              <td><strong>Kolkata</strong></td>
+              <td>West Bengal (Gangetic Delta / Tidal)</td>
+              <td>Base Elev: <code>9.00 m</code> • Slope: <code>0.35°</code> • Impermeability: <code>78%</code></td>
+              <td>Hooghly River, Circular Canal, Tolly's Nullah (Adi Ganga), East Kolkata Wetlands</td>
+              <td>Camac Street / Central, Thanthania / College St, Behala Drainage Basin, Bidhannagar</td>
+            </tr>
+            <tr>
+              <td><strong>Hyderabad</strong></td>
+              <td>Telangana (Granitic Plateau Basin)</td>
+              <td>Base Elev: <code>505.0 m</code> • Slope: <code>1.20°</code> • Impermeability: <code>68%</code></td>
+              <td>Musi River, Kukatpally Nala, Hussainsagar Surplus Canal, Fox Sagar Lake Basin</td>
+              <td>Begumpet (Hussainsagar), Moosarambagh (Musi Basin), Tolichowki, Gachibowli</td>
             </tr>
           </tbody>
         </table>
       </div>
     </section>
 
-    <!-- Section 3: Architecture -->
-    <section id="architecture" class="section-card">
-      <h2 class="section-title">3. End-to-End System Architecture</h2>
-      
-      <div class="architecture-diagram">
-<div class="node-header">┌────────────────────────────────────────────────────────────────────────────────────────┐</div>
-<div class="node-header">│                                  1. DATA INGESTION LAYER                               │</div>
-<div class="node-item">│  - IMD Doppler Radar & NASA GPM IMERG Precipitation Telemetry (0–3h Nowcast)            │</div>
-<div class="node-item">│  - ISRO Bhuvan CartoDEM 30m Elevation Rasters (GeoTIFF)                                │</div>
-<div class="node-item">│  - Live Open-Meteo Weather API Ensemble Feed                                           │</div>
-<div class="node-header">└───────────────────────────────────────────┬────────────────────────────────────────────┘</div>
-                                            │
-                                            ▼
-<div class="node-header">┌────────────────────────────────────────────────────────────────────────────────────────┐</div>
-<div class="node-header">│                             2. HYDRODYNAMIC SURROGATE ENGINE                           │</div>
-<div class="node-item">│  - pySTEPS Lucas-Kanade Atmospheric Motion Extrapolation (12 timesteps / 180 min)     │</div>
-<div class="node-item">│  - D8 Flow Accumulation, Catchment Drainage, & Lowland Sink Extraction                │</div>
-<div class="node-item">│  - Random Forest / XGBoost ML Surrogate Model (&lt;15ms latency, R²=0.9994, RMSE=0.3989)  │</div>
-<div class="node-header">└───────────────────────────────────────────┬────────────────────────────────────────────┘</div>
-                                            │
-                                            ▼
-<div class="node-header">┌────────────────────────────────────────────────────────────────────────────────────────┐</div>
-<div class="node-header">│                             3. FASTAPI APPLICATION SERVER LAYER                        │</div>
-<div class="node-item">│  - GET /api/predict              - GET /api/route_check                                │</div>
-<div class="node-item">│  - GET /api/metrics              - GET /api/ward_forecast                              │</div>
-<div class="node-item">│  - GET /api/dem/summary          - GET /api/drainage/{city}                            │</div>
-<div class="node-header">└───────────────────────────────────────────┬────────────────────────────────────────────┘</div>
-                                            │
-                                            ▼
-<div class="node-header">┌────────────────────────────────────────────────────────────────────────────────────────┐</div>
-<div class="node-header">│                             4. REACTIVE REACT 18 FRONTEND UI                           │</div>
-<div class="node-item">│  - Scrollable Hero Welcome & Interactive Architecture Pipeline Showcase                │</div>
-<div class="node-item">│  - Global Multi-City Search Bar & Instant Autocomplete Dropdown                        │</div>
-<div class="node-item">│  - Full-Bleed Leaflet Vector Map with Circular Inundation Nodes & FlyTo Navigation    │</div>
-<div class="node-item">│  - Dual-Corridor Navigation Safety Panel & Municipal Situation Report (SitRep) Export  │</div>
-<div class="node-header">└────────────────────────────────────────────────────────────────────────────────────────┘</div>
-      </div>
-    </section>
+    <!-- Section 5: AI & Physical Models -->
+    <section id="models" class="section-card">
+      <h2 class="section-title">5. AI Models, Contingency Verification &amp; Safety Matrix</h2>
 
-    <!-- Section 4: Machine Learning Specs -->
-    <section id="ml-models" class="section-card">
-      <h2 class="section-title">4. Machine Learning & Physical Model Specifications</h2>
-
-      <h3 style="color: #fff; font-size: 1.15rem; margin: 1.25rem 0 0.5rem 0;">4.1 Model 1: pySTEPS Optical Flow Nowcasting Model</h3>
-      <p style="color: var(--text-muted); font-size: 0.9rem; margin-bottom: 1rem;">
-        Extrapolates radar reflectivity images using semi-Lagrangian advection and Lucas-Kanade dense optical flow fields across 12 lead-time steps (0–180 minutes).
-      </p>
-
-      <h3 style="color: #fff; font-size: 1.15rem; margin: 1.25rem 0 0.5rem 0;">4.2 Model 2: Hydrodynamic Water Depth ML Surrogate Model</h3>
-      <p style="color: var(--text-muted); font-size: 0.9rem; margin-bottom: 0.75rem;">
-        Trained on high-fidelity 1D-2D SWMM (Storm Water Management Model) hydraulic simulations to predict street-level flood depths instantly without numerical instability.
-      </p>
-      
+      <h3 style="color: #fff; font-size: 1.15rem; margin-bottom: 0.75rem;">5.1 Contingency Verification Across Rainfall Thresholds</h3>
       <div class="table-wrapper">
         <table>
           <thead>
             <tr>
-              <th>Feature Name</th>
-              <th>Description & Physical Unit</th>
-              <th>Importance Weight</th>
-            </tr>
-          </thead>
-          <tbody>
-            <tr>
-              <td><code>total_rainfall_mm</code></td>
-              <td>Cumulative projected rainfall volume (mm) over forecast horizon</td>
-              <td><strong>42.8%</strong></td>
-            </tr>
-            <tr>
-              <td><code>peak_intensity_mm_hr</code></td>
-              <td>Maximum hourly rainfall rate (mm/hr)</td>
-              <td><strong>28.4%</strong></td>
-            </tr>
-            <tr>
-              <td><code>elevation_m</code></td>
-              <td>30m CartoDEM elevation above mean sea level (m MSL)</td>
-              <td><strong>16.2%</strong></td>
-            </tr>
-            <tr>
-              <td><code>impermeability_pct</code></td>
-              <td>Urban built-up surface impermeability percentage (%)</td>
-              <td><strong>8.5%</strong></td>
-            </tr>
-            <tr>
-              <td><code>slope_deg</code></td>
-              <td>Local terrain slope angle (degrees) derived from D8 gradient</td>
-              <td><strong>4.1%</strong></td>
-            </tr>
-          </tbody>
-        </table>
-      </div>
-
-      <h3 style="color: #fff; font-size: 1.15rem; margin: 1.5rem 0 0.5rem 0;">4.3 Model 3: Contingency Verification Engine</h3>
-      <p style="color: var(--text-muted); font-size: 0.9rem; margin-bottom: 0.75rem;">
-        Rigorous precipitation and flood event verification across different rainfall intensity thresholds:
-      </p>
-
-      <div class="table-wrapper">
-        <table>
-          <thead>
-            <tr>
-              <th>Precipitation Intensity Threshold</th>
+              <th>Precipitation Threshold</th>
               <th>Critical Success Index (CSI)</th>
               <th>Probability of Detection (POD)</th>
               <th>False Alarm Ratio (FAR)</th>
@@ -581,22 +624,22 @@
           </thead>
           <tbody>
             <tr>
-              <td><strong>&gt; 0.1 mm/hr (Light Rain)</strong></td>
-              <td><strong style="color: #34d399;">0.9003</strong></td>
+              <td><code>&gt; 0.1 mm/hr</code> (Light Rain)</td>
+              <td><strong style="color: #38bdf8;">0.9003</strong></td>
               <td><strong style="color: #34d399;">0.9348</strong></td>
-              <td><strong style="color: #38bdf8;">0.0394</strong></td>
+              <td><strong style="color: #fbbf24;">0.0394</strong></td>
               <td><code>0.3989 mm/h</code></td>
             </tr>
             <tr>
-              <td><strong>&gt; 2.5 mm/hr (Moderate Rain)</strong></td>
-              <td><strong style="color: #34d399;">0.7948</strong></td>
+              <td><code>&gt; 2.5 mm/hr</code> (Moderate Rain)</td>
+              <td><strong style="color: #38bdf8;">0.7948</strong></td>
               <td><strong style="color: #34d399;">0.9309</strong></td>
               <td><strong style="color: #fbbf24;">0.1553</strong></td>
               <td><code>0.3989 mm/h</code></td>
             </tr>
             <tr>
-              <td><strong>&gt; 10.0 mm/hr (Heavy Rain)</strong></td>
-              <td><strong style="color: #34d399;">0.8333</strong></td>
+              <td><code>&gt; 10.0 mm/hr</code> (Cloudburst)</td>
+              <td><strong style="color: #38bdf8;">0.8333</strong></td>
               <td><strong style="color: #34d399;">1.0000</strong></td>
               <td><strong style="color: #fbbf24;">0.1667</strong></td>
               <td><code>0.3989 mm/h</code></td>
@@ -605,112 +648,146 @@
         </table>
       </div>
 
-      <h3 style="color: #fff; font-size: 1.15rem; margin: 1.5rem 0 0.5rem 0;">4.4 Vehicle Passability Safety Matrix</h3>
+      <h3 style="color: #fff; font-size: 1.15rem; margin: 1.5rem 0 0.5rem 0;">5.2 Vehicle Passability Safety Matrix</h3>
       <div class="table-wrapper">
         <table>
           <thead>
             <tr>
               <th>Inundation Depth Range</th>
               <th>Passability Status Label</th>
-              <th>Vehicle Class Impact</th>
+              <th>Vehicle Class Impact &amp; Routing Protocol</th>
             </tr>
           </thead>
           <tbody>
             <tr>
               <td><code>&lt; 15.0 cm</code></td>
-              <td><span class="pass-tag pass-green">✅ CLEAR & PASSABLE</span></td>
-              <td>All light passenger vehicles, hatchbacks, two-wheelers can pass smoothly.</td>
+              <td><span class="pass-tag pass-green">✅ CLEAR &amp; PASSABLE</span></td>
+              <td>All light passenger vehicles, hatchbacks, two-wheelers can pass smoothly. Maintain direct routing.</td>
             </tr>
             <tr>
               <td><code>15.0 cm – 29.9 cm</code></td>
               <td><span class="pass-tag pass-amber">⚠️ CAUTION (LOW CLEARANCE RISK)</span></td>
-              <td>Hatchbacks & sedans risk exhaust blockage. Heavy SUVs and buses proceed with care.</td>
+              <td>Hatchbacks &amp; sedans risk exhaust blockage. High-clearance SUVs proceed with caution. Suggest elevated corridor.</td>
             </tr>
             <tr>
               <td><code>≥ 30.0 cm</code></td>
               <td><span class="pass-tag pass-red">⛔ SUBMERGED BOTTLENECK (CLOSED)</span></td>
-              <td>High hazard of engine stall, vehicle floatation, and road failure. Detour mandatory.</td>
+              <td>High hazard of engine stall, vehicle flotation, and road failure. Mandatory Detour via High-Elevation Bypass Corridor.</td>
             </tr>
           </tbody>
         </table>
       </div>
     </section>
 
-    <!-- Section 5: REST API Specs -->
+    <!-- Section 6: Dual REST API Suite -->
     <section id="api-spec" class="section-card">
-      <h2 class="section-title">5. REST API Specifications (FastAPI Server)</h2>
+      <h2 class="section-title">6. Comprehensive Dual REST API Suite</h2>
       
+      <h3 style="color: #fff; font-size: 1.15rem; margin-bottom: 1rem;">6.1 ML &amp; GIS Server (:8000 /api/*)</h3>
+
       <div class="api-card">
         <div class="api-endpoint">
           <span class="method-get">GET</span>
-          <span class="endpoint-path">/api/predict?lat=19.068&lon=72.879</span>
+          <span class="endpoint-path">/api/predict?lat=19.068&amp;lon=72.879</span>
         </div>
         <div class="api-desc">Predicts rainfall intensity and street-level flood depth for specific coordinates using pySTEPS and the trained ML surrogate.</div>
 <pre><code>{
   "location": { "lat": 19.068, "lon": 72.879, "city": "Mumbai" },
   "source": "PySTEPS Radar Nowcast + Open-Meteo",
-  "terrain_profile": {
-    "city": "Mumbai",
-    "slope_deg": 1.85,
-    "elevation_m": 8.50,
-    "impermeability_pct": 75.0,
-    "is_real_dem": true
-  },
-  "forecast": {
-    "rain_predicted": true,
-    "total_rainfall_mm": 54.0,
-    "peak_intensity_mm_hr": 38.2,
-    "predicted_flood_depth_cm": 42.5,
-    "risk_level": "SEVERE"
-  }
+  "terrain_profile": { "city": "Mumbai", "slope_deg": 1.85, "elevation_m": 8.50, "impermeability_pct": 75.0, "is_real_dem": true },
+  "forecast": { "rain_predicted": true, "total_rainfall_mm": 54.0, "peak_intensity_mm_hr": 38.2, "predicted_flood_depth_cm": 42.5, "risk_level": "SEVERE" }
 }</code></pre>
       </div>
 
       <div class="api-card">
         <div class="api-endpoint">
           <span class="method-get">GET</span>
-          <span class="endpoint-path">/api/route_check?origin=Kurla&destination=BKC&city=Mumbai</span>
+          <span class="endpoint-path">/api/route_check?origin=Kurla&amp;destination=BKC&amp;city=Mumbai</span>
         </div>
-        <div class="api-desc">Evaluates standard direct route vs safe elevated flyover bypass corridor for emergency navigation.</div>
+        <div class="api-desc">Evaluates standard direct route vs safe elevated flyover bypass corridor with calculated detour time penalties.</div>
 <pre><code>{
   "success": true,
   "city": "Mumbai",
   "origin": "Kurla Station",
   "destination": "BKC Connector",
-  "standard_route": {
-    "status_label": "⛔ SUBMERGED UNDERPASS (HIGH HAZARD)",
-    "max_water_depth_cm": 44.0,
-    "est_time_min": 14
-  },
-  "safe_corridor": {
-    "status_label": "✅ ELEVATED FLYOVER (+3 min detour)",
-    "max_water_depth_cm": 2.0,
-    "est_time_min": 17,
-    "detour_time_min": 3
-  }
+  "standard_route": { "status_label": "⛔ SUBMERGED UNDERPASS (HIGH HAZARD)", "max_water_depth_cm": 44.0, "est_time_min": 14 },
+  "safe_corridor": { "status_label": "✅ ELEVATED FLYOVER (+3 min detour)", "max_water_depth_cm": 2.0, "est_time_min": 17, "detour_time_min": 3 }
 }</code></pre>
+      </div>
+
+      <div class="api-card">
+        <div class="api-endpoint">
+          <span class="method-get">GET</span>
+          <span class="endpoint-path">/api/ward_forecast?ward=Velachery&amp;city=chennai</span>
+        </div>
+        <div class="api-desc">Dynamic 3-hour lead-time forecast series with hourly rainfall projections and street inundation depths.</div>
+      </div>
+
+      <div class="api-card">
+        <div class="api-endpoint">
+          <span class="method-get">GET</span>
+          <span class="endpoint-path">/api/telemetry_status</span>
+        </div>
+        <div class="api-desc">Returns Doppler radar lock status, satellite ingest timestamps, and data pipeline execution health.</div>
+      </div>
+
+      <h3 style="color: #fff; font-size: 1.15rem; margin: 1.5rem 0 1rem 0;">6.2 PostGIS Enterprise Backend (:8001 /api/v1/*)</h3>
+      <div class="api-card">
+        <div class="api-endpoint">
+          <span class="method-get">GET</span>
+          <span class="endpoint-path">/api/v1/flood-predictions &amp; /api/v1/alerts</span>
+        </div>
+        <div class="api-desc">Retrieves PostGIS-indexed ward inundation alerts, evacuation thresholds, and breach notifications.</div>
+      </div>
+      <div class="api-card">
+        <div class="api-endpoint">
+          <span class="method-post">POST</span>
+          <span class="endpoint-path">/api/v1/nowcast/ingest</span>
+        </div>
+        <div class="api-desc">Automated ingestion of Doppler radar and IMERG precipitation grids into PostGIS spatial geometry tables.</div>
       </div>
     </section>
 
-    <!-- Section 6: Execution Instructions -->
+    <!-- Section 7: Air-Gap Resilience -->
+    <section id="air-gap" class="section-card">
+      <h2 class="section-title">7. Air-Gapped Offline Resilience Protocol</h2>
+      <p style="color: var(--text-muted); margin-bottom: 1rem;">
+        Catastrophic cyclonic storms and cloudbursts routinely disrupt regional cellular networks and internet backhauls. RainDrop GIS enforces complete offline command room readiness:
+      </p>
+      <ul style="color: var(--text-muted); margin-left: 1.5rem; line-height: 1.8;">
+        <li><strong>Offline Vendor Bundles (<code>client/vendor/</code>)</strong>: Self-contained React 18, Babel, Leaflet GIS, and Tailwind CSS eliminating external CDN dependencies.</li>
+        <li><strong>Local CartoDEM Raster Caching</strong>: 30m digital elevation rasters and vector geometries are hosted locally inside the container filesystem (<code>data/processed/</code>).</li>
+        <li><strong>Sub-15ms CPU-Native Inference</strong>: Surrogate inference requires zero external cloud APIs or GPU clusters, running on standard command-room laptops.</li>
+        <li><strong>Nginx Edge Cache &amp; Fallbacks</strong>: Automatic gzip compression, SPA fallbacks, and resilient timeout handling.</li>
+      </ul>
+    </section>
+
+    <!-- Section 8: Execution Instructions -->
     <section id="execution" class="section-card">
-      <h2 class="section-title">6. Execution & Operation Instructions</h2>
+      <h2 class="section-title">8. Build, Deployment &amp; Operational Runbook</h2>
       
-      <p style="color: var(--text-muted); margin-bottom: 0.75rem;">1. <strong>Start the FastAPI Server</strong>:</p>
-<pre><code>.venv\Scripts\python.exe -m uvicorn server.main:app --host 127.0.0.1 --port 8000</code></pre>
+      <p style="color: var(--text-muted); margin-bottom: 0.75rem;">1. <strong>Production Deployment (Docker Compose)</strong>:</p>
+<pre><code>docker compose up -d
+docker compose ps</code></pre>
 
-      <p style="color: var(--text-muted); margin: 1.25rem 0 0.75rem 0;">2. <strong>Transpile Frontend</strong> (after updating <code>client/frontend.jsx</code>):</p>
-<pre><code>.venv\Scripts\python.exe pipeline/transpile_frontend.py</code></pre>
+      <p style="color: var(--text-muted); margin: 1.25rem 0 0.75rem 0;">2. <strong>Native Development (ML &amp; GIS Server)</strong>:</p>
+<pre><code>venv\Scripts\Activate.ps1
+uvicorn server.main:app --host 127.0.0.1 --port 8000 --reload</code></pre>
 
-      <p style="color: var(--text-muted); margin: 1.25rem 0 0.75rem 0;">3. <strong>Retrain Machine Learning Surrogate Model</strong> (optional):</p>
-<pre><code>.venv\Scripts\python.exe models/train_surrogate.py</code></pre>
+      <p style="color: var(--text-muted); margin: 1.25rem 0 0.75rem 0;">3. <strong>Native Development (Enterprise PostGIS Backend)</strong>:</p>
+<pre><code>cd backend
+..\venv\Scripts\Activate.ps1
+uvicorn main:app --host 127.0.0.1 --port 8001 --reload</code></pre>
 
-      <p style="color: var(--text-muted); margin: 1.25rem 0 0.75rem 0;">4. <strong>Access Web Dashboard</strong>: Open <a href="http://127.0.0.1:8000" target="_blank" style="color: var(--accent-cyan);">http://127.0.0.1:8000</a> in your web browser.</p>
+      <p style="color: var(--text-muted); margin: 1.25rem 0 0.75rem 0;">4. <strong>Frontend Compilation</strong>:</p>
+<pre><code>python pipeline/transpile_frontend.py
+# Or directly via esbuild:
+npx -y esbuild client/frontend.jsx --outfile=client/frontend.js --loader:.jsx=jsx</code></pre>
     </section>
 
     <footer>
-      <p>RainDrop GIS — Urban Flood Nowcasting & Emergency Navigation Platform</p>
-      <p style="margin-top: 0.5rem; color: var(--text-dim);">Built with Python, FastAPI, pySTEPS, Scikit-Learn, React 18, and Leaflet GIS</p>
+      <p>RainDrop GIS — Urban Flood Nowcasting, CartoDEM Hydrology &amp; Safe-Routing Platform</p>
+      <p style="margin-top: 0.5rem; color: var(--text-dim);">Built with Python 3.11, FastAPI, PostGIS, pySTEPS, Scikit-Learn, React 18, and Leaflet GIS</p>
     </footer>
 
   </div>

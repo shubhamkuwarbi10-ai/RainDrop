@@ -1,5 +1,4 @@
-# Multistage Production Dockerfile for AquaSight RainDrop GIS Engine
-FROM python:3.11-slim as builder
+FROM python:3.11-slim AS builder
 
 WORKDIR /app
 
