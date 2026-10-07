@@ -1,4 +1,4 @@
-# AquaSight: AI-Coupled Urban Flood Nowcasting & Safe-Routing Engine
+# AquaSight: Urban Flood Nowcasting Engine
 
 AquaSight couples atmospheric precipitation nowcasting (optical-flow radar/satellite tracking) with 30m ISRO Bhuvan CartoDEM surface hydrology and a machine-learning surrogate model to deliver street-level flood depth forecasts (0–3 hours), and water level increase predictions ($\text{cm}$). See **Model status** below for what is validated and what is not.
 
@@ -12,19 +12,24 @@ Read this before citing any number from this project.
 
 **Nowcast skill is now measured.** `pipeline/validate_nowcast.py` forecasts from time t and scores the result against what was actually observed at t+30/60/90 min, pooling contingency counts across all launches before computing CSI. `GET /api/metrics` serves that file and returns 503 when it is absent, instead of the `np.random` arrays it used to score against themselves.
 
-Measured over 68 launches on 20-22 June 2025, Chennai 8 degree domain (80x80 cells at 0.1 degree), compared against a persistence baseline:
+Measured over 68 launches on 20-22 June 2025, Chennai 8 degree domain (80x80 cells at 0.1 degree). Three methods are scored side by side against a persistence baseline, all on the same launches and the same cells. Bold marks the best method where it also beats persistence.
 
-| Lead | Threshold | CSI nowcast | CSI persistence |
-|---|---|---|---|
-| 30 min | 10 mm/hr | **0.360** | 0.320 |
-| 30 min | 2.5 mm/hr | **0.376** | 0.372 |
-| 30 min | 0.1 mm/hr | 0.460 | 0.480 |
-| 60 min | 10 mm/hr | **0.177** | 0.169 |
-| 90 min | 0.1 mm/hr | 0.248 | 0.264 |
+| Lead | Threshold | Extrapolation | Extrapolation (dB) | S-PROG | Persistence |
+|---|---|---|---|---|---|
+| 30 min | 10.0 mm/hr | **0.361** | 0.319 | 0.292 | 0.321 |
+| 60 min | 10.0 mm/hr | **0.179** | 0.161 | 0.162 | 0.171 |
+| 90 min | 10.0 mm/hr | 0.078 | 0.074 | 0.082 | 0.085 |
+| 30 min | 0.1 mm/hr | 0.460 | 0.466 | 0.471 | 0.480 |
+| 60 min | 0.1 mm/hr | 0.327 | 0.326 | 0.345 | 0.347 |
+| 90 min | 0.1 mm/hr | 0.246 | 0.242 | **0.265** | 0.263 |
 
-Optical flow beats persistence for heavy rain at short lead times and loses for light drizzle. That is the expected physics: organised convective cells translate, so advecting them helps, while light widespread rain evolves in place faster than it moves. Skill decays with lead time at every threshold.
+**S-PROG trades heavy-rain detection for fewer false alarms.** On the rain footprint (0.1 mm/hr) it cut the false alarm ratio from 0.401 to 0.335 at 30 min and from 0.625 to 0.563 at 90 min, and is the only method that beats persistence there at 90 min. That is what it is built for: it splits the field into spatial scales and lets the unpredictable small ones fade instead of carrying them forward intact. The same mechanism costs it at heavy rain, where probability of detection at 10 mm/hr and 30 min falls from 0.499 to 0.403: at 11 km resolution, convective cores *are* the small scales it damps.
 
-Two caveats on these numbers. They come from three days in June, which is pre-monsoon for Chennai, so they are a demonstration that the measurement works rather than a seasonal result; rerun over the full June-September archive for a figure worth quoting. And cells with no advection information, where air flows in from outside the domain, are excluded from both forecasts so neither is scored on cells the other never had to predict.
+The dB transform alone changes little. Plain extrapolation remains the best heavy-rain method at 30 min and the only one with a clear margin over persistence anywhere.
+
+**The served default stays plain extrapolation.** Heavy rain is what drives flooding, and the heavy-rain sample is too small to separate the methods: 549 observed cells at 10 mm/hr, but they are strongly correlated in space and time, so the effective sample is a handful of storms. The light-rain false-alarm result rests on far more data and is the more trustworthy finding. Rerun over the full June-September archive before changing the default; `--method` selects any of the three in the meantime.
+
+Two caveats on all of these numbers. They come from three days in June, which is pre-monsoon for Chennai, so they demonstrate that the measurement works rather than give a seasonal result. And cells that any method could not inform, where rain flows in from outside the domain, are excluded from every method and the baseline alike.
 
 **The surrogate model's metrics are still not validation results.** `train_surrogate.py` reports R-squared on its own training set with no held-out split, and its target is synthetic, so a high value is guaranteed by construction. That number does not belong in a report.
 
@@ -38,6 +43,9 @@ Two caveats on these numbers. They come from three days in June, which is pre-mo
 docker build -f Dockerfile.nowcast -t raindrop-nowcast .
 docker run --rm -v "%cd%:/app" raindrop-nowcast python pipeline/validate_nowcast.py \
     --input data/processed/nowcast/forecast.tif --output data/processed/nowcast_validation.json
+# one nowcast with a chosen method: extrapolation (default), extrapolation_db, sprog
+docker run --rm -v "%cd%:/app" raindrop-nowcast python pipeline/nowcast_pysteps.py \
+    --frames-dir data/processed/nowcast --output data/processed/nowcast --method sprog
 ```
 
 Note that pysteps treats opencv as an optional dependency, but `dense_lucaskanade` fails at runtime without it, so it is pinned in `requirements.txt`.

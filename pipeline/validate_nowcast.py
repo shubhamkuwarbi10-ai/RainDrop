@@ -93,9 +93,24 @@ def _accumulate(counts, obs, pred, threshold):
     counts["n_pairs"] += 1
 
 
-def validate(tif_path, leadtimes=3, history=4, thresholds=DEFAULT_THRESHOLDS, stride=1, max_launches=None):
-    from pysteps.motion.lucaskanade import dense_lucaskanade
-    from pysteps.extrapolation.semilagrangian import extrapolate
+METHOD_LABELS = {
+    "extrapolation": "Lucas-Kanade + semi-Lagrangian extrapolation (raw mm/h)",
+    "extrapolation_db": "Lucas-Kanade + semi-Lagrangian extrapolation (dB)",
+    "sprog": "S-PROG: scale-dependent AR(2) nowcast in dB",
+}
+
+
+def validate(tif_path, leadtimes=3, history=4, thresholds=DEFAULT_THRESHOLDS, stride=1,
+             max_launches=None, methods=None, primary=None):
+    from pipeline.nowcast_pysteps import DEFAULT_METHOD, METHODS, make_forecast
+
+    methods = list(methods or METHODS)
+    primary = primary or (DEFAULT_METHOD if DEFAULT_METHOD in methods else methods[0])
+    unknown = [m for m in methods if m not in METHODS]
+    if unknown:
+        raise ValueError(f"Unknown methods {unknown}; choose from {METHODS}")
+    if primary not in methods:
+        raise ValueError(f"primary method {primary!r} is not among the evaluated methods")
 
     with rasterio.open(tif_path) as src:
         frames = src.read().astype(np.float32)
@@ -111,8 +126,9 @@ def validate(tif_path, leadtimes=3, history=4, thresholds=DEFAULT_THRESHOLDS, st
 
     blank = lambda: {"hits": 0, "misses": 0, "false_alarms": 0, "correct_negatives": 0,
                      "se": 0.0, "n_px": 0, "n_pairs": 0}
-    nowcast_counts = {(l, t): blank() for l in range(1, leadtimes + 1) for t in thresholds}
-    persist_counts = {(l, t): blank() for l in range(1, leadtimes + 1) for t in thresholds}
+    keys = [(l, t) for l in range(1, leadtimes + 1) for t in thresholds]
+    counts = {m: {k: blank() for k in keys} for m in methods}
+    persist_counts = {k: blank() for k in keys}
 
     contiguous = _load_contiguity(Path(tif_path).parent / "frames.json", n_frames)
 
@@ -121,6 +137,7 @@ def validate(tif_path, leadtimes=3, history=4, thresholds=DEFAULT_THRESHOLDS, st
         launches = launches[:max_launches]
     print(f"{n_frames} frames of {rows}x{cols}; {len(launches)} candidate launches, "
           f"{leadtimes} lead times, thresholds {list(thresholds)}")
+    print(f"methods: {methods}  (primary: {primary})")
     if contiguous is None:
         print("  WARNING: no frames.json; cannot verify frames are one timestep apart.")
         print("           Scores may mix real gaps into the forecast interval.")
@@ -140,33 +157,39 @@ def validate(tif_path, leadtimes=3, history=4, thresholds=DEFAULT_THRESHOLDS, st
         if window.max() <= thresholds[0]:
             skipped_dry += 1          # no rain to track; motion is undefined
             continue
+
+        # Run every method before scoring any of them. If one fails, the launch is
+        # dropped for all, so every method is scored on the same set of launches.
+        forecasts = {}
         try:
-            motion = dense_lucaskanade(window)
-            fc_raw = extrapolate(window[-1], motion, leadtimes)
-            # Semi-Lagrangian advection has no information for cells that flow in from
-            # outside the domain; it marks them NaN. Zeroing them would score the
-            # nowcast as predicting "no rain" there, a penalty persistence never pays.
-            # Exclude those cells from scoring for BOTH forecasts instead.
-            valid = ~np.isnan(fc_raw)
-            fc = np.nan_to_num(fc_raw, nan=0.0)
+            for m in methods:
+                fc, _ = make_forecast(window, leadtimes, method=m)
+                forecasts[m] = fc
         except Exception as exc:
             failed += 1
             if failed <= 3:
-                print(f"  launch {t}: {type(exc).__name__}: {exc}")
+                print(f"  launch {t} ({m}): {type(exc).__name__}: {exc}")
             continue
 
-        fc[fc < 0] = 0.0
+        # Methods leave NaN where they had no information (inflow from outside the
+        # domain), and each leaves it in different places. Score every method AND
+        # persistence on the intersection, so no method is graded on cells another
+        # was excused from -- otherwise the comparison measures masks, not skill.
+        valid = np.ones((leadtimes, rows, cols), dtype=bool)
+        for fc in forecasts.values():
+            valid &= ~np.isnan(fc)
+
         for lead in range(1, leadtimes + 1):
             mask = valid[lead - 1]
             if mask.sum() == 0:
                 continue
             obs = frames[t + lead][mask]
-            pred_nc = fc[lead - 1][mask]
-            pred_pe = window[-1][mask]
             edge_excluded_px.append(int((~mask).sum()))
             for th in thresholds:
-                _accumulate(nowcast_counts[(lead, th)], obs, pred_nc, th)
-                _accumulate(persist_counts[(lead, th)], obs, pred_pe, th)
+                _accumulate(persist_counts[(lead, th)], obs, window[-1][mask], th)
+                for m, fc in forecasts.items():
+                    pred = np.clip(fc[lead - 1][mask], 0.0, None)
+                    _accumulate(counts[m][(lead, th)], obs, pred, th)
         used += 1
         if i % 20 == 0 or i == len(launches):
             print(f"  {i}/{len(launches)} launches processed")
@@ -176,18 +199,21 @@ def validate(tif_path, leadtimes=3, history=4, thresholds=DEFAULT_THRESHOLDS, st
     if used == 0:
         raise RuntimeError("No launch times could be scored - nothing to report.")
 
-    def table(counts):
+    def table(c):
         return {
             f"lead_{lead * 30}min": {
-                f"threshold_{th}mm_hr": _skill_from_counts(counts[(lead, th)], th)
+                f"threshold_{th}mm_hr": _skill_from_counts(c[(lead, th)], th)
                 for th in thresholds
             }
             for lead in range(1, leadtimes + 1)
         }
 
+    method_tables = {m: table(counts[m]) for m in methods}
     return {
         "generated_at": datetime.now(timezone.utc).isoformat(),
-        "method": "pySTEPS Lucas-Kanade optical flow + semi-Lagrangian extrapolation",
+        "method": METHOD_LABELS.get(primary, primary),
+        "primary_method": primary,
+        "methods_evaluated": methods,
         "source_raster": str(tif_path),
         "domain_px": [rows, cols],
         "timestep_minutes": 30,
@@ -201,14 +227,16 @@ def validate(tif_path, leadtimes=3, history=4, thresholds=DEFAULT_THRESHOLDS, st
         ),
         "domain_cells": rows * cols,
         "history_frames": history,
-        "nowcast": table(nowcast_counts),
+        "nowcast": method_tables[primary],
+        "methods": method_tables,
         "persistence_baseline": table(persist_counts),
         "note": (
             "Contingency counts are pooled across all launch times before computing "
-            "CSI/POD/FAR. Persistence is the last observed frame held constant; the "
-            "nowcast is only informative where it beats it. Cells with no advection "
-            "information (inflow from outside the domain) are excluded from BOTH "
-            "forecasts so neither is scored on cells the other did not have to predict."
+            "CSI/POD/FAR. Persistence is the last observed frame held constant; a "
+            "nowcast is only informative where it beats it. Every method and the "
+            "persistence baseline are scored on the same launches and the same cells: "
+            "cells any method could not inform (inflow from outside the domain) are "
+            "excluded from all of them."
         ),
     }
 
@@ -221,21 +249,33 @@ def main():
     ap.add_argument("--history", type=int, default=4, help="frames used for the motion field (default 4)")
     ap.add_argument("--stride", type=int, default=1, help="step between launch times (default 1)")
     ap.add_argument("--max-launches", type=int, help="cap launches (for a quick test)")
+    ap.add_argument("--methods", nargs="+",
+                    help="methods to evaluate side by side (default: all)")
+    ap.add_argument("--primary", help="method reported as 'nowcast' (default: sprog)")
     args = ap.parse_args()
 
     result = validate(args.input, args.leadtimes, args.history,
-                      stride=args.stride, max_launches=args.max_launches)
+                      stride=args.stride, max_launches=args.max_launches,
+                      methods=args.methods, primary=args.primary)
     out = Path(args.output)
     out.parent.mkdir(parents=True, exist_ok=True)
     out.write_text(json.dumps(result, indent=2))
     print(f"\nwrote {out}")
 
-    print("\nCSI by lead time (threshold 0.1 mm/hr):")
-    print(f"  {'lead':<10} {'nowcast':>9} {'persistence':>13}")
-    for lead in sorted(result["nowcast"], key=lambda k: int(k.split("_")[1].rstrip("min"))):
-        n = result["nowcast"][lead]["threshold_0.1mm_hr"]["CSI"]
-        p = result["persistence_baseline"][lead]["threshold_0.1mm_hr"]["CSI"]
-        print(f"  {lead:<10} {n if n is not None else '-':>9} {p if p is not None else '-':>13}")
+    leads = sorted(result["persistence_baseline"],
+                   key=lambda k: int(k.split("_")[1].rstrip("min")))
+    names = result["methods_evaluated"]
+    for th in ("threshold_0.1mm_hr", "threshold_2.5mm_hr", "threshold_10.0mm_hr"):
+        print(f"\nCSI, {th.split('_')[1]}:")
+        print(f"  {'lead':<11}" + "".join(f"{n:>18}" for n in names) + f"{'persistence':>14}")
+        for lead in leads:
+            row = f"  {lead:<11}"
+            for n in names:
+                v = result["methods"][n][lead][th]["CSI"]
+                row += f"{(f'{v:.4f}' if v is not None else '-'):>18}"
+            pv = result["persistence_baseline"][lead][th]["CSI"]
+            row += f"{(f'{pv:.4f}' if pv is not None else '-'):>14}"
+            print(row)
     return 0
 
 
