@@ -1,3 +1,12 @@
+// Marker colours for /api/spot_check verdicts.
+const SPOT_VERDICT_COLORS = {
+    CLEAR: '#10b981',
+    CAUTION: '#f59e0b',
+    UNSAFE: '#dc2626',
+    IMPASSABLE: '#991b1b',
+    UNKNOWN: '#64748b',
+};
+
 function InteractiveVectorMap(props) {
     const {
         wardData,
@@ -285,33 +294,25 @@ function InteractiveVectorMap(props) {
             } catch (_) {}
         }
 
-        // Render Safe Corridor & Bypass Route Lines if available
-        if (routeCheckResult && routeCheckResult.standard_route && routeCheckResult.safe_corridor) {
-            const stdCoords = routeCheckResult.standard_route.coordinates || [];
-            const safeCoords = routeCheckResult.safe_corridor.coordinates || [];
-
-            if (stdCoords.length >= 2) {
-                const stdPoly = window.L.polyline(stdCoords, {
-                    color: '#dc2626',
-                    weight: 4,
-                    dashArray: '6, 8',
-                    opacity: 0.9
+        // Mark the point assessed by the spot check. No route geometry is drawn:
+        // there is no road graph, so any corridor line would be invented.
+        if (routeCheckResult && routeCheckResult.coordinates) {
+            const { lat, lon } = routeCheckResult.coordinates;
+            if (typeof lat === 'number' && typeof lon === 'number') {
+                const marker = window.L.circleMarker([lat, lon], {
+                    radius: 10,
+                    color: SPOT_VERDICT_COLORS[routeCheckResult.verdict] || SPOT_VERDICT_COLORS.UNKNOWN,
+                    weight: 3,
+                    fillOpacity: 0.35
                 }).addTo(map);
-                markersRef.current.push(stdPoly);
-            }
-
-            if (safeCoords.length >= 2) {
-                const safePoly = window.L.polyline(safeCoords, {
-                    color: '#10b981',
-                    weight: 6,
-                    opacity: 0.95
-                }).addTo(map);
-                markersRef.current.push(safePoly);
-
-                const allRoutePoints = [...stdCoords, ...safeCoords];
-                try {
-                    map.fitBounds(allRoutePoints, { padding: [50, 50] });
-                } catch (_) {}
+                marker.bindPopup(
+                    `<strong>${routeCheckResult.ward_name}</strong><br/>` +
+                    `${routeCheckResult.verdict}` +
+                    (routeCheckResult.predicted_flood_depth_cm == null
+                        ? ''
+                        : ` — ${routeCheckResult.predicted_flood_depth_cm} cm`)
+                );
+                markersRef.current.push(marker);
             }
         }
 
@@ -609,37 +610,36 @@ function SectorDrawer({ sector, depth, wardName, onClose, pushToast }) {
                         </div>
                     )}
 
-                    {/* Verified Sensor Telemetry & Provenance */}
+                    {/* Data provenance. This project has no sensor network: depth is
+                        modelled, so the card states the model inputs rather than
+                        implying a calibrated gauge feed. */}
                     <div className="rounded-2xl border border-slate-200/90 bg-slate-50/70 p-3.5 mb-4 text-xs">
                         <div className="flex items-center justify-between mb-2">
                             <span className="font-bold text-slate-800 flex items-center gap-1.5">
                                 <ShieldCheck className="w-4 h-4 text-blue-600" />
-                                Verified Sensor Telemetry
+                                Data Provenance
                             </span>
-                            <span className="font-mono text-[10px] font-bold text-emerald-700 bg-emerald-100/80 px-2 py-0.5 rounded-full">
-                                96.4% Calibrated
+                            <span className="font-mono text-[10px] font-bold text-amber-700 bg-amber-100/80 px-2 py-0.5 rounded-full">
+                                Modelled
                             </span>
                         </div>
                         <div className="space-y-1.5 text-[11px] text-slate-600">
                             <div className="flex justify-between items-center">
-                                <span className="text-slate-400">Sensor Station:</span>
-                                <span className="font-mono font-semibold text-slate-700">{sector.stationId || `CWC-${sector.id + 101}`}</span>
+                                <span className="text-slate-400">Rainfall:</span>
+                                <span className="font-medium text-slate-700">NASA GPM IMERG nowcast</span>
                             </div>
                             <div className="flex justify-between items-center">
-                                <span className="text-slate-400">Primary Authority:</span>
-                                <span className="font-medium text-slate-700">Municipal Stormwater Dept + IMD</span>
+                                <span className="text-slate-400">Terrain:</span>
+                                <span className="font-medium text-slate-700">30m DEM surface hydrology</span>
                             </div>
                             <div className="flex justify-between items-center">
-                                <span className="text-slate-400">Gauge Sensor:</span>
-                                <span className="font-medium text-slate-700">Hydrostatic Pressure Transducer</span>
+                                <span className="text-slate-400">Depth estimate:</span>
+                                <span className="font-medium text-slate-700">ML surrogate (unvalidated)</span>
                             </div>
-                            <div className="flex justify-between items-center">
-                                <span className="text-slate-400">Telemetry Feed:</span>
-                                <span className="font-mono text-emerald-700 font-semibold flex items-center gap-1">
-                                    <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
-                                    Live (Updated 2 mins ago)
-                                </span>
-                            </div>
+                            <p className="text-[10px] text-slate-500 leading-relaxed pt-1">
+                                No in-situ gauge or sensor feed. Figures are model output,
+                                not measurements.
+                            </p>
                         </div>
                     </div>
                 </div>

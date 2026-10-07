@@ -15,7 +15,8 @@ try:
 except ImportError:
     HAS_RASTERIO = False
 
-from pipeline.evaluate_nowcast import evaluate_predictions
+
+VALIDATION_FILE = Path(__file__).parent.parent / "data" / "processed" / "nowcast_validation.json"
 
 app = FastAPI(title="AquaSight RainDrop API")
 
@@ -525,22 +526,43 @@ def read_root():
 
 @app.get("/api/metrics")
 def get_model_verification_metrics():
-    """Return model performance and verification metrics (CSI, POD, FAR, RMSE)."""
-    np.random.seed(42)
-    obs = np.random.exponential(scale=1.8, size=(100, 100))
-    pred = obs + np.random.normal(loc=0.1, scale=0.35, size=(100, 100))
-    pred[pred < 0] = 0.0
+    """
+    Return measured nowcast verification metrics.
 
-    eval_results = evaluate_predictions(obs, pred)
+    These come from pipeline/validate_nowcast.py, which forecasts from time t and
+    scores the result against what was actually observed at t+30/60/90 min. If that
+    file has not been produced yet, this says so rather than inventing numbers --
+    it previously ran CSI/POD/FAR over two np.random arrays and returned the result
+    as measured model performance.
+    """
+    if not VALIDATION_FILE.is_file():
+        raise HTTPException(
+            status_code=503,
+            detail=(
+                "No validation results available. Run: "
+                "python pipeline/validate_nowcast.py --input <frames.tif> "
+                f"--output {VALIDATION_FILE.name}"
+            ),
+        )
+    try:
+        report = json.loads(VALIDATION_FILE.read_text())
+    except (ValueError, OSError) as exc:
+        raise HTTPException(status_code=500, detail=f"Could not read validation results: {exc}")
+
     return {
-        "model_name": "pySTEPS Optical Flow + XGBoost Hydrodynamic Surrogate",
-        "verification_metrics": eval_results,
-        "parameters": {
-            "optical_flow_method": "Lucas-Kanade",
-            "advection_method": "Semi-Lagrangian",
-            "lead_time_minutes": 180,
-            "inference_latency_ms": 142
-        }
+        "model_name": report.get("method", "pySTEPS Lucas-Kanade + semi-Lagrangian"),
+        "measured": True,
+        "verification_metrics": report.get("nowcast"),
+        "persistence_baseline": report.get("persistence_baseline"),
+        "evaluation": {
+            "launches_scored": report.get("launches_scored"),
+            "launches_skipped_time_gap": report.get("launches_skipped_time_gap"),
+            "continuity_verified": report.get("continuity_verified"),
+            "domain_px": report.get("domain_px"),
+            "timestep_minutes": report.get("timestep_minutes"),
+            "generated_at": report.get("generated_at"),
+        },
+        "note": report.get("note"),
     }
 
 @app.get("/api/predict")
@@ -701,25 +723,25 @@ def get_cities_registry():
     return {"success": True, "count": len(result), "cities": result}
 
 def resolve_ward_info(ward_name: str, city_hint: str = None):
-    """Lookup ward info across all metros with fuzzy/partial matching."""
+    """
+    Lookup ward info across all metros. Returns (city_key, ward_info), or
+    (None, None) when nothing matches -- callers must not report a different
+    ward than the one that was asked for.
+    """
     cleaned_ward = ward_name.lower().strip()
-    
-    # Direct search across all cities
+    if not cleaned_ward:
+        return None, None
+
     for city_key, reg in METRO_REGISTRY.items():
         if city_hint and city_key != city_hint.lower().strip():
             continue
         for w_key, w_info in reg["wards"].items():
-            if cleaned_ward == w_key.lower().strip() or cleaned_ward in w_key.lower().strip() or w_key.lower().strip() in cleaned_ward:
+            key = w_key.lower().strip()
+            # Exact, or a substring long enough not to match half the registry.
+            if cleaned_ward == key or (len(cleaned_ward) >= 3 and cleaned_ward in key):
                 return city_key, w_info
 
-    # If city_hint specified, return first ward of that city
-    if city_hint and city_hint.lower().strip() in METRO_REGISTRY:
-        city_key = city_hint.lower().strip()
-        first_ward = next(iter(METRO_REGISTRY[city_key]["wards"].values()))
-        return city_key, first_ward
-
-    # Default fallback to Chennai Velachery
-    return "chennai", METRO_REGISTRY["chennai"]["wards"]["Velachery"]
+    return None, None
 
 @app.get("/api/ward_forecast")
 def get_ward_forecast(ward_name: str = Query("Velachery"), city: str = Query(None)):
@@ -728,6 +750,8 @@ def get_ward_forecast(ward_name: str = Query("Velachery"), city: str = Query(Non
     Queries live Open-Meteo weather API and executes 30m CartoDEM ML surrogate inference.
     """
     city_key, ward_info = resolve_ward_info(ward_name, city)
+    if ward_info is None:
+        raise HTTPException(status_code=404, detail=f"Unknown ward: {ward_name!r}. See /api/cities for valid wards.")
     lat = ward_info["lat"]
     lon = ward_info["lon"]
     city_terrain = get_city_terrain(lat, lon, city_key)
@@ -738,12 +762,15 @@ def get_ward_forecast(ward_name: str = Query("Velachery"), city: str = Query(Non
     timeseries_labels = []
     current_weather = None
     
-    if open_meteo_res.get("success"):
+    weather_available = bool(open_meteo_res.get("success"))
+    if weather_available:
         current_weather = open_meteo_res.get("current")
         raw_hourly = open_meteo_res.get("hourly_precip", [])[:12]
         timeseries = [round(float(v), 2) for v in raw_hourly]
         timeseries_labels = open_meteo_res.get("hourly_times", [])[:12]
     else:
+        # No live rainfall. These zeros are an absence of data, not an observation
+        # of zero rain -- every field derived from them is flagged below.
         timeseries = [0.0] * 12
         timeseries_labels = [f"+{i}h" for i in range(12)]
 
@@ -775,7 +802,12 @@ def get_ward_forecast(ward_name: str = Query("Velachery"), city: str = Query(Non
     active_pumps = min(total_pumps, max(int(total_pumps * 0.65), int(total_pumps * 0.65 + (predicted_depth / 20.0) * (total_pumps * 0.35))))
 
     # Risk classification
-    if predicted_depth > 25.0 or peak_intensity > 25.0 or total_rain > 50.0 or river_stage >= danger_lvl:
+    if not weather_available:
+        # Without live rainfall there is no basis for a risk call. Saying
+        # "NORMAL MONITORING" here would be indistinguishable from real clear weather.
+        risk_status = "DATA UNAVAILABLE"
+        high_risk_count = 0
+    elif predicted_depth > 25.0 or peak_intensity > 25.0 or total_rain > 50.0 or river_stage >= danger_lvl:
         risk_status = "CRITICAL EMERGENCY"
         high_risk_count = 5
     elif predicted_depth > 12.0 or peak_intensity > 10.0 or total_rain > 20.0:
@@ -818,8 +850,15 @@ def get_ward_forecast(ward_name: str = Query("Velachery"), city: str = Query(Non
         "status": risk_status,
         "high_risk_sectors_count": high_risk_count,
         "predicted_flood_depth_cm": predicted_depth,
-        "is_real_api": True,
-        "source": "Open-Meteo Real-Time Weather API + 30m CartoDEM + ML Surrogate",
+        "is_real_api": weather_available,
+        "source": (
+            # Name the terrain source that was actually used. Hardcoding "30m CartoDEM"
+            # advertised real satellite terrain even when the DEM fell back to a
+            # fitted synthetic surface.
+            f"Open-Meteo Real-Time Weather API + {city_terrain.get('dem_source_label', 'unknown terrain')} + ML Surrogate"
+            if weather_available
+            else "Upstream weather API unreachable - no live rainfall data"
+        ),
         "synced_at": synced_iso,
         "prediction": {
             "total_rainfall_mm": total_rain,
@@ -865,7 +904,7 @@ def get_telemetry_status():
         "last_updated": "Just now",
         "doppler_radar": "CONNECTED (IMD Doppler Radar)",
         "cartodem_grid": "30m GeoTIFF Satellite Active",
-        "surrogate_model": "LOADED (RandomForest R²=0.9994)"
+        "surrogate_model": "LOADED (RandomForest, synthetic training target - accuracy unvalidated)" if surrogate_model is not None else "NOT LOADED"
     }
 
 @app.get("/api/run_pipeline")
@@ -881,96 +920,62 @@ def run_nowcast_pipeline():
         "execution_time_ms": 284
     }
 
-@app.get("/api/route_check")
-def check_route_safety(
-    origin: str = Query("Kurla Station"),
-    destination: str = Query("BKC Contractor"),
-    water_depth: float = Query(20.0),
-    depth_cm: float = Query(None),
-    city: str = Query("mumbai")
-):
+def crossing_verdict(depth_cm: float, live_data: bool = True):
     """
-    Compute Dual-Corridor Navigation Safety Check:
-    Returns both the Standard Direct Route (which intersects low elevation depressions)
-    and the Safe Elevation Corridor (which routes over elevated flyovers/highlands).
+    Map predicted standing-water depth (cm) to a crossing-safety verdict.
+
+    Thresholds are rough public-safety guidance, not a calibrated vehicle model:
+    the surrogate predicts depth and says nothing about traction or flow velocity.
     """
-    effective_depth = depth_cm if depth_cm is not None else water_depth
-    city_key = city.lower().strip()
-    if city_key not in CITY_TERRAINS:
-        city_key = "mumbai"
+    if not live_data:
+        return "UNKNOWN", "No live rainfall data - depth cannot be assessed"
+    if depth_cm >= 30.0:
+        return "IMPASSABLE", "Do not attempt - this depth stalls most vehicles"
+    if depth_cm >= 15.0:
+        return "UNSAFE", "Unsafe for cars - risk of stalling and loss of traction"
+    if depth_cm >= 5.0:
+        return "CAUTION", "Passable slowly - standing water present"
+    return "CLEAR", "No significant standing water predicted"
 
-    cfg = CITY_TERRAINS[city_key]
-    lat_mid = (cfg["lat_min"] + cfg["lat_max"]) / 2.0
-    lon_mid = (cfg["lon_min"] + cfg["lon_max"]) / 2.0
 
-    # Base coords around city center
-    start_lat, start_lon = lat_mid - 0.015, lon_mid - 0.015
-    end_lat, end_lon = lat_mid + 0.015, lon_mid + 0.015
+@app.get("/api/spot_check")
+def check_spot_safety(ward_name: str = Query(...), city: str = Query(None)):
+    """
+    Predicted flood depth and crossing safety at a named ward.
 
-    # Standard Direct Route (passes through depression lowlands)
-    std_max_depth = max(effective_depth, round(effective_depth * 1.8 + 8.5, 1))
-    std_coords = [
-        [round(start_lat, 5), round(start_lon, 5)],
-        [round(start_lat + 0.008, 5), round(start_lon + 0.006, 5)],
-        [round(lat_mid, 5), round(lon_mid, 5)], # Hazard depression point
-        [round(end_lat - 0.006, 5), round(end_lon - 0.008, 5)],
-        [round(end_lat, 5), round(end_lon, 5)]
-    ]
+    This reports conditions AT A POINT. It is not a route: the project has no
+    road graph and no routing engine, so any corridor geometry would be invented.
+    Depth comes from live rainfall plus the 30m CartoDEM terrain profile via the
+    same path as /api/predict.
+    """
+    city_key, ward_info = resolve_ward_info(ward_name, city)
+    if ward_info is None:
+        raise HTTPException(status_code=404, detail=f"Unknown ward: {ward_name!r}. See /api/cities for valid wards.")
 
-    # Safe Elevation Corridor (bypasses depression via elevated flyover)
-    safe_max_depth = min(effective_depth, 4.0)
-    safe_coords = [
-        [round(start_lat, 5), round(start_lon, 5)],
-        [round(start_lat - 0.005, 5), round(start_lon + 0.018, 5)],
-        [round(lat_mid + 0.010, 5), round(lon_mid + 0.022, 5)], # Elevated bypass
-        [round(end_lat + 0.005, 5), round(end_lon + 0.008, 5)],
-        [round(end_lat, 5), round(end_lon, 5)]
-    ]
-
-    std_dist = 3.4
-    safe_dist = 4.2
-    std_time = 14
-    safe_time = 17
-    detour_time = safe_time - std_time
-    detour_dist = round(safe_dist - std_dist, 1)
+    prediction = predict_rainfall(ward_info["lat"], ward_info["lon"])
+    forecast = prediction["forecast"]
+    depth = forecast["predicted_flood_depth_cm"]
+    live_data = prediction["source"] != "Fallback (API Unavailable)"
+    verdict, advice = crossing_verdict(depth, live_data)
 
     return {
-        "success": True,
-        "city": cfg["name"],
-        "origin": origin,
-        "destination": destination,
-        "water_depth_cm": effective_depth,
-        "standard_route": {
-            "name": f"Standard Direct Route ({origin} → {destination})",
-            "distance_km": std_dist,
-            "est_time_min": std_time,
-            "max_water_depth_cm": std_max_depth,
-            "risk_level": "HAZARDOUS" if std_max_depth > 15.0 else "MODERATE",
-            "status_label": "⛔ SUBMERGED UNDERPASS (HIGH HAZARD)" if std_max_depth > 15.0 else "⚠️ WATERLOGGING WARNING",
-            "status_color": "rose",
-            "danger_points": [
-                {
-                    "name": f"{origin} Lowland Underpass",
-                    "lat": round(lat_mid, 5),
-                    "lon": round(lon_mid, 5),
-                    "depth_cm": std_max_depth,
-                    "hazard": "Depression Sink Flood Bottleneck"
-                }
-            ],
-            "coordinates": std_coords
+        "ward_name": ward_info["name"],
+        "code": ward_info.get("code"),
+        "city": prediction["location"]["city"],
+        "coordinates": {"lat": ward_info["lat"], "lon": ward_info["lon"]},
+        "predicted_flood_depth_cm": depth if live_data else None,
+        "verdict": verdict,
+        "advice": advice,
+        "risk_level": forecast["risk_level"],
+        "rainfall": {
+            "total_mm": forecast["total_rainfall_mm"],
+            "peak_intensity_mm_hr": forecast["peak_intensity_mm_hr"],
         },
-        "safe_corridor": {
-            "name": f"Safe Elevation Corridor (Flyover & Coastal Bypass)",
-            "distance_km": safe_dist,
-            "est_time_min": safe_time,
-            "detour_time_min": detour_time,
-            "detour_dist_km": detour_dist,
-            "max_water_depth_cm": safe_max_depth,
-            "risk_level": "SAFE",
-            "status_label": f"✅ ELEVATED FLYOVER ({detour_time} min detour)",
-            "status_color": "emerald",
-            "coordinates": safe_coords
-        }
+        "terrain_profile": prediction["terrain_profile"],
+        "is_real_api": live_data,
+        "source": prediction["source"],
+        "routing_available": False,
+        "note": "Point assessment only. Turn-by-turn routing requires a road graph (OSRM or OSM extract), which is not wired up.",
     }
 
 

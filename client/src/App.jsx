@@ -1,3 +1,13 @@
+// Colour mapping for /api/spot_check verdicts.
+const VERDICT_STYLES = {
+    CLEAR:      { box: "bg-emerald-50 border-emerald-200", pill: "bg-emerald-200 text-emerald-800", text: "text-emerald-700" },
+    CAUTION:    { box: "bg-amber-50 border-amber-200",     pill: "bg-amber-200 text-amber-900",     text: "text-amber-700" },
+    UNSAFE:     { box: "bg-rose-50 border-rose-200",       pill: "bg-rose-200 text-rose-800",       text: "text-rose-700" },
+    IMPASSABLE: { box: "bg-rose-100 border-rose-300",      pill: "bg-rose-600 text-white",          text: "text-rose-800" },
+    UNKNOWN:    { box: "bg-slate-50 border-slate-200",     pill: "bg-slate-200 text-slate-700",     text: "text-slate-600" },
+};
+
+
 function RainDrop() {
     const [view, setView] = useState("hero"); // 'hero' (Editorial Landing) | 'overview' (3:7 City & Ward Matrix) | 'command' (Operations Center Map)
     const [activeTab, setActiveTab] = useState("telemetry"); // 'telemetry' | 'routes' | 'scenario' | 'map'
@@ -134,9 +144,7 @@ function RainDrop() {
 
     // --- Route Check Form ---
     const [routeCheckOpen, setRouteCheckOpen] = useState(false);
-    const [routeOrigin, setRouteOrigin] = useState("");
-    const [routeDest, setRouteDest] = useState("");
-    const [routeDepth, setRouteDepth] = useState(0);
+    const [spotWard, setSpotWard] = useState("");
     const [routeCheckBusy, setRouteCheckBusy] = useState(false);
     const [routeCheckResult, setRouteCheckResult] = useState(null);
 
@@ -306,22 +314,23 @@ function RainDrop() {
     // --- Route Check API Call ---
     const handleRouteCheck = async (e) => {
         e.preventDefault();
-        if (!routeOrigin.trim() || !routeDest.trim()) return;
+        if (!spotWard.trim()) return;
         setRouteCheckBusy(true);
         setRouteCheckResult(null);
         try {
-            const params = new URLSearchParams({
-                origin: routeOrigin,
-                destination: routeDest,
-                depth_cm: routeDepth,
-            });
-            const res = await fetch(`/api/route_check?${params}`);
+            const params = new URLSearchParams({ ward_name: spotWard });
+            const res = await fetch(`/api/spot_check?${params}`);
             const data = await res.json();
+            if (!res.ok) {
+                setRouteCheckResult({ error: data.detail || `Request failed (${res.status})` });
+                pushToast(data.detail || "Spot check failed");
+                return;
+            }
             setRouteCheckResult(data);
-            pushToast(`Route safety check complete: ${(data && data.standard_route && data.standard_route.status) || "DONE"}`);
+            pushToast(`Spot check complete: ${data.verdict || "DONE"}`);
         } catch (err) {
             setRouteCheckResult({ error: err.message });
-            pushToast("Route check failed — backend offline?");
+            pushToast("Spot check failed — backend offline?");
         } finally {
             setRouteCheckBusy(false);
         }
@@ -507,7 +516,7 @@ function RainDrop() {
                 pushToast={pushToast}
             />
 
-            {/* Dual Corridor Route Check Modal */}
+            {/* Ward Flood Spot Check Modal */}
             {routeCheckOpen && (
                 <div
                     className="fixed inset-0 z-[900] flex items-center justify-center p-4"
@@ -531,13 +540,13 @@ function RainDrop() {
                             </div>
                             <div>
                                 <h2 className="text-base font-bold text-slate-900 flex items-center gap-2">
-                                    Dual-Corridor Safe Routing
+                                    Ward Flood Spot Check
                                     <span className="text-[10px] px-2 py-0.5 rounded-full bg-blue-100 text-blue-700 font-bold uppercase">
-                                        30m DEM High-Ground
+                                        30m CartoDEM
                                     </span>
                                 </h2>
                                 <p className="text-xs text-slate-500">
-                                    Bypasses inundated underpasses &amp; lowlands using surface elevation data
+                                    Predicted standing-water depth at a ward, from live rainfall and terrain
                                 </p>
                             </div>
                         </div>
@@ -558,39 +567,19 @@ function RainDrop() {
                                 autoComplete="off"
                                 aria-hidden="true"
                             />
-                            <div>
-                                <label className="block text-[11px] font-bold text-slate-600 mb-1">Origin Landmark</label>
-                                <input
-                                    value={routeOrigin}
-                                    onChange={(e) => setRouteOrigin(e.target.value)}
-                                    placeholder="e.g. Kurla Station"
-                                    required
-                                    className="w-full rounded-2xl border border-slate-200 bg-slate-50 px-3.5 py-2 text-xs text-slate-900 placeholder-slate-400 focus:border-blue-500 focus:bg-white focus:outline-none"
-                                />
-                            </div>
-                            <div>
-                                <label className="block text-[11px] font-bold text-slate-600 mb-1">Destination</label>
-                                <input
-                                    value={routeDest}
-                                    onChange={(e) => setRouteDest(e.target.value)}
-                                    placeholder="e.g. BKC Connector"
-                                    required
-                                    className="w-full rounded-2xl border border-slate-200 bg-slate-50 px-3.5 py-2 text-xs text-slate-900 placeholder-slate-400 focus:border-blue-500 focus:bg-white focus:outline-none"
-                                />
-                            </div>
                             <div className="sm:col-span-2">
-                                <label className="block text-[11px] font-bold text-slate-600 mb-1">
-                                    Simulated Flood Water Depth (cm)
-                                </label>
+                                <label htmlFor="spot-ward" className="block text-[11px] font-bold text-slate-600 mb-1">Ward</label>
                                 <input
-                                    type="number"
-                                    min="0"
-                                    max="200"
-                                    step="1"
-                                    value={routeDepth}
-                                    onChange={(e) => setRouteDepth(Number(e.target.value))}
+                                    id="spot-ward"
+                                    value={spotWard}
+                                    onChange={(e) => setSpotWard(e.target.value)}
+                                    placeholder="e.g. Velachery"
+                                    required
                                     className="w-full rounded-2xl border border-slate-200 bg-slate-50 px-3.5 py-2 text-xs text-slate-900 placeholder-slate-400 focus:border-blue-500 focus:bg-white focus:outline-none"
                                 />
+                                <p className="mt-1 text-[10px] text-slate-500">
+                                    Predicted flood depth at this ward from live rainfall and 30m CartoDEM terrain.
+                                </p>
                             </div>
                             <div className="sm:col-span-2 mt-1">
                                 <button
@@ -600,73 +589,57 @@ function RainDrop() {
                                 >
                                     {routeCheckBusy ? (
                                         <>
-                                            <RefreshCw className="w-3.5 h-3.5 animate-spin" /> Analyzing 30m Elevation Corridors…
+                                            <RefreshCw className="w-3.5 h-3.5 animate-spin" /> Checking ward conditions…
                                         </>
                                     ) : (
                                         <>
-                                            <Send className="w-3.5 h-3.5" /> Check Dual-Corridor Safety
+                                            <Send className="w-3.5 h-3.5" /> Check Flood Depth
                                         </>
                                     )}
                                 </button>
                             </div>
                         </form>
 
-                        {routeCheckResult && !routeCheckResult.error && (
-                            <div className="space-y-3 border-t border-slate-100 pt-4">
-                                <div className="rounded-2xl p-3.5 bg-rose-50 border border-rose-200 text-rose-900">
-                                    <div className="flex items-center justify-between mb-1.5">
-                                        <span className="text-xs font-bold flex items-center gap-1.5 text-rose-700">
-                                            🔴 Standard Direct Route
-                                        </span>
-                                        <span className="text-[10px] font-extrabold px-2 py-0.5 rounded-full bg-rose-200 text-rose-800">
-                                            {routeCheckResult.standard_route?.status_label || "HAZARDOUS"}
-                                        </span>
+                        {routeCheckResult && !routeCheckResult.error && (() => {
+                            const vs = VERDICT_STYLES[routeCheckResult.verdict] || VERDICT_STYLES.UNKNOWN;
+                            const depth = routeCheckResult.predicted_flood_depth_cm;
+                            return (
+                                <div className="space-y-3 border-t border-slate-100 pt-4">
+                                    <div className={`rounded-2xl p-3.5 border ${vs.box}`}>
+                                        <div className="flex items-center justify-between mb-2">
+                                            <span className={`text-xs font-bold ${vs.text}`}>
+                                                {routeCheckResult.ward_name}{routeCheckResult.code ? ` · ${routeCheckResult.code}` : ""}
+                                            </span>
+                                            <span className={`text-[10px] font-extrabold px-2 py-0.5 rounded-full ${vs.pill}`}>
+                                                {routeCheckResult.verdict}
+                                            </span>
+                                        </div>
+                                        <p className="text-[11px] text-slate-700 mb-2.5">{routeCheckResult.advice}</p>
+                                        <div className="grid grid-cols-3 gap-2 text-[11px] text-slate-600">
+                                            <div>
+                                                Depth: <strong className="text-slate-900">{depth === null || depth === undefined ? "—" : `${depth} cm`}</strong>
+                                            </div>
+                                            <div>
+                                                Rain: <strong className="text-slate-900">{routeCheckResult.rainfall?.total_mm ?? "—"} mm</strong>
+                                            </div>
+                                            <div>
+                                                Peak: <strong className="text-slate-900">{routeCheckResult.rainfall?.peak_intensity_mm_hr ?? "—"} mm/hr</strong>
+                                            </div>
+                                        </div>
                                     </div>
-                                    <div className="grid grid-cols-3 gap-2 text-[11px] text-slate-600 my-2">
-                                        <div>
-                                            Distance: <strong className="text-slate-900">{routeCheckResult.standard_route?.distance_km} km</strong>
-                                        </div>
-                                        <div>
-                                            Travel: <strong className="text-slate-900">{routeCheckResult.standard_route?.est_time_min} mins</strong>
-                                        </div>
-                                        <div>
-                                            Max Flood: <strong className="text-rose-600">🌊 {routeCheckResult.standard_route?.max_water_depth_cm} cm</strong>
-                                        </div>
-                                    </div>
-                                    {routeCheckResult.standard_route?.danger_points?.[0] && (
-                                        <div className="text-[10px] text-rose-800 bg-rose-100/80 px-2.5 py-1.5 rounded-xl">
-                                            ⚠️ <strong>Hazard Bottleneck:</strong> {routeCheckResult.standard_route.danger_points[0].name} ({routeCheckResult.standard_route.danger_points[0].hazard})
-                                        </div>
-                                    )}
-                                </div>
 
-                                <div className="rounded-2xl p-3.5 bg-emerald-50 border border-emerald-200 text-emerald-900">
-                                    <div className="flex items-center justify-between mb-1.5">
-                                        <span className="text-xs font-bold flex items-center gap-1.5 text-emerald-700">
-                                            🟢 Safe Elevation Corridor (Recommended)
-                                        </span>
-                                        <span className="text-[10px] font-extrabold px-2 py-0.5 rounded-full bg-emerald-200 text-emerald-800">
-                                            {routeCheckResult.safe_corridor?.status_label || "SAFE PASSAGE"}
-                                        </span>
-                                    </div>
-                                    <div className="grid grid-cols-3 gap-2 text-[11px] text-slate-600 my-2">
-                                        <div>
-                                            Distance: <strong className="text-slate-900">{routeCheckResult.safe_corridor?.distance_km} km</strong>
-                                        </div>
-                                        <div>
-                                            Travel: <strong className="text-slate-900">{routeCheckResult.safe_corridor?.est_time_min} mins</strong>
-                                        </div>
-                                        <div>
-                                            Max Flood: <strong className="text-emerald-600">🌊 {routeCheckResult.safe_corridor?.max_water_depth_cm} cm</strong>
-                                        </div>
-                                    </div>
-                                    <div className="flex items-center justify-between text-[10px] text-emerald-800 bg-emerald-100/80 px-2.5 py-1.5 rounded-xl">
-                                        <span>🛡️ <strong>Highland Bypass:</strong> Elevated Flyover Route</span>
-                                        <span className="font-bold">+{routeCheckResult.safe_corridor?.detour_time_min} min detour (+{routeCheckResult.safe_corridor?.detour_dist_km} km)</span>
-                                    </div>
+                                    {!routeCheckResult.is_real_api && (
+                                        <p className="text-[10px] text-amber-800 bg-amber-50 border border-amber-200 px-2.5 py-1.5 rounded-xl">
+                                            ⚠️ Live weather unavailable — depth could not be computed.
+                                        </p>
+                                    )}
+
+                                    <p className="text-[10px] text-slate-500 leading-relaxed">
+                                        {routeCheckResult.note} Terrain: {routeCheckResult.terrain_profile?.dem_source_label}.
+                                    </p>
                                 </div>
-                            </div>
-                        )}
+                            );
+                        })()}
                         {routeCheckResult && routeCheckResult.error && (
                             <p className="mt-3 text-xs text-rose-500 font-semibold">{routeCheckResult.error}</p>
                         )}

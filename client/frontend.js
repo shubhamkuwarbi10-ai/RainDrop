@@ -4135,6 +4135,14 @@ function HeroView({
  */
 
 // --- MODULE: client/src/components/map/InteractiveVectorMap.jsx ---
+// Marker colours for /api/spot_check verdicts.
+const SPOT_VERDICT_COLORS = {
+  CLEAR: '#10b981',
+  CAUTION: '#f59e0b',
+  UNSAFE: '#dc2626',
+  IMPASSABLE: '#991b1b',
+  UNKNOWN: '#64748b'
+};
 function InteractiveVectorMap(props) {
   const {
     wardData,
@@ -4430,32 +4438,22 @@ function InteractiveVectorMap(props) {
       } catch (_) {}
     }
 
-    // Render Safe Corridor & Bypass Route Lines if available
-    if (routeCheckResult && routeCheckResult.standard_route && routeCheckResult.safe_corridor) {
-      const stdCoords = routeCheckResult.standard_route.coordinates || [];
-      const safeCoords = routeCheckResult.safe_corridor.coordinates || [];
-      if (stdCoords.length >= 2) {
-        const stdPoly = window.L.polyline(stdCoords, {
-          color: '#dc2626',
-          weight: 4,
-          dashArray: '6, 8',
-          opacity: 0.9
+    // Mark the point assessed by the spot check. No route geometry is drawn:
+    // there is no road graph, so any corridor line would be invented.
+    if (routeCheckResult && routeCheckResult.coordinates) {
+      const {
+        lat,
+        lon
+      } = routeCheckResult.coordinates;
+      if (typeof lat === 'number' && typeof lon === 'number') {
+        const marker = window.L.circleMarker([lat, lon], {
+          radius: 10,
+          color: SPOT_VERDICT_COLORS[routeCheckResult.verdict] || SPOT_VERDICT_COLORS.UNKNOWN,
+          weight: 3,
+          fillOpacity: 0.35
         }).addTo(map);
-        markersRef.current.push(stdPoly);
-      }
-      if (safeCoords.length >= 2) {
-        const safePoly = window.L.polyline(safeCoords, {
-          color: '#10b981',
-          weight: 6,
-          opacity: 0.95
-        }).addTo(map);
-        markersRef.current.push(safePoly);
-        const allRoutePoints = [...stdCoords, ...safeCoords];
-        try {
-          map.fitBounds(allRoutePoints, {
-            padding: [50, 50]
-          });
-        } catch (_) {}
+        marker.bindPopup(`<strong>${routeCheckResult.ward_name}</strong><br/>` + `${routeCheckResult.verdict}` + (routeCheckResult.predicted_flood_depth_cm == null ? '' : ` — ${routeCheckResult.predicted_flood_depth_cm} cm`));
+        markersRef.current.push(marker);
       }
     }
   }, [wardData, sectorDepths, layers, mapStyle, mapToggles, timelineStep, activeRoute, isSimulatingRoute, routeProgress, routeCheckResult]);
@@ -4681,37 +4679,31 @@ function SectorDrawer({
     className: "font-bold text-slate-800 flex items-center gap-1.5"
   }, /*#__PURE__*/React.createElement(ShieldCheck, {
     className: "w-4 h-4 text-blue-600"
-  }), "Verified Sensor Telemetry"), /*#__PURE__*/React.createElement("span", {
-    className: "font-mono text-[10px] font-bold text-emerald-700 bg-emerald-100/80 px-2 py-0.5 rounded-full"
-  }, "96.4% Calibrated")), /*#__PURE__*/React.createElement("div", {
+  }), "Data Provenance"), /*#__PURE__*/React.createElement("span", {
+    className: "font-mono text-[10px] font-bold text-amber-700 bg-amber-100/80 px-2 py-0.5 rounded-full"
+  }, "Modelled")), /*#__PURE__*/React.createElement("div", {
     className: "space-y-1.5 text-[11px] text-slate-600"
   }, /*#__PURE__*/React.createElement("div", {
     className: "flex justify-between items-center"
   }, /*#__PURE__*/React.createElement("span", {
     className: "text-slate-400"
-  }, "Sensor Station:"), /*#__PURE__*/React.createElement("span", {
-    className: "font-mono font-semibold text-slate-700"
-  }, sector.stationId || `CWC-${sector.id + 101}`)), /*#__PURE__*/React.createElement("div", {
-    className: "flex justify-between items-center"
-  }, /*#__PURE__*/React.createElement("span", {
-    className: "text-slate-400"
-  }, "Primary Authority:"), /*#__PURE__*/React.createElement("span", {
+  }, "Rainfall:"), /*#__PURE__*/React.createElement("span", {
     className: "font-medium text-slate-700"
-  }, "Municipal Stormwater Dept + IMD")), /*#__PURE__*/React.createElement("div", {
+  }, "NASA GPM IMERG nowcast")), /*#__PURE__*/React.createElement("div", {
     className: "flex justify-between items-center"
   }, /*#__PURE__*/React.createElement("span", {
     className: "text-slate-400"
-  }, "Gauge Sensor:"), /*#__PURE__*/React.createElement("span", {
+  }, "Terrain:"), /*#__PURE__*/React.createElement("span", {
     className: "font-medium text-slate-700"
-  }, "Hydrostatic Pressure Transducer")), /*#__PURE__*/React.createElement("div", {
+  }, "30m DEM surface hydrology")), /*#__PURE__*/React.createElement("div", {
     className: "flex justify-between items-center"
   }, /*#__PURE__*/React.createElement("span", {
     className: "text-slate-400"
-  }, "Telemetry Feed:"), /*#__PURE__*/React.createElement("span", {
-    className: "font-mono text-emerald-700 font-semibold flex items-center gap-1"
-  }, /*#__PURE__*/React.createElement("span", {
-    className: "w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"
-  }), "Live (Updated 2 mins ago)"))))), /*#__PURE__*/React.createElement("div", {
+  }, "Depth estimate:"), /*#__PURE__*/React.createElement("span", {
+    className: "font-medium text-slate-700"
+  }, "ML surrogate (unvalidated)")), /*#__PURE__*/React.createElement("p", {
+    className: "text-[10px] text-slate-500 leading-relaxed pt-1"
+  }, "No in-situ gauge or sensor feed. Figures are model output, not measurements.")))), /*#__PURE__*/React.createElement("div", {
     className: "flex flex-col gap-2 pt-4 border-t border-slate-100"
   }, /*#__PURE__*/React.createElement("button", {
     onClick: () => setShowRouteTip(!showRouteTip),
@@ -5723,6 +5715,34 @@ if (typeof window !== "undefined") {
 }
 
 // --- MODULE: client/src/App.jsx ---
+// Colour mapping for /api/spot_check verdicts.
+const VERDICT_STYLES = {
+  CLEAR: {
+    box: "bg-emerald-50 border-emerald-200",
+    pill: "bg-emerald-200 text-emerald-800",
+    text: "text-emerald-700"
+  },
+  CAUTION: {
+    box: "bg-amber-50 border-amber-200",
+    pill: "bg-amber-200 text-amber-900",
+    text: "text-amber-700"
+  },
+  UNSAFE: {
+    box: "bg-rose-50 border-rose-200",
+    pill: "bg-rose-200 text-rose-800",
+    text: "text-rose-700"
+  },
+  IMPASSABLE: {
+    box: "bg-rose-100 border-rose-300",
+    pill: "bg-rose-600 text-white",
+    text: "text-rose-800"
+  },
+  UNKNOWN: {
+    box: "bg-slate-50 border-slate-200",
+    pill: "bg-slate-200 text-slate-700",
+    text: "text-slate-600"
+  }
+};
 function RainDrop() {
   const [view, setView] = useState("hero"); // 'hero' (Editorial Landing) | 'overview' (3:7 City & Ward Matrix) | 'command' (Operations Center Map)
   const [activeTab, setActiveTab] = useState("telemetry"); // 'telemetry' | 'routes' | 'scenario' | 'map'
@@ -5858,9 +5878,7 @@ function RainDrop() {
 
   // --- Route Check Form ---
   const [routeCheckOpen, setRouteCheckOpen] = useState(false);
-  const [routeOrigin, setRouteOrigin] = useState("");
-  const [routeDest, setRouteDest] = useState("");
-  const [routeDepth, setRouteDepth] = useState(0);
+  const [spotWard, setSpotWard] = useState("");
   const [routeCheckBusy, setRouteCheckBusy] = useState(false);
   const [routeCheckResult, setRouteCheckResult] = useState(null);
   const pushToast = msg => {
@@ -6027,24 +6045,29 @@ function RainDrop() {
   // --- Route Check API Call ---
   const handleRouteCheck = async e => {
     e.preventDefault();
-    if (!routeOrigin.trim() || !routeDest.trim()) return;
+    if (!spotWard.trim()) return;
     setRouteCheckBusy(true);
     setRouteCheckResult(null);
     try {
       const params = new URLSearchParams({
-        origin: routeOrigin,
-        destination: routeDest,
-        depth_cm: routeDepth
+        ward_name: spotWard
       });
-      const res = await fetch(`/api/route_check?${params}`);
+      const res = await fetch(`/api/spot_check?${params}`);
       const data = await res.json();
+      if (!res.ok) {
+        setRouteCheckResult({
+          error: data.detail || `Request failed (${res.status})`
+        });
+        pushToast(data.detail || "Spot check failed");
+        return;
+      }
       setRouteCheckResult(data);
-      pushToast(`Route safety check complete: ${data && data.standard_route && data.standard_route.status || "DONE"}`);
+      pushToast(`Spot check complete: ${data.verdict || "DONE"}`);
     } catch (err) {
       setRouteCheckResult({
         error: err.message
       });
-      pushToast("Route check failed — backend offline?");
+      pushToast("Spot check failed — backend offline?");
     } finally {
       setRouteCheckBusy(false);
     }
@@ -6237,11 +6260,11 @@ function RainDrop() {
     className: "w-5 h-5"
   })), /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("h2", {
     className: "text-base font-bold text-slate-900 flex items-center gap-2"
-  }, "Dual-Corridor Safe Routing", /*#__PURE__*/React.createElement("span", {
+  }, "Ward Flood Spot Check", /*#__PURE__*/React.createElement("span", {
     className: "text-[10px] px-2 py-0.5 rounded-full bg-blue-100 text-blue-700 font-bold uppercase"
-  }, "30m DEM High-Ground")), /*#__PURE__*/React.createElement("p", {
+  }, "30m CartoDEM")), /*#__PURE__*/React.createElement("p", {
     className: "text-xs text-slate-500"
-  }, "Bypasses inundated underpasses & lowlands using surface elevation data"))), /*#__PURE__*/React.createElement("form", {
+  }, "Predicted standing-water depth at a ward, from live rainfall and terrain"))), /*#__PURE__*/React.createElement("form", {
     onSubmit: e => {
       if (e.target._gotcha && e.target._gotcha.value) {
         e.preventDefault();
@@ -6259,35 +6282,21 @@ function RainDrop() {
     tabIndex: -1,
     autoComplete: "off",
     "aria-hidden": "true"
-  }), /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("label", {
-    className: "block text-[11px] font-bold text-slate-600 mb-1"
-  }, "Origin Landmark"), /*#__PURE__*/React.createElement("input", {
-    value: routeOrigin,
-    onChange: e => setRouteOrigin(e.target.value),
-    placeholder: "e.g. Kurla Station",
-    required: true,
-    className: "w-full rounded-2xl border border-slate-200 bg-slate-50 px-3.5 py-2 text-xs text-slate-900 placeholder-slate-400 focus:border-blue-500 focus:bg-white focus:outline-none"
-  })), /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("label", {
-    className: "block text-[11px] font-bold text-slate-600 mb-1"
-  }, "Destination"), /*#__PURE__*/React.createElement("input", {
-    value: routeDest,
-    onChange: e => setRouteDest(e.target.value),
-    placeholder: "e.g. BKC Connector",
-    required: true,
-    className: "w-full rounded-2xl border border-slate-200 bg-slate-50 px-3.5 py-2 text-xs text-slate-900 placeholder-slate-400 focus:border-blue-500 focus:bg-white focus:outline-none"
-  })), /*#__PURE__*/React.createElement("div", {
+  }), /*#__PURE__*/React.createElement("div", {
     className: "sm:col-span-2"
   }, /*#__PURE__*/React.createElement("label", {
+    htmlFor: "spot-ward",
     className: "block text-[11px] font-bold text-slate-600 mb-1"
-  }, "Simulated Flood Water Depth (cm)"), /*#__PURE__*/React.createElement("input", {
-    type: "number",
-    min: "0",
-    max: "200",
-    step: "1",
-    value: routeDepth,
-    onChange: e => setRouteDepth(Number(e.target.value)),
+  }, "Ward"), /*#__PURE__*/React.createElement("input", {
+    id: "spot-ward",
+    value: spotWard,
+    onChange: e => setSpotWard(e.target.value),
+    placeholder: "e.g. Velachery",
+    required: true,
     className: "w-full rounded-2xl border border-slate-200 bg-slate-50 px-3.5 py-2 text-xs text-slate-900 placeholder-slate-400 focus:border-blue-500 focus:bg-white focus:outline-none"
-  })), /*#__PURE__*/React.createElement("div", {
+  }), /*#__PURE__*/React.createElement("p", {
+    className: "mt-1 text-[10px] text-slate-500"
+  }, "Predicted flood depth at this ward from live rainfall and 30m CartoDEM terrain.")), /*#__PURE__*/React.createElement("div", {
     className: "sm:col-span-2 mt-1"
   }, /*#__PURE__*/React.createElement("button", {
     type: "submit",
@@ -6295,49 +6304,37 @@ function RainDrop() {
     className: "w-full flex items-center justify-center gap-2 py-2.5 rounded-2xl bg-blue-600 hover:bg-blue-700 text-white text-xs font-bold shadow-md shadow-blue-500/20 transition-all cursor-pointer disabled:opacity-50"
   }, routeCheckBusy ? /*#__PURE__*/React.createElement(React.Fragment, null, /*#__PURE__*/React.createElement(RefreshCw, {
     className: "w-3.5 h-3.5 animate-spin"
-  }), " Analyzing 30m Elevation Corridors…") : /*#__PURE__*/React.createElement(React.Fragment, null, /*#__PURE__*/React.createElement(Send, {
+  }), " Checking ward conditions…") : /*#__PURE__*/React.createElement(React.Fragment, null, /*#__PURE__*/React.createElement(Send, {
     className: "w-3.5 h-3.5"
-  }), " Check Dual-Corridor Safety")))), routeCheckResult && !routeCheckResult.error && /*#__PURE__*/React.createElement("div", {
-    className: "space-y-3 border-t border-slate-100 pt-4"
-  }, /*#__PURE__*/React.createElement("div", {
-    className: "rounded-2xl p-3.5 bg-rose-50 border border-rose-200 text-rose-900"
-  }, /*#__PURE__*/React.createElement("div", {
-    className: "flex items-center justify-between mb-1.5"
-  }, /*#__PURE__*/React.createElement("span", {
-    className: "text-xs font-bold flex items-center gap-1.5 text-rose-700"
-  }, "🔴 Standard Direct Route"), /*#__PURE__*/React.createElement("span", {
-    className: "text-[10px] font-extrabold px-2 py-0.5 rounded-full bg-rose-200 text-rose-800"
-  }, routeCheckResult.standard_route?.status_label || "HAZARDOUS")), /*#__PURE__*/React.createElement("div", {
-    className: "grid grid-cols-3 gap-2 text-[11px] text-slate-600 my-2"
-  }, /*#__PURE__*/React.createElement("div", null, "Distance: ", /*#__PURE__*/React.createElement("strong", {
-    className: "text-slate-900"
-  }, routeCheckResult.standard_route?.distance_km, " km")), /*#__PURE__*/React.createElement("div", null, "Travel: ", /*#__PURE__*/React.createElement("strong", {
-    className: "text-slate-900"
-  }, routeCheckResult.standard_route?.est_time_min, " mins")), /*#__PURE__*/React.createElement("div", null, "Max Flood: ", /*#__PURE__*/React.createElement("strong", {
-    className: "text-rose-600"
-  }, "🌊 ", routeCheckResult.standard_route?.max_water_depth_cm, " cm"))), routeCheckResult.standard_route?.danger_points?.[0] && /*#__PURE__*/React.createElement("div", {
-    className: "text-[10px] text-rose-800 bg-rose-100/80 px-2.5 py-1.5 rounded-xl"
-  }, "⚠️ ", /*#__PURE__*/React.createElement("strong", null, "Hazard Bottleneck:"), " ", routeCheckResult.standard_route.danger_points[0].name, " (", routeCheckResult.standard_route.danger_points[0].hazard, ")")), /*#__PURE__*/React.createElement("div", {
-    className: "rounded-2xl p-3.5 bg-emerald-50 border border-emerald-200 text-emerald-900"
-  }, /*#__PURE__*/React.createElement("div", {
-    className: "flex items-center justify-between mb-1.5"
-  }, /*#__PURE__*/React.createElement("span", {
-    className: "text-xs font-bold flex items-center gap-1.5 text-emerald-700"
-  }, "🟢 Safe Elevation Corridor (Recommended)"), /*#__PURE__*/React.createElement("span", {
-    className: "text-[10px] font-extrabold px-2 py-0.5 rounded-full bg-emerald-200 text-emerald-800"
-  }, routeCheckResult.safe_corridor?.status_label || "SAFE PASSAGE")), /*#__PURE__*/React.createElement("div", {
-    className: "grid grid-cols-3 gap-2 text-[11px] text-slate-600 my-2"
-  }, /*#__PURE__*/React.createElement("div", null, "Distance: ", /*#__PURE__*/React.createElement("strong", {
-    className: "text-slate-900"
-  }, routeCheckResult.safe_corridor?.distance_km, " km")), /*#__PURE__*/React.createElement("div", null, "Travel: ", /*#__PURE__*/React.createElement("strong", {
-    className: "text-slate-900"
-  }, routeCheckResult.safe_corridor?.est_time_min, " mins")), /*#__PURE__*/React.createElement("div", null, "Max Flood: ", /*#__PURE__*/React.createElement("strong", {
-    className: "text-emerald-600"
-  }, "🌊 ", routeCheckResult.safe_corridor?.max_water_depth_cm, " cm"))), /*#__PURE__*/React.createElement("div", {
-    className: "flex items-center justify-between text-[10px] text-emerald-800 bg-emerald-100/80 px-2.5 py-1.5 rounded-xl"
-  }, /*#__PURE__*/React.createElement("span", null, "🛡️ ", /*#__PURE__*/React.createElement("strong", null, "Highland Bypass:"), " Elevated Flyover Route"), /*#__PURE__*/React.createElement("span", {
-    className: "font-bold"
-  }, "+", routeCheckResult.safe_corridor?.detour_time_min, " min detour (+", routeCheckResult.safe_corridor?.detour_dist_km, " km)")))), routeCheckResult && routeCheckResult.error && /*#__PURE__*/React.createElement("p", {
+  }), " Check Flood Depth")))), routeCheckResult && !routeCheckResult.error && (() => {
+    const vs = VERDICT_STYLES[routeCheckResult.verdict] || VERDICT_STYLES.UNKNOWN;
+    const depth = routeCheckResult.predicted_flood_depth_cm;
+    return /*#__PURE__*/React.createElement("div", {
+      className: "space-y-3 border-t border-slate-100 pt-4"
+    }, /*#__PURE__*/React.createElement("div", {
+      className: `rounded-2xl p-3.5 border ${vs.box}`
+    }, /*#__PURE__*/React.createElement("div", {
+      className: "flex items-center justify-between mb-2"
+    }, /*#__PURE__*/React.createElement("span", {
+      className: `text-xs font-bold ${vs.text}`
+    }, routeCheckResult.ward_name, routeCheckResult.code ? ` · ${routeCheckResult.code}` : ""), /*#__PURE__*/React.createElement("span", {
+      className: `text-[10px] font-extrabold px-2 py-0.5 rounded-full ${vs.pill}`
+    }, routeCheckResult.verdict)), /*#__PURE__*/React.createElement("p", {
+      className: "text-[11px] text-slate-700 mb-2.5"
+    }, routeCheckResult.advice), /*#__PURE__*/React.createElement("div", {
+      className: "grid grid-cols-3 gap-2 text-[11px] text-slate-600"
+    }, /*#__PURE__*/React.createElement("div", null, "Depth: ", /*#__PURE__*/React.createElement("strong", {
+      className: "text-slate-900"
+    }, depth === null || depth === undefined ? "—" : `${depth} cm`)), /*#__PURE__*/React.createElement("div", null, "Rain: ", /*#__PURE__*/React.createElement("strong", {
+      className: "text-slate-900"
+    }, routeCheckResult.rainfall?.total_mm ?? "—", " mm")), /*#__PURE__*/React.createElement("div", null, "Peak: ", /*#__PURE__*/React.createElement("strong", {
+      className: "text-slate-900"
+    }, routeCheckResult.rainfall?.peak_intensity_mm_hr ?? "—", " mm/hr")))), !routeCheckResult.is_real_api && /*#__PURE__*/React.createElement("p", {
+      className: "text-[10px] text-amber-800 bg-amber-50 border border-amber-200 px-2.5 py-1.5 rounded-xl"
+    }, "⚠️ Live weather unavailable — depth could not be computed."), /*#__PURE__*/React.createElement("p", {
+      className: "text-[10px] text-slate-500 leading-relaxed"
+    }, routeCheckResult.note, " Terrain: ", routeCheckResult.terrain_profile?.dem_source_label, "."));
+  })(), routeCheckResult && routeCheckResult.error && /*#__PURE__*/React.createElement("p", {
     className: "mt-3 text-xs text-rose-500 font-semibold"
   }, routeCheckResult.error))), simulationModalOpen && /*#__PURE__*/React.createElement("div", {
     className: "fixed inset-0 z-[900] flex items-center justify-center p-4",

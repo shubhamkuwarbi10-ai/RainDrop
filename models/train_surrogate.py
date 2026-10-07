@@ -46,7 +46,7 @@ def extract_dem_samples_from_rasters(num_samples: int = 5000):
                 logging.warning(f"Could not read {city} DEM rasters: {e}")
                 
     if len(elevations) < 500:
-        logging.info("Falling back to standard CartoDEM summary statistical sampling.")
+        logging.warning("No usable DEM rasters found - substituting UNIFORM RANDOM elevation/slope. Features are fabricated.")
         elevations = np.random.uniform(0.5, 235.0, num_samples)
         slopes = np.random.uniform(0.1, 5.0, num_samples)
     else:
@@ -55,11 +55,20 @@ def extract_dem_samples_from_rasters(num_samples: int = 5000):
         
     return elevations, slopes
 
-def generate_swmm_dataset(num_samples: int = 5000):
+def generate_synthetic_dataset(num_samples: int = 5000):
     """
-    Generate hydrodynamic training dataset using 30m CartoDEM real elevation and slope distributions:
+    Generate a SYNTHETIC training dataset.
+
+    Features (elevation, slope) are sampled from real 30m CartoDEM rasters when
+    available. The TARGET IS NOT OBSERVED OR SIMULATED DATA: it is computed from
+    the parametric runoff approximation below. No hydrodynamic solver (EPA-SWMM
+    or otherwise) is run anywhere in this project.
+
+    Consequence: a model fitted here can only recover that equation. Its accuracy
+    against real flood depths is UNVALIDATED. See README 'Model status'.
+
     Features: [total_precip_mm, peak_intensity_mm_hr, slope_deg, elevation_m, impermeability_pct]
-    Target: water_level_increase_cm (Predicted flood water depth)
+    Target:   water_level_increase_cm
     """
     np.random.seed(42)
     dem_elevations, dem_slopes = extract_dem_samples_from_rasters(num_samples)
@@ -73,9 +82,9 @@ def generate_swmm_dataset(num_samples: int = 5000):
     peak = precip * np.random.uniform(0.7, 1.8, num_samples) / 3.5 # mm/hr peak intensity
     impermeability = np.random.uniform(45.0, 95.0, num_samples) # Urban surface impermeability (%)
 
-    # Hydrodynamic Water Level Increase Physics Equation:
-    # Water level increases with total precip, peak intensity, and urban impermeability,
-    # but decreases on steep slopes (fast drainage) and higher elevations (headwater zones).
+    # Parametric runoff approximation (NOT a physics solver and NOT calibrated
+    # against observations). Coefficients are chosen to be directionally plausible:
+    # depth rises with precip, intensity and impermeability; falls with slope and elevation.
     water_level_increase_cm = (
         0.42 * precip +
         0.35 * peak +
@@ -94,8 +103,8 @@ def train_surrogate_model(artifacts_dir: str = "models/artifacts"):
     artifacts_path = Path(artifacts_dir)
     artifacts_path.mkdir(parents=True, exist_ok=True)
 
-    logging.info("Generating SWMM training dataset from 30m CartoDEM GeoTIFF rasters...")
-    X, y = generate_swmm_dataset(5000)
+    logging.warning("Training on SYNTHETIC targets from a parametric equation - not SWMM, not observed data.")
+    X, y = generate_synthetic_dataset(5000)
 
     logging.info("Training Hydrodynamic Water Level Regressor...")
     model = RandomForestRegressor(n_estimators=120, max_depth=10, random_state=42)
@@ -105,7 +114,10 @@ def train_surrogate_model(artifacts_dir: str = "models/artifacts"):
     r2 = r2_score(y, y_pred)
     rmse = np.sqrt(mean_squared_error(y, y_pred))
 
-    logging.info(f"CartoDEM ML Surrogate Model Training Complete! R2 Score: {r2:.4f}, RMSE: {rmse:.4f} cm")
+    # NOTE: computed on the training set. This is NOT a generalisation estimate -
+    # and because the target is a deterministic equation, a high value is guaranteed
+    # by construction. Add a held-out split before quoting these anywhere.
+    logging.info(f"Training complete. IN-SAMPLE (not held-out) R2: {r2:.4f}, RMSE: {rmse:.4f} cm")
 
     model_file = artifacts_path / "flood_surrogate.pkl"
     with open(model_file, "wb") as f:
