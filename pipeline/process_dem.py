@@ -38,25 +38,34 @@ def _overlaps_aoi(bounds, lon_min, lon_max, lat_min, lat_max):
         or bounds.top <= lat_min or bounds.bottom >= lat_max
     )
 
-# City Bounding Boxes (WGS84)
+# CartoDEM v3 R1 raw values: the sea is flattened to -255 (matches the Copernicus
+# coastline on 98-99% of AOI pixels); voids are -1024 or lower.
+CARTODEM_SEA = -255
+CARTODEM_VOID_MAX = -1000
+
+# City Bounding Boxes (WGS84). geoid_n = EGM2008 geoid undulation N (m), mean over
+# the AOI; it varies < 2.5 m inside each box, below CartoDEM's own vertical error.
 CITY_AOIS = {
     "chennai": {
         "name": "Chennai",
         "lon_min": 80.10, "lon_max": 80.45,
         "lat_min": 12.90, "lat_max": 13.30,
-        "base_elevation": 12.0, "elevation_scale": 25.0
+        "base_elevation": 12.0, "elevation_scale": 25.0,
+        "geoid_n": -92.1
     },
     "mumbai": {
         "name": "Mumbai",
         "lon_min": 72.75, "lon_max": 72.95,
         "lat_min": 18.90, "lat_max": 19.10,
-        "base_elevation": 8.0, "elevation_scale": 45.0
+        "base_elevation": 8.0, "elevation_scale": 45.0,
+        "geoid_n": -68.0
     },
     "delhi": {
         "name": "Delhi",
         "lon_min": 76.80, "lon_max": 77.40,
         "lat_min": 28.40, "lat_max": 29.00,
-        "base_elevation": 215.0, "elevation_scale": 35.0
+        "base_elevation": 215.0, "elevation_scale": 35.0,
+        "geoid_n": -52.1
     }
 }
 
@@ -286,14 +295,20 @@ def process_city_cartodem(city_key: str, output_dir: str = "data/processed", res
                         f"(window rows {r0}:{r1}, cols {c0}:{c1})"
                     )
 
-                elev_data = mosaic[0, r0:r1, c0:c1].astype(np.float32)
+                raw = mosaic[0, r0:r1, c0:c1]
                 logging.info(
                     f"Cropped CartoDEM mosaic {mosaic.shape[1]}x{mosaic.shape[2]} -> "
-                    f"{elev_data.shape[0]}x{elev_data.shape[1]} over the {cfg['name']} AOI"
+                    f"{raw.shape[0]}x{raw.shape[1]} over the {cfg['name']} AOI"
                 )
-                elev_data[elev_data < -100] = np.nan
+                # CartoDEM heights are WGS84-ellipsoidal (h); H = h - N gives height
+                # above mean sea level. Coastal raw land values are negative, so the
+                # old "< -100 is nodata" test turned real terrain into fill.
+                elev_data = raw.astype(np.float32) - cfg["geoid_n"]
+                sea = raw == CARTODEM_SEA
+                elev_data[(raw <= CARTODEM_VOID_MAX) | sea] = np.nan
                 valid_mean = float(np.nanmean(elev_data)) if not np.isnan(np.nanmean(elev_data)) else cfg["base_elevation"]
                 elev_data = np.nan_to_num(elev_data, nan=valid_mean)
+                elev_data[sea] = 0.0
                 elev_data[elev_data <= 0] = 0.5
                 
                 # Resize elevation grid to required rows x cols
