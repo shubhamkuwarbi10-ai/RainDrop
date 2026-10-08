@@ -3,7 +3,9 @@ import pickle
 import numpy as np
 from pathlib import Path
 from sklearn.ensemble import RandomForestRegressor
+from sklearn.linear_model import LinearRegression
 from sklearn.metrics import mean_squared_error, r2_score
+from sklearn.model_selection import train_test_split
 import logging
 
 try:
@@ -13,6 +15,9 @@ except ImportError:
     HAS_RASTERIO = False
 
 logging.basicConfig(level=logging.INFO, format='%(levelname)s: %(message)s')
+
+PRECIP_MAX_MM = 400.0  # trees cannot extrapolate: predictions plateau above this
+
 
 def extract_dem_samples_from_rasters(num_samples: int = 5000):
     """
@@ -33,8 +38,9 @@ def extract_dem_samples_from_rasters(num_samples: int = 5000):
                     d_grid = d_src.read(1).flatten()
                     s_grid = s_src.read(1).flatten()
                     
-                    # Subsample valid pixels
-                    valid_mask = (d_grid > 0) & (~np.isnan(d_grid)) & (~np.isnan(s_grid))
+                    # Subsample valid land pixels. process_dem writes sea (and land below
+                    # MSL) as exactly 0.5 m; > 0 let those in, and they were 34% of rows.
+                    valid_mask = (d_grid > 0.5) & (~np.isnan(d_grid)) & (~np.isnan(s_grid))
                     valid_d = d_grid[valid_mask]
                     valid_s = s_grid[valid_mask]
                     
@@ -78,7 +84,9 @@ def generate_synthetic_dataset(num_samples: int = 5000):
     elevation = dem_elevations[idx]
     slope = dem_slopes[idx]
     
-    precip = np.random.uniform(0.0, 120.0, num_samples) # mm total 24h precip
+    # mm total 24 h precip. Up to 120 mm, the forest flat-lined at ~72 cm for any
+    # heavier day; IMD "extremely heavy" starts at 204.5 mm/24 h, Mumbai sees more.
+    precip = np.random.uniform(0.0, PRECIP_MAX_MM, num_samples)
     peak = precip * np.random.uniform(0.7, 1.8, num_samples) / 3.5 # mm/hr peak intensity
     impermeability = np.random.uniform(45.0, 95.0, num_samples) # Urban surface impermeability (%)
 
@@ -106,18 +114,28 @@ def train_surrogate_model(artifacts_dir: str = "models/artifacts"):
     logging.warning("Training on SYNTHETIC targets from a parametric equation - not SWMM, not observed data.")
     X, y = generate_synthetic_dataset(5000)
 
+    X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
+
     logging.info("Training Hydrodynamic Water Level Regressor...")
     model = RandomForestRegressor(n_estimators=120, max_depth=10, random_state=42)
-    model.fit(X, y)
+    model.fit(X_train, y_train)
+    baseline = LinearRegression().fit(X_train, y_train)
 
-    y_pred = model.predict(X)
-    r2 = r2_score(y, y_pred)
-    rmse = np.sqrt(mean_squared_error(y, y_pred))
-
-    # NOTE: computed on the training set. This is NOT a generalisation estimate -
-    # and because the target is a deterministic equation, a high value is guaranteed
-    # by construction. Add a held-out split before quoting these anywhere.
-    logging.info(f"Training complete. IN-SAMPLE (not held-out) R2: {r2:.4f}, RMSE: {rmse:.4f} cm")
+    # Held-out scores against the SAME synthetic equation. They show how well the
+    # forest copies that equation, not how well it predicts real floods.
+    def score(m):
+        p = m.predict(X_test)
+        return {"r2": round(float(r2_score(y_test, p)), 4),
+                "rmse_cm": round(float(np.sqrt(mean_squared_error(y_test, p))), 3)}
+    metrics = {
+        "target": "synthetic parametric equation (not observed, not SWMM)",
+        "rain_horizon_h": 24,
+        "precip_range_mm": [0.0, PRECIP_MAX_MM],
+        "n_train": len(y_train), "n_test": len(y_test),
+        "held_out": {"random_forest": score(model), "linear_baseline": score(baseline)},
+    }
+    logging.info(f"HELD-OUT (synthetic target): {metrics['held_out']}")
+    (artifacts_path / "surrogate_metrics.json").write_text(json.dumps(metrics, indent=2))
 
     model_file = artifacts_path / "flood_surrogate.pkl"
     with open(model_file, "wb") as f:

@@ -488,7 +488,9 @@ def fetch_open_meteo_weather(lat: float, lon: float):
         f"latitude={lat}&longitude={lon}"
         f"&current=temperature_2m,relative_humidity_2m,precipitation,rain,showers,weather_code,wind_speed_10m"
         f"&hourly=precipitation,rain"
-        f"&forecast_days=1"
+        # The next 24 h from now. forecast_days=1 returned the current UTC calendar
+        # day, so "upcoming" hours started at UTC midnight and included the past.
+        f"&forecast_hours=24&timezone=auto"
     )
     req = urllib.request.Request(url, headers={"User-Agent": "RainDrop/1.0"})
     try:
@@ -519,8 +521,19 @@ def fetch_open_meteo_weather(lat: float, lon: float):
                 }
     except Exception as e:
         print(f"Open-Meteo API fetch error: {e}")
-    
     return {"success": False}
+
+
+def surrogate_rain_inputs(open_meteo_res, fallback_total, fallback_peak):
+    """
+    (24 h total mm, peak hourly rate mm/h): the horizon the surrogate is trained on.
+    Falls back to the shorter-horizon values when no 24 h forecast is available,
+    which under-states rainfall; callers already surface the weather source.
+    """
+    hourly = [float(v or 0.0) for v in open_meteo_res.get("hourly_precip", [])[:24]]
+    if open_meteo_res.get("success") and len(hourly) == 24:
+        return round(sum(hourly), 2), max(hourly)
+    return fallback_total, fallback_peak
 
 @app.get("/")
 def read_root():
@@ -611,10 +624,10 @@ def predict_rainfall(lat: float = Query(...), lon: float = Query(...)):
 
     # Accumulation = rate x step length. Summing the pySTEPS bands directly treated
     # 30-minute rates as totals and doubled the rainfall fed to the surrogate.
-    # ponytail: the surrogate was trained on 24 h totals; this is a 3 h (nowcast) or
-    # 12 h (Open-Meteo) total. Align the horizon when the surrogate is retrained.
     total_rainfall = round(sum(timeseries) * step_hours, 2)
     peak_intensity = max(timeseries) if timeseries else 0.0
+    # The surrogate is trained on 24 h totals; the displayed series is 3 h or 12 h.
+    model_rain, model_peak = surrogate_rain_inputs(open_meteo_res, total_rainfall, peak_intensity)
 
     # ML Surrogate Model Inference for Flood Depth (cm) using 30m CartoDEM Terrain Profile
     city_terrain = get_city_terrain(lat, lon)
@@ -624,7 +637,7 @@ def predict_rainfall(lat: float = Query(...), lon: float = Query(...)):
     
     if surrogate_model is not None:
         try:
-            features = np.array([[total_rainfall, peak_intensity, slope, elevation, impermeability]])
+            features = np.array([[model_rain, model_peak, slope, elevation, impermeability]])
             predicted_flood_depth_cm = float(surrogate_model.predict(features)[0])
         except Exception:
             predicted_flood_depth_cm = max(0.0, 0.4 * total_rainfall + 0.2 * peak_intensity - 1.0)
@@ -795,6 +808,7 @@ def get_ward_forecast(ward_name: str = Query("Velachery"), city: str = Query(Non
 
     total_rain = round(sum(timeseries), 2)
     peak_intensity = max(timeseries) if timeseries else 0.0
+    model_rain, model_peak = surrogate_rain_inputs(open_meteo_res, total_rain, peak_intensity)
 
     # Execute ML surrogate model on real terrain & live rainfall
     slope = city_terrain["slope"]
@@ -803,7 +817,7 @@ def get_ward_forecast(ward_name: str = Query("Velachery"), city: str = Query(Non
     
     if surrogate_model is not None:
         try:
-            feats = np.array([[total_rain, peak_intensity, slope, elevation, impermeability]])
+            feats = np.array([[model_rain, model_peak, slope, elevation, impermeability]])
             predicted_depth = float(surrogate_model.predict(feats)[0])
         except Exception:
             predicted_depth = max(0.0, 0.4 * total_rain + 0.2 * peak_intensity - 1.0)
