@@ -1,3 +1,14 @@
+// Forecast horizons. The nowcast was measured to beat a no-change baseline out to
+// 90 minutes and no further, so anything past +1h is marked rather than presented
+// at the same confidence as the rest.
+const TIMELINE_STEPS = [
+    { step: "Now", beyondSkill: false },
+    { step: "+1h", beyondSkill: false },
+    { step: "+3h", beyondSkill: true },
+    { step: "+6h", beyondSkill: true },
+    { step: "+12h", beyondSkill: true },
+];
+
 // Colour mapping for /api/spot_check verdicts.
 const VERDICT_STYLES = {
     CLEAR:      { box: "bg-emerald-50 border-emerald-200", pill: "bg-emerald-200 text-emerald-800", text: "text-emerald-700" },
@@ -1250,7 +1261,7 @@ function RainDrop() {
                                 </div>
 
                                 {/* Live Data Badge */}
-                                <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-emerald-50 border border-emerald-200/80 text-emerald-700 text-xs font-semibold shadow-2xs" title="Open-Meteo & IMD Live Radar Synchronized">
+                                <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-emerald-50 border border-emerald-200/80 text-emerald-700 text-xs font-semibold shadow-2xs" title="Open-Meteo forecast API. No IMD radar and no ground sensors are connected.">
                                     <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
                                     <span>Live Telemetry</span>
                                 </div>
@@ -1608,7 +1619,7 @@ function RainDrop() {
                                         </div>
                                         {/* Step Markers */}
                                         <div className="absolute inset-x-0 flex justify-between items-center px-1 pointer-events-none">
-                                            {["Now", "+1h", "+3h", "+6h", "+12h"].map((step, idx) => (
+                                            {TIMELINE_STEPS.map(({ step, beyondSkill }, idx) => (
                                                 <button
                                                     key={step}
                                                     type="button"
@@ -1616,8 +1627,13 @@ function RainDrop() {
                                                         e.stopPropagation();
                                                         setTimelineIndex(idx);
                                                         setTimeStep(idx);
-                                                        pushToast(`Timeline updated to ${step}`);
+                                                        pushToast(beyondSkill
+                                                            ? `${step} — beyond measured skill, indicative only`
+                                                            : `Timeline updated to ${step}`);
                                                     }}
+                                                    title={beyondSkill
+                                                        ? "Past the 90-minute horizon where the nowcast was measured to beat a no-change baseline. Indicative only."
+                                                        : "Within the measured skill horizon."}
                                                     className="pointer-events-auto flex flex-col items-center cursor-pointer group"
                                                 >
                                                     <div
@@ -1628,13 +1644,15 @@ function RainDrop() {
                                                         }`}
                                                     />
                                                     <span
-                                                        className={`text-[10px] mt-1.5 font-bold ${
+                                                        className={`text-[11px] mt-1.5 font-bold ${
                                                             timelineIndex === idx
                                                                 ? "text-blue-600 font-extrabold"
-                                                                : "text-slate-400"
+                                                                : beyondSkill
+                                                                    ? "text-slate-400 italic"
+                                                                    : "text-slate-500"
                                                         }`}
                                                     >
-                                                        {step}
+                                                        {step}{beyondSkill ? "*" : ""}
                                                     </span>
                                                 </button>
                                             ))}
@@ -1642,16 +1660,24 @@ function RainDrop() {
                                     </div>
                                 </div>
 
+                                {/* The only measured number this product has. It belongs next to the
+                                    control that sets the forecast horizon, not buried in a modal. */}
+                                <p className="w-full text-[11px] text-slate-500 leading-snug mt-1">
+                                    Rainfall nowcast skill, measured over 815 forecasts (Jun–Sep 2025):
+                                    <strong className="text-slate-700 font-semibold"> CSI 0.42 at 30 min, 0.16 at 90 min</strong> for
+                                    heavy rain. <span className="text-slate-400">*Beyond 90 min is indicative only. Depths are modelled, never measured.</span>
+                                </p>
+
                                 {/* Right Live Telemetry Refresh & Run Simulation Button */}
                                 <div className="flex items-center gap-3 shrink-0">
                                     <button
                                         type="button"
                                         onClick={() => {
                                             loadWardForecast(ward, selectedCity);
-                                            pushToast(`Live radar & telemetry refreshed at ${currentTime.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' })}`);
+                                            pushToast("Forecast refreshed from Open-Meteo. No radar or ground sensors are connected.");
                                         }}
                                         className="flex items-center gap-2 px-3.5 py-2 rounded-2xl bg-blue-50/90 hover:bg-blue-100/90 border border-blue-200/90 text-xs font-semibold text-blue-700 transition-all cursor-pointer shadow-2xs"
-                                        title="Click to fetch latest Open-Meteo Doppler observation and recompute ML depths"
+                                        title="Fetch the latest Open-Meteo forecast and recompute modelled depths"
                                     >
                                         <RefreshCw className={`w-3.5 h-3.5 text-blue-600 ${isFetchingForecast ? "animate-spin" : ""}`} />
                                         <span>Live Feed · {currentTime.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' })}</span>

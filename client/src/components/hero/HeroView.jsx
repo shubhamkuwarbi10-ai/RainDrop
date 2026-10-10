@@ -235,7 +235,7 @@ function HeroView({ ward, wardData, onEnter, onSelectCity, onOpenMap, pushToast 
             tagline: "Pinpoints low road dips and hollows where stormwater gathers first.",
             desc: "By reading high-accuracy satellite terrain heights across every street, RainDrop reveals exactly which intersections, underpasses, and neighborhood lanes sit in natural low points.",
             img: "/static/images/dibakar-roy-FbOchRlXaPs-unsplash.jpg",
-            benefits: ["Sub-meter street height precision", "Highlights deep road hollows", "Calculates downhill water flow", "Flags trapped water pockets"],
+            benefits: ["30 m terrain grid from ISRO CartoDEM", "Highlights deep road hollows", "Calculates downhill water flow", "Flags trapped water pockets"],
             tag: "Elevation Topography"
         },
         {
@@ -245,7 +245,7 @@ function HeroView({ ward, wardData, onEnter, onSelectCity, onOpenMap, pushToast 
             tagline: "Follows heavy cloudbursts minute-by-minute hours before rainfall peaks.",
             desc: "Streams live weather radar across every metropolitan area. It tracks storm clouds in motion so residents and municipal crews know exactly when and where heavy downpours will hit.",
             img: "/static/images/dibakar-roy-DccG84ivd3k-unsplash.jpg",
-            benefits: ["Live radar precipitation feed", "Storm direction and speed tracking", "5-minute cloud updates", "Up to 6 hours advance warning"],
+            benefits: ["NASA IMERG satellite rainfall", "Storm direction and speed tracking", "30-minute updates", "Useful to about 90 minutes ahead"],
             tag: "Radar Telemetry"
         },
         {
@@ -456,7 +456,7 @@ function HeroView({ ward, wardData, onEnter, onSelectCity, onOpenMap, pushToast 
                     <div className="flex items-center gap-2 sm:gap-3 text-[10px] sm:text-xs font-semibold tracking-[0.2em] uppercase text-black">
                         <span className="hover:text-emerald-700 transition-colors">REAL-TIME RADAR</span>
                         <span className="text-black/40">•</span>
-                        <span className="hover:text-emerald-700 transition-colors">ZERO FLOOD DELAYS</span>
+                        <span className="hover:text-emerald-700 transition-colors">OPEN ABOUT ITS LIMITS</span>
                         <span className="text-black/40">•</span>
                         <span className="hover:text-emerald-700 transition-colors">6 INDIAN BASINS</span>
                     </div>
@@ -1212,7 +1212,7 @@ function HeroView({ ward, wardData, onEnter, onSelectCity, onOpenMap, pushToast 
                                         </p>
                                     </div>
                                     <div className="mt-7 flex items-center justify-between text-sm border-t border-[#B3D6E6] pt-4">
-                                        <span className="font-bold text-amber-800">✓ 100% Engine Safety</span>
+                                        <span className="font-bold text-amber-800">Depth guidance by vehicle type</span>
                                         <span className="text-sky-700 font-bold group-hover:translate-x-1 transition-transform">See Live →</span>
                                     </div>
                                 </div>
@@ -1239,11 +1239,11 @@ function HeroView({ ward, wardData, onEnter, onSelectCity, onOpenMap, pushToast 
                                             Protecting Riverside Areas
                                         </h3>
                                         <p className="text-base text-slate-700 mt-3.5 leading-relaxed font-sans">
-                                            Continuous river gauges upstream give residents and authorities up to 6 hours of advance notice before river levels peak.
+                                            Rainfall is tracked from NASA IMERG satellite data and projected forward. Skill is measured: it beats a no-change baseline out to about 90 minutes, and fades after that.
                                         </p>
                                     </div>
                                     <div className="mt-7 flex items-center justify-between text-sm border-t border-[#B3D6E6] pt-4">
-                                        <span className="font-bold text-teal-800">✓ 6h Advance Surge Notice</span>
+                                        <span className="font-bold text-teal-800">~90 min of measured skill</span>
                                         <span className="text-sky-700 font-bold group-hover:translate-x-1 transition-transform">See Live →</span>
                                     </div>
                                 </div>

@@ -1,3 +1,15 @@
+// One depth ladder, shared by the map popup and the sector drawer. These used to be
+// separate, which let the same depth read "Caution" in one surface and "Do not enter"
+// in the other. Bands are anchored to the body, not to round numbers, because the
+// model's absolute centimetres are not credible but the band it lands in is useful.
+function describeDepth(depth) {
+    if (depth < 5) return { label: "Dry / Safe", band: "under 5 cm" };
+    if (depth < 15) return { label: "Puddle Level (Passable)", band: "5–15 cm" };
+    if (depth < 25) return { label: "Ankle to Shin Deep", band: "15–25 cm" };
+    if (depth < 40) return { label: "Knee Deep (Hazardous)", band: "25–40 cm" };
+    return { label: "Waist Deep (Severe Danger)", band: "over 40 cm" };
+}
+
 // Marker colours for /api/spot_check verdicts.
 const SPOT_VERDICT_COLORS = {
     CLEAR: '#10b981',
@@ -162,7 +174,9 @@ function InteractiveVectorMap(props) {
                         <span style="font-size:10px; font-weight:800; text-transform:uppercase; letter-spacing:0.04em; background:${riskBg}; color:${riskColor}; border:1px solid ${riskBorder}; padding:2.5px 8px; border-radius:9999px;">
                             ${riskBadge}
                         </span>
-                        <span style="font-size:10px; color:#64748b; font-family:monospace;">${sec.elevation}m MSL</span>
+                        <span style="font-size:9.5px; font-weight:700; text-transform:uppercase; letter-spacing:0.04em; background:#fffbeb; color:#92400e; border:1px solid #fde68a; padding:2.5px 7px; border-radius:9999px;">
+                            Modelled
+                        </span>
                     </div>
                     <div style="font-size:14px; font-weight:800; color:#0f172a; line-height:1.25; margin-bottom:3px;">
                         ${sec.name}
@@ -171,28 +185,17 @@ function InteractiveVectorMap(props) {
                         ${wardData.name} · ${wardData.city} (${wardData.riverName})
                     </div>
 
-                    <div style="display:grid; grid-template-columns:1fr 1fr; gap:6px; margin-bottom:10px;">
-                        <div style="background:#f8fafc; border:1px solid #e2e8f0; border-radius:12px; padding:8px 10px;">
-                            <div style="font-size:9.5px; color:#64748b; font-weight:600;">Water Depth</div>
-                            <div style="font-size:15px; font-weight:800; color:${depth >= 30 ? '#dc2626' : depth >= 15 ? '#d97706' : '#2563eb'}; font-family:monospace;">
-                                ${depth.toFixed(1)} cm
-                            </div>
+                    <div style="background:#f8fafc; border:1px solid #e2e8f0; border-radius:12px; padding:9px 11px; margin-bottom:10px;">
+                        <div style="font-size:10.5px; color:#475569; font-weight:600; margin-bottom:2px;">Estimated water depth</div>
+                        <div style="font-size:15px; font-weight:800; color:${depth >= 30 ? '#dc2626' : depth >= 15 ? '#d97706' : '#2563eb'}; line-height:1.3;">
+                            ${describeDepth(depth).label}
                         </div>
-                        <div style="background:#f8fafc; border:1px solid #e2e8f0; border-radius:12px; padding:8px 10px;">
-                            <div style="font-size:9.5px; color:#64748b; font-weight:600;">Flow Velocity</div>
-                            <div style="font-size:15px; font-weight:800; color:#0f172a; font-family:monospace;">
-                                ${(1.1 + depth * 0.02).toFixed(1)} m/s
-                            </div>
+                        <div style="font-size:11px; color:#64748b; margin-top:1px;">
+                            ${describeDepth(depth).band} · modelled, not measured
                         </div>
                     </div>
 
                     <div style="background:#f8fafc; border:1px solid #e2e8f0; border-radius:12px; padding:8px 10px; margin-bottom:10px; font-size:11px;">
-                        <div style="display:flex; justify-content:space-between; margin-bottom:4px;">
-                            <span style="color:#64748b;">Drainage Culvert:</span>
-                            <span style="font-weight:700; color:${depth >= 30 ? '#dc2626' : '#059669'};">
-                                ${depth >= 30 ? '92% Surcharged' : depth >= 15 ? '64% Flowing' : '28% Free Flow'}
-                            </span>
-                        </div>
                         <div style="display:flex; justify-content:space-between; margin-bottom:4px;">
                             <span style="color:#64748b;">Pedestrians:</span>
                             <span style="font-weight:700; color:${depth >= 15 ? '#dc2626' : '#059669'};">
@@ -366,16 +369,9 @@ function SectorDrawer({ sector, depth, wardName, onClose, pushToast }) {
         return () => window.removeEventListener("keydown", handleKeyDown);
     }, [onClose]);
 
-    // Everyday human-friendly water level descriptions
-    const depthHuman = depth < 5
-        ? "Dry / Safe"
-        : depth < 15
-            ? "Puddle Level (Passable)"
-            : depth < 25
-                ? "Ankle to Shin Deep"
-                : depth < 40
-                    ? "Knee Deep (Hazardous)"
-                    : "Waist Deep (Severe Danger)";
+    // Everyday human-friendly water level description. Shared with the map popup via
+    // describeDepth so the two surfaces cannot drift apart again.
+    const depthHuman = describeDepth(depth).label;
 
     const statusTitle = isHigh ? "Flooded · Hazard" : isMed ? "Waterlogged · Caution" : "Clear & Safe";
     const statusBg = isHigh

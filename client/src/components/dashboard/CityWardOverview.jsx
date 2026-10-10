@@ -320,7 +320,7 @@ function CityWardOverview(props) {
                                 </div>
                             </div>
                             <span className="text-[10px] text-stone-500 font-mono">
-                                CartoDEM (Sub-meter)
+                                ISRO CartoDEM 30 m
                             </span>
                         </div>
                     </div>

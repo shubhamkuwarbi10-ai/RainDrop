@@ -2674,7 +2674,7 @@ function CityWardOverview(props) {
     className: "text-[11px] text-stone-500 block mt-0.5"
   }, "Terrain Resolution"))), /*#__PURE__*/React.createElement("span", {
     className: "text-[10px] text-stone-500 font-mono"
-  }, "CartoDEM (Sub-meter)"))), /*#__PURE__*/React.createElement("div", {
+  }, "ISRO CartoDEM 30 m"))), /*#__PURE__*/React.createElement("div", {
     className: "space-y-4"
   }, /*#__PURE__*/React.createElement("div", {
     className: "flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3"
@@ -3234,7 +3234,7 @@ function HeroView({
     tagline: "Pinpoints low road dips and hollows where stormwater gathers first.",
     desc: "By reading high-accuracy satellite terrain heights across every street, RainDrop reveals exactly which intersections, underpasses, and neighborhood lanes sit in natural low points.",
     img: "/static/images/dibakar-roy-FbOchRlXaPs-unsplash.jpg",
-    benefits: ["Sub-meter street height precision", "Highlights deep road hollows", "Calculates downhill water flow", "Flags trapped water pockets"],
+    benefits: ["30 m terrain grid from ISRO CartoDEM", "Highlights deep road hollows", "Calculates downhill water flow", "Flags trapped water pockets"],
     tag: "Elevation Topography"
   }, {
     num: "02",
@@ -3243,7 +3243,7 @@ function HeroView({
     tagline: "Follows heavy cloudbursts minute-by-minute hours before rainfall peaks.",
     desc: "Streams live weather radar across every metropolitan area. It tracks storm clouds in motion so residents and municipal crews know exactly when and where heavy downpours will hit.",
     img: "/static/images/dibakar-roy-DccG84ivd3k-unsplash.jpg",
-    benefits: ["Live radar precipitation feed", "Storm direction and speed tracking", "5-minute cloud updates", "Up to 6 hours advance warning"],
+    benefits: ["NASA IMERG satellite rainfall", "Storm direction and speed tracking", "30-minute updates", "Useful to about 90 minutes ahead"],
     tag: "Radar Telemetry"
   }, {
     num: "03",
@@ -3480,7 +3480,7 @@ function HeroView({
     className: "text-black/40"
   }, "•"), /*#__PURE__*/React.createElement("span", {
     className: "hover:text-emerald-700 transition-colors"
-  }, "ZERO FLOOD DELAYS"), /*#__PURE__*/React.createElement("span", {
+  }, "OPEN ABOUT ITS LIMITS"), /*#__PURE__*/React.createElement("span", {
     className: "text-black/40"
   }, "•"), /*#__PURE__*/React.createElement("span", {
     className: "hover:text-emerald-700 transition-colors"
@@ -4053,7 +4053,7 @@ function HeroView({
     className: "mt-7 flex items-center justify-between text-sm border-t border-[#B3D6E6] pt-4"
   }, /*#__PURE__*/React.createElement("span", {
     className: "font-bold text-amber-800"
-  }, "✓ 100% Engine Safety"), /*#__PURE__*/React.createElement("span", {
+  }, "Depth guidance by vehicle type"), /*#__PURE__*/React.createElement("span", {
     className: "text-sky-700 font-bold group-hover:translate-x-1 transition-transform"
   }, "See Live →")))), /*#__PURE__*/React.createElement("div", {
     onClick: () => {
@@ -4074,11 +4074,11 @@ function HeroView({
     className: "font-sans font-bold text-slate-900 text-xl group-hover:text-teal-800 transition-colors"
   }, "Protecting Riverside Areas"), /*#__PURE__*/React.createElement("p", {
     className: "text-base text-slate-700 mt-3.5 leading-relaxed font-sans"
-  }, "Continuous river gauges upstream give residents and authorities up to 6 hours of advance notice before river levels peak.")), /*#__PURE__*/React.createElement("div", {
+  }, "Rainfall is tracked from NASA IMERG satellite data and projected forward. Skill is measured: it beats a no-change baseline out to about 90 minutes, and fades after that.")), /*#__PURE__*/React.createElement("div", {
     className: "mt-7 flex items-center justify-between text-sm border-t border-[#B3D6E6] pt-4"
   }, /*#__PURE__*/React.createElement("span", {
     className: "font-bold text-teal-800"
-  }, "✓ 6h Advance Surge Notice"), /*#__PURE__*/React.createElement("span", {
+  }, "~90 min of measured skill"), /*#__PURE__*/React.createElement("span", {
     className: "text-sky-700 font-bold group-hover:translate-x-1 transition-transform"
   }, "See Live →")))), /*#__PURE__*/React.createElement("div", {
     onClick: () => {
@@ -4115,6 +4115,33 @@ function HeroView({
  */
 
 // --- MODULE: client/src/components/map/InteractiveVectorMap.jsx ---
+// One depth ladder, shared by the map popup and the sector drawer. These used to be
+// separate, which let the same depth read "Caution" in one surface and "Do not enter"
+// in the other. Bands are anchored to the body, not to round numbers, because the
+// model's absolute centimetres are not credible but the band it lands in is useful.
+function describeDepth(depth) {
+  if (depth < 5) return {
+    label: "Dry / Safe",
+    band: "under 5 cm"
+  };
+  if (depth < 15) return {
+    label: "Puddle Level (Passable)",
+    band: "5–15 cm"
+  };
+  if (depth < 25) return {
+    label: "Ankle to Shin Deep",
+    band: "15–25 cm"
+  };
+  if (depth < 40) return {
+    label: "Knee Deep (Hazardous)",
+    band: "25–40 cm"
+  };
+  return {
+    label: "Waist Deep (Severe Danger)",
+    band: "over 40 cm"
+  };
+}
+
 // Marker colours for /api/spot_check verdicts.
 const SPOT_VERDICT_COLORS = {
   CLEAR: '#10b981',
@@ -4273,7 +4300,9 @@ function InteractiveVectorMap(props) {
                         <span style="font-size:10px; font-weight:800; text-transform:uppercase; letter-spacing:0.04em; background:${riskBg}; color:${riskColor}; border:1px solid ${riskBorder}; padding:2.5px 8px; border-radius:9999px;">
                             ${riskBadge}
                         </span>
-                        <span style="font-size:10px; color:#64748b; font-family:monospace;">${sec.elevation}m MSL</span>
+                        <span style="font-size:9.5px; font-weight:700; text-transform:uppercase; letter-spacing:0.04em; background:#fffbeb; color:#92400e; border:1px solid #fde68a; padding:2.5px 7px; border-radius:9999px;">
+                            Modelled
+                        </span>
                     </div>
                     <div style="font-size:14px; font-weight:800; color:#0f172a; line-height:1.25; margin-bottom:3px;">
                         ${sec.name}
@@ -4282,28 +4311,17 @@ function InteractiveVectorMap(props) {
                         ${wardData.name} · ${wardData.city} (${wardData.riverName})
                     </div>
 
-                    <div style="display:grid; grid-template-columns:1fr 1fr; gap:6px; margin-bottom:10px;">
-                        <div style="background:#f8fafc; border:1px solid #e2e8f0; border-radius:12px; padding:8px 10px;">
-                            <div style="font-size:9.5px; color:#64748b; font-weight:600;">Water Depth</div>
-                            <div style="font-size:15px; font-weight:800; color:${depth >= 30 ? '#dc2626' : depth >= 15 ? '#d97706' : '#2563eb'}; font-family:monospace;">
-                                ${depth.toFixed(1)} cm
-                            </div>
+                    <div style="background:#f8fafc; border:1px solid #e2e8f0; border-radius:12px; padding:9px 11px; margin-bottom:10px;">
+                        <div style="font-size:10.5px; color:#475569; font-weight:600; margin-bottom:2px;">Estimated water depth</div>
+                        <div style="font-size:15px; font-weight:800; color:${depth >= 30 ? '#dc2626' : depth >= 15 ? '#d97706' : '#2563eb'}; line-height:1.3;">
+                            ${describeDepth(depth).label}
                         </div>
-                        <div style="background:#f8fafc; border:1px solid #e2e8f0; border-radius:12px; padding:8px 10px;">
-                            <div style="font-size:9.5px; color:#64748b; font-weight:600;">Flow Velocity</div>
-                            <div style="font-size:15px; font-weight:800; color:#0f172a; font-family:monospace;">
-                                ${(1.1 + depth * 0.02).toFixed(1)} m/s
-                            </div>
+                        <div style="font-size:11px; color:#64748b; margin-top:1px;">
+                            ${describeDepth(depth).band} · modelled, not measured
                         </div>
                     </div>
 
                     <div style="background:#f8fafc; border:1px solid #e2e8f0; border-radius:12px; padding:8px 10px; margin-bottom:10px; font-size:11px;">
-                        <div style="display:flex; justify-content:space-between; margin-bottom:4px;">
-                            <span style="color:#64748b;">Drainage Culvert:</span>
-                            <span style="font-weight:700; color:${depth >= 30 ? '#dc2626' : '#059669'};">
-                                ${depth >= 30 ? '92% Surcharged' : depth >= 15 ? '64% Flowing' : '28% Free Flow'}
-                            </span>
-                        </div>
                         <div style="display:flex; justify-content:space-between; margin-bottom:4px;">
                             <span style="color:#64748b;">Pedestrians:</span>
                             <span style="font-weight:700; color:${depth >= 15 ? '#dc2626' : '#059669'};">
@@ -4497,8 +4515,9 @@ function SectorDrawer({
     return () => window.removeEventListener("keydown", handleKeyDown);
   }, [onClose]);
 
-  // Everyday human-friendly water level descriptions
-  const depthHuman = depth < 5 ? "Dry / Safe" : depth < 15 ? "Puddle Level (Passable)" : depth < 25 ? "Ankle to Shin Deep" : depth < 40 ? "Knee Deep (Hazardous)" : "Waist Deep (Severe Danger)";
+  // Everyday human-friendly water level description. Shared with the map popup via
+  // describeDepth so the two surfaces cannot drift apart again.
+  const depthHuman = describeDepth(depth).label;
   const statusTitle = isHigh ? "Flooded · Hazard" : isMed ? "Waterlogged · Caution" : "Clear & Safe";
   const statusBg = isHigh ? "bg-rose-50 border-rose-200 text-rose-700" : isMed ? "bg-amber-50 border-amber-200 text-amber-800" : "bg-emerald-50 border-emerald-200 text-emerald-800";
   const statusDot = isHigh ? "bg-rose-500" : isMed ? "bg-amber-500" : "bg-emerald-500";
@@ -5382,7 +5401,7 @@ function DeveloperSocialSection({
     className: "text-slate-500"
   }, "Elevation Dataset:"), /*#__PURE__*/React.createElement("span", {
     className: "text-slate-200"
-  }, "16-bit Sub-meter High Precision DEM")), /*#__PURE__*/React.createElement("div", {
+  }, "ISRO CartoDEM, 30 m grid")), /*#__PURE__*/React.createElement("div", {
     className: "flex justify-between"
   }, /*#__PURE__*/React.createElement("span", {
     className: "text-slate-500"
@@ -5404,46 +5423,53 @@ function DataLayersModal({
   pushToast
 }) {
   if (!isOpen) return null;
+
+  // Each layer states what it actually is. The badge encodes DATA STATUS, not an
+  // authority: this screen is where a sceptic checks us, so a layer that is
+  // hand-written demo geometry has to say so here before anywhere else.
+  //   MODELLED  - computed by our own model, no observation behind the value
+  //   DEMO      - hand-written placeholder, no feed of any kind
+  //   MEASURED  - real third-party data we actually ingest
+  const STATUS_STYLE = {
+    MODELLED: "bg-amber-50 text-amber-800 border-amber-200",
+    DEMO: "bg-slate-100 text-slate-600 border-slate-300",
+    MEASURED: "bg-emerald-50 text-emerald-800 border-emerald-200"
+  };
   const layersConfig = [{
     id: "hotspots",
-    name: "Critical Flood Hotspots",
-    badge: "CartoDEM 30m Grid",
-    badgeColor: "bg-rose-50 text-rose-700 border-rose-200",
-    source: "ISRO CartoDEM Elevation + Municipal Sump Gauges",
-    frequency: "Continuous (60s cycle)",
-    description: "Real-time surface water depth computed from rainfall accumulation and elevation runoff."
+    name: "Modelled Flood Depth",
+    badge: "MODELLED",
+    source: "Our RandomForest surrogate over ISRO CartoDEM 30 m, sampled per pixel",
+    frequency: "Recomputed per forecast step",
+    description: "Depth estimated by our own model. It is trained on a parametric equation rather than observed floods, so treat the ordering between locations as informative and the centimetre values as not yet credible. There is no water-level gauge anywhere in this system."
   }, {
     id: "pumps",
-    name: "Stormwater Dewatering Pumps",
-    badge: "SCADA Telemetry",
-    badgeColor: "bg-blue-50 text-blue-700 border-blue-200",
-    source: "Municipal Stormwater Drainage Operations (BMC / GCC)",
-    frequency: "Live telemetry (active suction & diesel standby)",
-    description: "High-capacity submersible dewatering pump locations and active capacity percentages."
+    name: "Dewatering Pumps",
+    badge: "DEMO",
+    source: "Hand-written placeholder locations, not a municipal feed",
+    frequency: "Static — never updates",
+    description: "Illustrative pump markers placed near each sector for layout purposes. Positions, counts and capacity figures are invented. No drainage authority supplies this layer."
   }, {
     id: "shelters",
-    name: "Relief & Evacuation Shelters",
-    badge: "Disaster Authority",
-    badgeColor: "bg-indigo-50 text-indigo-700 border-indigo-200",
-    source: "State Disaster Management Authority (SDMA / NDRF)",
-    frequency: "Updated per flood shift",
-    description: "Verified community schools and disaster halls with dry rations, medical kits, and boat staging."
+    name: "Relief Shelters",
+    badge: "DEMO",
+    source: "Hand-written placeholder locations, not a disaster-authority feed",
+    frequency: "Static — never updates",
+    description: "Illustrative shelter markers. Locations and capacities are invented. Do not route anyone using this layer."
   }, {
     id: "metro",
-    name: "Transit & Metro Corridors",
-    badge: "Road Network",
-    badgeColor: "bg-emerald-50 text-emerald-700 border-emerald-200",
-    source: "Metropolitan Transit Police & Rail GIS Feeds",
-    frequency: "Real-time incident updates",
-    description: "Subway gate closure advisories and elevated highway safe-elevation corridors."
+    name: "Transit Markers",
+    badge: "DEMO",
+    source: "Hand-written placeholder locations, not a transit feed",
+    frequency: "Static — never updates",
+    description: "Illustrative station markers offset from sector coordinates. No closure or incident data is received."
   }, {
     id: "boundaries",
-    name: "Municipal Ward Catchments",
-    badge: "Survey of India",
-    badgeColor: "bg-slate-100 text-slate-700 border-slate-200",
-    source: "Municipal Administrative GIS Polygons",
-    frequency: "Static hydro-basin boundaries",
-    description: "Natural drainage basins and administrative municipal ward boundary borders."
+    name: "Ward Markers",
+    badge: "DEMO",
+    source: "Ward centroids from our own registry; no official boundary polygons",
+    frequency: "Static — never updates",
+    description: "Approximate ward centre points. These are not surveyed administrative boundaries and no catchment polygons are loaded."
   }];
   const toggleLayer = id => {
     const nextState = !mapToggles[id];
@@ -5464,12 +5490,12 @@ function DataLayersModal({
   }, /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("div", {
     className: "flex items-center gap-2"
   }, /*#__PURE__*/React.createElement("span", {
-    className: "text-[10.5px] uppercase font-bold tracking-wider px-2 py-0.5 rounded-full bg-blue-50 text-blue-700"
-  }, "GIS Telemetry Overlays")), /*#__PURE__*/React.createElement("h2", {
+    className: "text-[10.5px] uppercase font-bold tracking-wider px-2 py-0.5 rounded-full bg-slate-100 text-slate-600"
+  }, "Map layers")), /*#__PURE__*/React.createElement("h2", {
     className: "text-lg font-extrabold text-slate-900 mt-1"
-  }, "Data Layers & Sensor Sources"), /*#__PURE__*/React.createElement("p", {
-    className: "text-xs text-slate-500 mt-0.5"
-  }, "Toggle live spatial data layers and inspect their verification authorities.")), /*#__PURE__*/React.createElement("button", {
+  }, "Where each layer comes from"), /*#__PURE__*/React.createElement("p", {
+    className: "text-xs text-slate-600 mt-1 leading-relaxed"
+  }, "Four of these five layers are hand-written placeholders with no feed behind them. The fifth is our own model. Nothing here is a municipal, disaster-authority or sensor feed.")), /*#__PURE__*/React.createElement("button", {
     onClick: onClose,
     className: "p-2 rounded-full text-slate-400 hover:text-slate-700 hover:bg-slate-100 transition-colors cursor-pointer",
     title: "Close"
@@ -5491,15 +5517,15 @@ function DataLayersModal({
     }, /*#__PURE__*/React.createElement("span", {
       className: "text-xs font-bold text-slate-900"
     }, layer.name), /*#__PURE__*/React.createElement("span", {
-      className: `text-[9.5px] font-bold px-2 py-0.5 rounded-full border ${layer.badgeColor}`
+      className: `text-[11px] font-bold tracking-wide px-2 py-0.5 rounded-full border ${STATUS_STYLE[layer.badge]}`
     }, layer.badge)), /*#__PURE__*/React.createElement("p", {
       className: "text-xs text-slate-600 mt-1 leading-relaxed"
     }, layer.description), /*#__PURE__*/React.createElement("div", {
-      className: "flex flex-wrap items-center gap-x-4 gap-y-1 mt-2 text-[10.5px] text-slate-400"
-    }, /*#__PURE__*/React.createElement("span", null, "Authority: ", /*#__PURE__*/React.createElement("strong", {
-      className: "text-slate-600"
-    }, layer.source)), /*#__PURE__*/React.createElement("span", null, "Frequency: ", /*#__PURE__*/React.createElement("strong", {
-      className: "text-slate-600"
+      className: "flex flex-col gap-0.5 mt-2 text-[11px] text-slate-500"
+    }, /*#__PURE__*/React.createElement("span", null, "Source: ", /*#__PURE__*/React.createElement("strong", {
+      className: "text-slate-700 font-semibold"
+    }, layer.source)), /*#__PURE__*/React.createElement("span", null, "Updates: ", /*#__PURE__*/React.createElement("strong", {
+      className: "text-slate-700 font-semibold"
     }, layer.frequency)))), /*#__PURE__*/React.createElement("button", {
       type: "button",
       onClick: () => toggleLayer(layer.id),
@@ -5598,8 +5624,8 @@ function SitRepModal({
   })), /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("div", {
     className: "flex items-center gap-2"
   }, /*#__PURE__*/React.createElement("span", {
-    className: "text-[10px] uppercase font-bold tracking-wider px-2 py-0.5 rounded-full bg-blue-100/80 text-blue-800"
-  }, "Official Incident Dispatch · BMC / NDRF")), /*#__PURE__*/React.createElement("h2", {
+    className: "text-[10px] uppercase font-bold tracking-wider px-2 py-0.5 rounded-full bg-amber-50 text-amber-800 border border-amber-200"
+  }, "Model output — not an official dispatch")), /*#__PURE__*/React.createElement("h2", {
     className: "text-lg font-bold text-slate-900 mt-0.5"
   }, "RainDrop Municipal Situation Report (SitRep)"), /*#__PURE__*/React.createElement("p", {
     className: "text-xs text-slate-500 font-medium"
@@ -5695,6 +5721,26 @@ if (typeof window !== "undefined") {
 }
 
 // --- MODULE: client/src/App.jsx ---
+// Forecast horizons. The nowcast was measured to beat a no-change baseline out to
+// 90 minutes and no further, so anything past +1h is marked rather than presented
+// at the same confidence as the rest.
+const TIMELINE_STEPS = [{
+  step: "Now",
+  beyondSkill: false
+}, {
+  step: "+1h",
+  beyondSkill: false
+}, {
+  step: "+3h",
+  beyondSkill: true
+}, {
+  step: "+6h",
+  beyondSkill: true
+}, {
+  step: "+12h",
+  beyondSkill: true
+}];
+
 // Colour mapping for /api/spot_check verdicts.
 const VERDICT_STYLES = {
   CLEAR: {
@@ -6750,7 +6796,7 @@ function RainDrop() {
     className: `text-[9px] px-1.5 py-0.5 rounded-full font-bold shrink-0 ${data.riskColor || 'text-slate-500 bg-slate-100'}`
   }, data.riskLevel.replace(" RISK", "")))))), /*#__PURE__*/React.createElement("div", {
     className: "flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-emerald-50 border border-emerald-200/80 text-emerald-700 text-xs font-semibold shadow-2xs",
-    title: "Open-Meteo & IMD Live Radar Synchronized"
+    title: "Open-Meteo forecast API. No IMD radar and no ground sensors are connected."
   }, /*#__PURE__*/React.createElement("span", {
     className: "w-2 h-2 rounded-full bg-emerald-500 animate-pulse"
   }), /*#__PURE__*/React.createElement("span", null, "Live Telemetry")), /*#__PURE__*/React.createElement("div", {
@@ -7050,34 +7096,40 @@ function RainDrop() {
     }
   })), /*#__PURE__*/React.createElement("div", {
     className: "absolute inset-x-0 flex justify-between items-center px-1 pointer-events-none"
-  }, ["Now", "+1h", "+3h", "+6h", "+12h"].map((step, idx) => /*#__PURE__*/React.createElement("button", {
+  }, TIMELINE_STEPS.map(({
+    step,
+    beyondSkill
+  }, idx) => /*#__PURE__*/React.createElement("button", {
     key: step,
     type: "button",
     onClick: e => {
       e.stopPropagation();
       setTimelineIndex(idx);
       setTimeStep(idx);
-      pushToast(`Timeline updated to ${step}`);
+      pushToast(beyondSkill ? `${step} — beyond measured skill, indicative only` : `Timeline updated to ${step}`);
     },
+    title: beyondSkill ? "Past the 90-minute horizon where the nowcast was measured to beat a no-change baseline. Indicative only." : "Within the measured skill horizon.",
     className: "pointer-events-auto flex flex-col items-center cursor-pointer group"
   }, /*#__PURE__*/React.createElement("div", {
     className: `w-3 h-3 rounded-full border-2 transition-all ${timelineIndex === idx ? "bg-blue-600 border-white ring-2 ring-blue-600 scale-125" : "bg-white border-slate-300 group-hover:border-slate-400"}`
   }), /*#__PURE__*/React.createElement("span", {
-    className: `text-[10px] mt-1.5 font-bold ${timelineIndex === idx ? "text-blue-600 font-extrabold" : "text-slate-400"}`
-  }, step)))))), /*#__PURE__*/React.createElement("div", {
+    className: `text-[11px] mt-1.5 font-bold ${timelineIndex === idx ? "text-blue-600 font-extrabold" : beyondSkill ? "text-slate-400 italic" : "text-slate-500"}`
+  }, step, beyondSkill ? "*" : "")))))), /*#__PURE__*/React.createElement("p", {
+    className: "w-full text-[11px] text-slate-500 leading-snug mt-1"
+  }, "Rainfall nowcast skill, measured over 815 forecasts (Jun–Sep 2025):", /*#__PURE__*/React.createElement("strong", {
+    className: "text-slate-700 font-semibold"
+  }, " CSI 0.42 at 30 min, 0.16 at 90 min"), " for heavy rain. ", /*#__PURE__*/React.createElement("span", {
+    className: "text-slate-400"
+  }, "*Beyond 90 min is indicative only. Depths are modelled, never measured.")), /*#__PURE__*/React.createElement("div", {
     className: "flex items-center gap-3 shrink-0"
   }, /*#__PURE__*/React.createElement("button", {
     type: "button",
     onClick: () => {
       loadWardForecast(ward, selectedCity);
-      pushToast(`Live radar & telemetry refreshed at ${currentTime.toLocaleTimeString([], {
-        hour: '2-digit',
-        minute: '2-digit',
-        second: '2-digit'
-      })}`);
+      pushToast("Forecast refreshed from Open-Meteo. No radar or ground sensors are connected.");
     },
     className: "flex items-center gap-2 px-3.5 py-2 rounded-2xl bg-blue-50/90 hover:bg-blue-100/90 border border-blue-200/90 text-xs font-semibold text-blue-700 transition-all cursor-pointer shadow-2xs",
-    title: "Click to fetch latest Open-Meteo Doppler observation and recompute ML depths"
+    title: "Fetch the latest Open-Meteo forecast and recompute modelled depths"
   }, /*#__PURE__*/React.createElement(RefreshCw, {
     className: `w-3.5 h-3.5 text-blue-600 ${isFetchingForecast ? "animate-spin" : ""}`
   }), /*#__PURE__*/React.createElement("span", null, "Live Feed · ", currentTime.toLocaleTimeString([], {
