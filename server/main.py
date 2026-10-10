@@ -9,6 +9,8 @@ from fastapi import FastAPI, HTTPException, Query
 from fastapi.staticfiles import StaticFiles
 from fastapi.responses import FileResponse
 
+from pipeline.terrain_features import build_vector, sample_terrain
+
 try:
     import rasterio
     HAS_RASTERIO = True
@@ -422,6 +424,7 @@ METRO_REGISTRY = {
 }
 
 for city_key, profile in CITY_TERRAINS.items():
+    profile["key"] = city_key          # needed to find that city's rasters
     summary_file = Path(__file__).parent.parent / "data" / "processed" / f"{city_key}_dem_summary.json"
     if summary_file.exists():
         try:
@@ -446,6 +449,33 @@ def get_city_terrain(lat: float, lon: float, city_hint: str = None):
             return profile
     # Default fallback to Chennai coastal plain profile
     return CITY_TERRAINS["chennai"]
+
+
+def surrogate_terrain(lat: float, lon: float, city_terrain: dict):
+    """
+    Terrain features for the surrogate at ONE POINT.
+
+    Reads the actual CartoDEM pixel. This used to return the city-wide mean for
+    every request, so two points in Chennai were handed identical slope and
+    elevation and terrain could not change the prediction anywhere within a city.
+
+    Falls back to that city mean when the rasters are missing or the point is off
+    them (or at sea). The fallback has no drainage information, so flow accumulation
+    and depression depth are 0: the model then sees a pixel with no upslope inflow
+    and no sink, which is the neutral case rather than an invented one. `source`
+    says which path was taken so the API can report it instead of implying the
+    number is a measurement.
+    """
+    sampled = sample_terrain(city_terrain.get("key"), lat, lon) if city_terrain.get("key") else None
+    if sampled:
+        return {**sampled, "source": "per_pixel_cartodem"}
+    return {
+        "slope_deg": city_terrain["slope"],
+        "elevation_m": city_terrain["elevation"],
+        "log_flow_accum": 0.0,
+        "depression_depth_m": 0.0,
+        "source": "city_mean_fallback",
+    }
 
 # Global Surrogate Model Instance
 surrogate_model = None
@@ -627,13 +657,14 @@ def predict_rainfall(lat: float = Query(...), lon: float = Query(...)):
 
     # ML Surrogate Model Inference for Flood Depth (cm) using 30m CartoDEM Terrain Profile
     city_terrain = get_city_terrain(lat, lon)
-    slope = city_terrain["slope"]
-    elevation = city_terrain["elevation"]
+    terrain = surrogate_terrain(lat, lon, city_terrain)
+    slope = terrain["slope_deg"]
+    elevation = terrain["elevation_m"]
     impermeability = city_terrain["impermeability"]
-    
+
     if surrogate_model is not None:
         try:
-            features = np.array([[model_rain, model_peak, slope, elevation, impermeability]])
+            features = np.array([build_vector(model_rain, model_peak, impermeability, terrain)])
             predicted_flood_depth_cm = float(surrogate_model.predict(features)[0])
         except Exception:
             predicted_flood_depth_cm = max(0.0, 0.4 * total_rainfall + 0.2 * peak_intensity - 1.0)
@@ -661,9 +692,12 @@ def predict_rainfall(lat: float = Query(...), lon: float = Query(...)):
         "source": source,
         "terrain_profile": {
             "city": city_terrain["name"],
-            "slope_deg": city_terrain["slope"],
-            "elevation_m": city_terrain["elevation"],
+            "slope_deg": round(terrain["slope_deg"], 3),
+            "elevation_m": round(terrain["elevation_m"], 2),
+            "log_flow_accum": round(terrain["log_flow_accum"], 3),
+            "depression_depth_m": round(terrain["depression_depth_m"], 3),
             "impermeability_pct": city_terrain["impermeability"],
+            "terrain_source": terrain["source"],
             "is_real_dem": city_terrain.get("is_real_dem", False),
             "dem_source_label": city_terrain.get("dem_source_label", "Synthetic / Fitted 30m Baseline")
         },
@@ -807,13 +841,14 @@ def get_ward_forecast(ward_name: str = Query("Velachery"), city: str = Query(Non
     model_rain, model_peak = surrogate_rain_inputs(open_meteo_res, total_rain, peak_intensity)
 
     # Execute ML surrogate model on real terrain & live rainfall
-    slope = city_terrain["slope"]
-    elevation = city_terrain["elevation"]
+    terrain = surrogate_terrain(lat, lon, city_terrain)
+    slope = terrain["slope_deg"]
+    elevation = terrain["elevation_m"]
     impermeability = city_terrain["impermeability"]
-    
+
     if surrogate_model is not None:
         try:
-            feats = np.array([[model_rain, model_peak, slope, elevation, impermeability]])
+            feats = np.array([build_vector(model_rain, model_peak, impermeability, terrain)])
             predicted_depth = float(surrogate_model.predict(feats)[0])
         except Exception:
             predicted_depth = max(0.0, 0.4 * total_rain + 0.2 * peak_intensity - 1.0)

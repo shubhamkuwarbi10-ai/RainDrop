@@ -42,14 +42,30 @@ SPROG_AR_ORDER = 2
 #                   each decay at the rate its own autocorrelation implies, so small
 #                   features that are not predictable fade instead of being carried
 #                   forward intact. Aimed directly at false alarms.
-METHODS = ("extrapolation", "extrapolation_db", "sprog")
+# blend             extrapolation where extrapolation itself forecasts heavy rain,
+#                   S-PROG everywhere else. See BLEND_SWITCH_MMH below.
+METHODS = ("extrapolation", "extrapolation_db", "sprog", "blend")
 
-# Measured on 68 launches (20-22 June 2025, Chennai 8 degree domain), S-PROG cut
-# light-rain false alarms (FAR 0.401 -> 0.335 at 30 min) but lowered heavy-rain
-# detection (POD 0.499 -> 0.403 at 10 mm/h, 30 min). Heavy rain is what drives
-# flooding, and the 10 mm/h sample there is a few storms, too small to separate the
-# methods. So the served default stays the original method until the full season
-# says otherwise; the others are selectable and scored side by side.
+# Measured over 815 launches (2025-06-20 to 09-30, Chennai 8 degree domain), the two
+# methods win at opposite ends. Extrapolation beats persistence at 10 mm/h at every
+# lead (CSI 0.423/0.254/0.161 against 0.393/0.237/0.150); S-PROG beats it at the
+# 0.1 mm/h footprint at every lead (0.637/0.520/0.443 against 0.632/0.506/0.426) by
+# letting unpredictable small scales fade. `blend` tried to take both: extrapolation
+# where extrapolation itself forecasts >= BLEND_SWITCH_MMH, S-PROG elsewhere, switching
+# on the forecast because the observation is not knowable at forecast time.
+#
+# MEASURED AND REJECTED, same 815 launches. The blend matches S-PROG exactly at
+# 0.1 mm/h, but at 10 mm/h it scores 0.391/0.241/0.155 against extrapolation's
+# 0.423/0.254/0.161 -- and at 30 min it falls below persistence (0.393). The switch
+# cannot fire where extrapolation under-forecasts, which is exactly where the misses
+# are, so the blend inherits S-PROG's lower detection and gains nothing.
+#
+# The useful conclusion is that there is no single best field: pick the method per
+# question. Flood decisions ask about 10 mm/h, so they get extrapolation. A rain
+# footprint asks about 0.1 mm/h, so it gets S-PROG. Kept selectable so the negative
+# result stays reproducible.
+BLEND_SWITCH_MMH = 10.0
+
 DEFAULT_METHOD = "extrapolation"
 
 
@@ -69,6 +85,17 @@ def make_forecast(frames, leadtimes, method=DEFAULT_METHOD, threshold=RAIN_THRES
         raise RuntimeError("pysteps is not installed, so no nowcast can be produced.")
 
     frames = np.asarray(frames, dtype=np.float64)
+
+    if method == "blend":
+        # Switch on the heavy-rain method's OWN forecast, not on the observation,
+        # which is not available at forecast time. NaN wherever either input is NaN,
+        # so the blend is scored on the same cells as the methods it is built from
+        # rather than quietly inheriting the more generous of the two masks.
+        heavy, motion = make_forecast(frames, leadtimes, "extrapolation", threshold)
+        light, _ = make_forecast(frames, leadtimes, "sprog", threshold)
+        blended = np.where(heavy >= BLEND_SWITCH_MMH, heavy, light)
+        blended[np.isnan(heavy) | np.isnan(light)] = np.nan
+        return blended, motion
 
     if method == "extrapolation":
         motion = dense_lucaskanade(frames)

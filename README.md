@@ -29,6 +29,10 @@ This supersedes an earlier 68-launch result from 20-22 June 2025 alone. That win
 
 **The served default stays plain extrapolation, and this result now supports that rather than deferring it.** The previous caveat was that the heavy-rain sample was too small to separate the methods: 549 observed cells at 10 mm/hr. The full archive gives **11,465 observed cells at 10 mm/hr for the 30 min lead** (6,591 hits, 4,874 misses), a 21-fold larger sample, and extrapolation's margin over persistence holds across all three lead times. Heavy rain is what drives flooding, so that is the threshold the default is chosen on. `--method` selects any of the three.
 
+**A blend of the two was tried and lost.** Since extrapolation wins at 10 mm/hr and S-PROG wins at 0.1 mm/hr, `--method blend` takes extrapolation wherever extrapolation itself forecasts at least 10 mm/hr and S-PROG elsewhere, switching on the forecast because the observation is not knowable at forecast time. On the same 815 launches it matches S-PROG exactly at 0.1 mm/hr, but at 10 mm/hr it scores 0.391 / 0.241 / 0.155 against extrapolation's 0.423 / 0.254 / 0.161, and at 30 min it drops below persistence. The switch cannot fire where extrapolation under-forecasts, which is precisely where the misses are, so the blend inherits S-PROG's weaker detection and gains nothing for it. It stays selectable so the negative result is reproducible.
+
+The useful conclusion is that there is no single best field, and the choice belongs to the question rather than to the pixel. A flood decision asks about 10 mm/hr and should read extrapolation. A rain footprint asks about 0.1 mm/hr and should read S-PROG.
+
 Remaining caveats. Margins over persistence are real but small (+0.030 CSI at 30 min, +0.011 at 90 min); the gain is in detection, not in a transformed forecast. Observed cells are strongly correlated in space and time, so the effective sample is smaller than the cell count suggests. And cells that any method could not inform, where rain flows in from outside the domain, are excluded from every method and the baseline alike (mean 286 of 6400 cells per launch).
 
 Reproduce with:
@@ -39,7 +43,26 @@ docker run --rm -v "%cd%:/app" raindrop-nowcast python pipeline/validate_nowcast
     --output data/processed/nowcast_validation_full.json --stride 6
 ```
 
-**The surrogate model's metrics are still not validation results.** `train_surrogate.py` reports R-squared on its own training set with no held-out split, and its target is synthetic, so a high value is guaranteed by construction. That number does not belong in a report.
+**The surrogate now sees terrain, which it previously did not.** Until today `get_city_terrain(lat, lon)` ignored the coordinates beyond choosing a city and returned the city-wide MEAN slope and elevation, so every point in Chennai was handed slope 1.32 deg and elevation 8.88 m. Terrain could not vary the prediction anywhere inside a city; only rainfall could. Meanwhile `process_dem.py` was computing flow accumulation and depression depth per pixel, writing them to GeoTIFF, and nothing ever read them.
+
+Both are fixed. `pipeline/terrain_features.py` samples the actual raster pixel and adds two features: `log_flow_accum` (log1p of upslope contributing cells, because raw accumulation runs from a median of 2 to ~490,000) and `depression_depth_m` (how far the pixel sits below its lowest neighbour, 0 outside sinks). Training and serving import the feature order from that one module, because a pickled scikit-learn model carries no feature names and a one-sided reorder fails silently.
+
+The effect, same rainfall (150 mm / 24 h) at six Chennai ward centroids, which previously all returned an identical number:
+
+| Ward | slope deg | log flow accum | depth cm |
+|---|---|---|---|
+| Pallikaranai | 0.69 | 6.08 | 110.6 |
+| Velachery | 2.63 | 3.09 | 92.1 |
+| Adyar | 6.43 | 2.64 | 88.1 |
+| Tambaram | 1.77 | 0.69 | 82.4 |
+| Ambattur | 6.53 | 1.10 | 80.4 |
+| Chennai Central | 10.82 | 0.69 | 76.8 |
+
+The ordering is plausible: Pallikaranai is reclaimed marshland with the largest upslope catchment and the flattest ground, and it floods. In the forest's feature importances the two new terrain fields (0.028 and 0.020) outrank slope (0.002) and elevation (0.0006) by an order of magnitude, which is the measurable sign that the old feature set was starving the model.
+
+**None of that makes the depths real.** The target is still the parametric equation. What changed is that the model now responds to where you are, not that it knows how deep the water gets. Two things to keep in view when reading the table above: the absolute magnitudes are not credible (around a metre of standing water for 150 mm of rain is far too high; the equation's scale was never calibrated), and only the *ordering* between wards carries information. Do not publish these as depths.
+
+One thing did get better on its own terms. Because terrain is applied as a multiplier on runoff rather than a separate additive term, the synthetic target is now non-linear, and the RandomForest finally beats the linear baseline on held-out data (RMSE 7.15 cm against 8.28 cm, R-squared 0.9906 against 0.9874). Previously linear won (1.09 against 2.22), which is what a linear target deserves. RMSE is not comparable across the two target definitions, only the gap between the two models is. The split is still random over rows; with real solver output it would have to be by scenario and spatial block, because neighbouring pixels are near-duplicates.
 
 **All three cities now have real terrain.** The covering CartoDEM tiles have been downloaded, and `chennai`, `mumbai` and `delhi` all report `is_real_dem: true` with plausible coastal-plain values: Chennai max 151.6 m / mean 8.9 m, Mumbai max 303.0 m / mean 8.0 m, Delhi max 326.0 m / mean 220.3 m. This replaces an earlier state where the tile-matching test padded each AOI by 0.25 degrees, accepted an adjacent tile, stretched it across the city, and reported a 954 m maximum elevation on a coastal plain. The padding bug is fixed and the tiles now genuinely overlap each AOI.
 
@@ -67,7 +90,7 @@ To make the surrogate defensible, run a solver to produce targets, add a held-ou
 ## 🗺️ 30m CartoDEM Flood Water Level Increase Engine
 > **Detailed Documentation**: See [DEM Flood Prediction Guide](file:///c:/Users/Tpaha/OneDrive/Documents/RainDrop/RainDrop/docs/DEM_FLOOD_PREDICTION_README.md)
 
-AquaSight ingests 30m ISRO Bhuvan CartoDEM v3 elevation tiles to compute surface hydrology (slope, D8 flow direction, flow accumulation, and depression sinks). A **RandomForest surrogate model** predicts **water level increase ($\text{cm}$)** from rainfall intensity, terrain slope, elevation, and urban surface impermeability. It is fitted to synthetic targets, not to simulated or observed flood depths.
+AquaSight ingests 30m ISRO Bhuvan CartoDEM v3 elevation tiles to compute surface hydrology (slope, D8 flow direction, flow accumulation, and depression sinks). A **RandomForest surrogate model** predicts **water level increase ($\text{cm}$)** from rainfall intensity and the terrain at that pixel: slope, elevation, upslope contributing area, depression depth, and urban surface impermeability. It is fitted to synthetic targets, not to simulated or observed flood depths.
 
 ---
 
