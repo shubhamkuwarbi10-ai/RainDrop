@@ -535,10 +535,6 @@ def surrogate_rain_inputs(open_meteo_res, fallback_total, fallback_peak):
         return round(sum(hourly), 2), max(hourly)
     return fallback_total, fallback_peak
 
-@app.get("/")
-def read_root():
-    return FileResponse(client_dir / "index.html")
-
 @app.get("/api/metrics")
 def get_model_verification_metrics():
     """

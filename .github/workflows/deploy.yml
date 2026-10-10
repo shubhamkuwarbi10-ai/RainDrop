@@ -58,5 +58,4 @@ jobs:
             docker compose ps
 
             echo "✅ Deploy complete. Services:"
-            curl -sf http://localhost:8001/health && echo " Backend: OK" || echo " Backend: FAILED"
             curl -sf http://localhost:8000/health && echo " ML Server: OK" || echo " ML Server: FAILED"

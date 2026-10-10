@@ -68,14 +68,6 @@ def test_traced_streams_follow_flow_downhill():
             assert z[r2, c2] < z[r1, c1], "step goes uphill"
 
 
-def test_runoff_is_reported_in_litres_per_second():
-    from app.services.terrain_processing import estimate_runoff
-    # 10 mm on 1 ha at C = 0.2 + 0.7 * 1.0 = 0.9 -> 90 m3 over 3600 s = 25 L/s
-    r = estimate_runoff(rainfall_mm=10, duration_minutes=60, catchment_area_m2=10_000,
-                        impervious_fraction=1.0)
-    assert abs(r["average_runoff_lps"] - 25.0) < 1e-9, r["average_runoff_lps"]
-
-
 def test_nowcast_rates_are_accumulated_not_summed():
     import rasterio
     from rasterio.transform import from_bounds

@@ -5371,19 +5371,34 @@ function RainDrop() {
         return () => clearInterval(interval);
     }, [isSimulatingRoute]);
 
+    // WARDS_DATA is hand-written demo data, not measurement: river levels, pump
+    // counts and shelter capacity were invented for the mockup. Anything that falls
+    // back to it is tagged in _demoFields so the UI can say so instead of passing
+    // invented numbers off as readings.
+    const ALWAYS_DEMO = ["dangerLevel", "evacShelters", "sectors"];
+
     const currentWardData = useMemo(() => {
         const base = WARDS_DATA[ward] || WARDS_DATA["Velachery"] || Object.values(WARDS_DATA)[0];
-        if (!liveForecast || liveForecast.ward_name !== base.name) return base;
+        if (!liveForecast || liveForecast.ward_name !== base.name) {
+            return { ...base, _demoFields: ["riverLevel", "rainfallForecast", "activePumps",
+                                            "riskLevel", ...ALWAYS_DEMO] };
+        }
         // A field the server sends as null means "unknown" (e.g. weather API down).
         // Show that, rather than the literal "null" or a mock value from WARDS_DATA.
         const live = (key, fmt = (v) => v) =>
             key in liveForecast ? (liveForecast[key] == null ? "—" : fmt(liveForecast[key])) : undefined;
+        const served = {
+            riverLevel: live("river_level_m"),
+            rainfallForecast: live("rainfall_forecast_mm", (v) => `${v} mm`),
+            activePumps: live("active_pumps"),
+            riskLevel: liveForecast.status || undefined,
+        };
         return {
             ...base,
-            riverLevel: live("river_level_m") ?? base.riverLevel,
-            rainfallForecast: live("rainfall_forecast_mm", (v) => `${v} mm`) ?? base.rainfallForecast,
-            activePumps: live("active_pumps") ?? base.activePumps,
-            riskLevel: liveForecast.status || base.riskLevel,
+            ...Object.fromEntries(Object.entries(served)
+                .map(([k, v]) => [k, v ?? base[k]])),
+            _demoFields: [...Object.keys(served).filter((k) => served[k] === undefined),
+                          ...ALWAYS_DEMO],
         };
     }, [ward, liveForecast]);
 
@@ -6493,6 +6508,14 @@ function RainDrop() {
                                         <span>⚠️</span> Emergency Watch
                                     </span>
                                     <div className="flex items-center gap-1">
+                                        {currentWardData._demoFields?.length > 0 && (
+                                            <span
+                                                className="px-1.5 py-0.5 rounded-md text-[9px] font-extrabold tracking-wider uppercase bg-slate-200 text-slate-600 border border-slate-300 cursor-help"
+                                                title={`Demo data, not measured: ${currentWardData._demoFields.join(", ")}. These values are hand-written placeholders from the mockup, not readings or model output.`}
+                                            >
+                                                Demo data
+                                            </span>
+                                        )}
                                         <span className="text-[10px] font-bold text-slate-400 font-mono">
                                             {currentWardData.city}
                                         </span>

@@ -12,28 +12,36 @@ Read this before citing any number from this project.
 
 **Nowcast skill is now measured.** `pipeline/validate_nowcast.py` forecasts from time t and scores the result against what was actually observed at t+30/60/90 min, pooling contingency counts across all launches before computing CSI. `GET /api/metrics` serves that file and returns 503 when it is absent, instead of the `np.random` arrays it used to score against themselves.
 
-Measured over 68 launches on 20-22 June 2025, Chennai 8 degree domain (80x80 cells at 0.1 degree). Three methods are scored side by side against a persistence baseline, all on the same launches and the same cells. Bold marks the best method where it also beats persistence.
+Measured over **815 launches spanning 2025-06-20 to 2025-09-30** (the full monsoon archive, 4944 half-hourly IMERG frames, stride 6 = one launch every 3 h), Chennai 8 degree domain (80x80 cells at 0.1 degree). Frame contiguity was verified from the sidecar: 0 launches crossed a time gap and 0 failed. Three methods are scored side by side against a persistence baseline, all on the same launches and the same cells. Bold marks the best method where it also beats persistence.
 
 | Lead | Threshold | Extrapolation | Extrapolation (dB) | S-PROG | Persistence |
 |---|---|---|---|---|---|
-| 30 min | 10.0 mm/hr | **0.361** | 0.319 | 0.292 | 0.321 |
-| 60 min | 10.0 mm/hr | **0.179** | 0.161 | 0.162 | 0.171 |
-| 90 min | 10.0 mm/hr | 0.078 | 0.074 | 0.082 | 0.085 |
-| 30 min | 0.1 mm/hr | 0.460 | 0.466 | 0.471 | 0.480 |
-| 60 min | 0.1 mm/hr | 0.327 | 0.326 | 0.345 | 0.347 |
-| 90 min | 0.1 mm/hr | 0.246 | 0.242 | **0.265** | 0.263 |
+| 30 min | 10.0 mm/hr | **0.423** | 0.407 | 0.341 | 0.393 |
+| 60 min | 10.0 mm/hr | **0.254** | 0.240 | 0.206 | 0.237 |
+| 90 min | 10.0 mm/hr | **0.161** | 0.152 | 0.131 | 0.150 |
+| 30 min | 0.1 mm/hr | 0.627 | 0.635 | **0.637** | 0.632 |
+| 60 min | 0.1 mm/hr | 0.501 | 0.503 | **0.520** | 0.506 |
+| 90 min | 0.1 mm/hr | 0.422 | 0.422 | **0.443** | 0.426 |
 
-**S-PROG trades heavy-rain detection for fewer false alarms.** On the rain footprint (0.1 mm/hr) it cut the false alarm ratio from 0.401 to 0.335 at 30 min and from 0.625 to 0.563 at 90 min, and is the only method that beats persistence there at 90 min. That is what it is built for: it splits the field into spatial scales and lets the unpredictable small ones fade instead of carrying them forward intact. The same mechanism costs it at heavy rain, where probability of detection at 10 mm/hr and 30 min falls from 0.499 to 0.403: at 11 km resolution, convective cores *are* the small scales it damps.
+This supersedes an earlier 68-launch result from 20-22 June 2025 alone. That window was pre-monsoon and unrepresentative: it put persistence at 0.321 for 30 min / 10 mm/hr where the full season puts it at 0.393, and it showed extrapolation *losing* to persistence at 90 min where the full season shows it winning. The three-day numbers demonstrated that the measurement worked; they did not measure the season.
 
-The dB transform alone changes little. Plain extrapolation remains the best heavy-rain method at 30 min and the only one with a clear margin over persistence anywhere.
+**The split between methods is now clean, and it runs along the threshold.** At 10 mm/hr, plain extrapolation beats persistence at every lead time. At the 0.1 mm/hr rain footprint it is the other way round: extrapolation is at or below persistence, and S-PROG is the only method that beats it, at every lead. S-PROG splits the field into spatial scales and lets the unpredictable small ones fade instead of carrying them forward intact. That buys it the light-rain footprint and costs it the heavy-rain cores, because at 11 km resolution convective cores *are* the small scales it damps. The dB transform alone changes little either way.
 
-**The served default stays plain extrapolation.** Heavy rain is what drives flooding, and the heavy-rain sample is too small to separate the methods: 549 observed cells at 10 mm/hr, but they are strongly correlated in space and time, so the effective sample is a handful of storms. The light-rain false-alarm result rests on far more data and is the more trustworthy finding. Rerun over the full June-September archive before changing the default; `--method` selects any of the three in the meantime.
+**The served default stays plain extrapolation, and this result now supports that rather than deferring it.** The previous caveat was that the heavy-rain sample was too small to separate the methods: 549 observed cells at 10 mm/hr. The full archive gives **11,465 observed cells at 10 mm/hr for the 30 min lead** (6,591 hits, 4,874 misses), a 21-fold larger sample, and extrapolation's margin over persistence holds across all three lead times. Heavy rain is what drives flooding, so that is the threshold the default is chosen on. `--method` selects any of the three.
 
-Two caveats on all of these numbers. They come from three days in June, which is pre-monsoon for Chennai, so they demonstrate that the measurement works rather than give a seasonal result. And cells that any method could not inform, where rain flows in from outside the domain, are excluded from every method and the baseline alike.
+Remaining caveats. Margins over persistence are real but small (+0.030 CSI at 30 min, +0.011 at 90 min); the gain is in detection, not in a transformed forecast. Observed cells are strongly correlated in space and time, so the effective sample is smaller than the cell count suggests. And cells that any method could not inform, where rain flows in from outside the domain, are excluded from every method and the baseline alike (mean 286 of 6400 cells per launch).
+
+Reproduce with:
+
+```bash
+docker run --rm -v "%cd%:/app" raindrop-nowcast python pipeline/validate_nowcast.py \
+    --input data/processed/nowcast_full/forecast.tif \
+    --output data/processed/nowcast_validation_full.json --stride 6
+```
 
 **The surrogate model's metrics are still not validation results.** `train_surrogate.py` reports R-squared on its own training set with no held-out split, and its target is synthetic, so a high value is guaranteed by construction. That number does not belong in a report.
 
-**No city currently has real terrain.** The CartoDEM tiles in `data/raw/cartodem/` cover inland Tamil Nadu and Karnataka (lon 74-80, lat 9-13). None of them overlap Chennai (lon 80.10-80.45), Mumbai, or Delhi. Until earlier today the tile-matching test padded each AOI by 0.25 degrees, which accepted an adjacent tile, stretched it across the city, and reported `is_real_dem: true`. That is where the 954 m maximum elevation in `chennai_dem_summary.json` came from, on a coastal plain. All three cities now fall back to a fitted synthetic surface and say so in `dem_source_label`. To get real terrain, download the tiles that actually cover each AOI.
+**All three cities now have real terrain.** The covering CartoDEM tiles have been downloaded, and `chennai`, `mumbai` and `delhi` all report `is_real_dem: true` with plausible coastal-plain values: Chennai max 151.6 m / mean 8.9 m, Mumbai max 303.0 m / mean 8.0 m, Delhi max 326.0 m / mean 220.3 m. This replaces an earlier state where the tile-matching test padded each AOI by 0.25 degrees, accepted an adjacent tile, stretched it across the city, and reported a 954 m maximum elevation on a coastal plain. The padding bug is fixed and the tiles now genuinely overlap each AOI.
 
 **What is real.** The pySTEPS nowcasting in `pipeline/nowcast_pysteps.py` runs Lucas-Kanade optical flow and semi-Lagrangian extrapolation on ingested IMERG rasters, and the IMERG ingest is correctly georeferenced. Motion is estimated from the most recent frames only; using the whole archive averaged a real storm field down to 4 km/h.
 

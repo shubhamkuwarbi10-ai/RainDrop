@@ -18,7 +18,6 @@ if ($hasDocker) {
         Write-Host "RainDrop GIS is now live:" -ForegroundColor Green
         Write-Host "  - Frontend Dashboard: http://localhost (Port 80)" -ForegroundColor Cyan
         Write-Host "  - ML / GIS Server:    http://localhost:8000" -ForegroundColor Cyan
-        Write-Host "  - Backend PostGIS:    http://localhost:8001" -ForegroundColor Cyan
         exit 0
     } else {
         Write-Host "[!] Docker installed but daemon is not running. Falling back to native Python..." -ForegroundColor Yellow

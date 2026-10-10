@@ -17,7 +17,6 @@ if command -v docker &> /dev/null; then
         echo "RainDrop GIS is now live:"
         echo "  - Frontend Dashboard: http://localhost (Port 80)"
         echo "  - ML / GIS Server:    http://localhost:8000"
-        echo "  - Backend PostGIS:    http://localhost:8001"
         exit 0
     else
         echo "[!] Docker installed but daemon is not running. Falling back to native Python..."
