@@ -1,4 +1,16 @@
 # Test and development extras. Not installed in the runtime image.
+#
+# This deliberately does NOT pull in requirements-nowcast.txt, so the test
+# suite installs and runs on a machine with no C toolchain. The pysteps-backed
+# tests detect its absence and skip rather than fail:
+#
+#   tests/test_make_forecast.py        skips the method checks when HAS_PYSTEPS is False
+#   backend/tests/test_pipeline.py     exercises the dB transform through the
+#                                      pysteps-free to_dbr/from_dbr helpers
+#
+# To run the nowcast tests too:
+#     pip install -r requirements-dev.txt -r requirements-nowcast.txt
+# or use Docker, which already carries the toolchain.
 -r requirements.txt
 
 pytest==8.3.4

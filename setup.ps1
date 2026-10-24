@@ -74,12 +74,25 @@ if ($hasDocker) {
     Write-Host "[!] Docker not detected. Proceeding with native Python environment..." -ForegroundColor Yellow
 }
 
-# 2. Check Python
+# 2. Check Python.
+# The floor is 3.11, not 3.10: numpy, scipy and scikit-learn publish cp311 as
+# their lowest wheel, so on 3.10 pip fails with a resolver error listing every
+# numpy ever released instead of saying the Python is too old.
 $hasPython = Get-Command python -ErrorAction SilentlyContinue
 if (-not $hasPython) {
-    Write-Host "[X] Python 3.10+ is required. Please install Python from https://www.python.org/downloads/" -ForegroundColor Red
+    Write-Host "[X] Python 3.11+ is required. Install it from https://www.python.org/downloads/" -ForegroundColor Red
     exit 1
 }
+
+$pyVersion = python -c "import sys; print('.'.join(map(str, sys.version_info[:3])))"
+$pyOk = python -c "import sys; print(1 if sys.version_info[:2] >= (3, 11) else 0)"
+if ($pyOk -ne "1") {
+    Write-Host "[X] Python $pyVersion is too old." -ForegroundColor Red
+    Write-Host "    RainDrop needs Python 3.11 - 3.14. Install a newer Python, or use Docker:" -ForegroundColor Yellow
+    Write-Host "        docker compose up -d" -ForegroundColor Cyan
+    exit 1
+}
+Write-Host "[OK] Python $pyVersion" -ForegroundColor Green
 
 # 3. Virtual Environment
 if (-not (Test-Path "venv")) {
@@ -90,10 +103,21 @@ if (-not (Test-Path "venv")) {
 Write-Host "Activating virtual environment..." -ForegroundColor Yellow
 & .\venv\Scripts\Activate.ps1
 
-# 4. Install Dependencies
+# 4. Install Dependencies.
+# requirements.txt is deliberately compiler-free: every pin ships a binary wheel
+# for windows-amd64. The nowcast extra is NOT installed here, because pysteps is
+# source-only and needs MSVC Build Tools; see the closing message.
 Write-Host "Installing Python dependencies from requirements.txt..." -ForegroundColor Yellow
 pip install --upgrade pip
 pip install -r requirements.txt
+
+# 4b. Verify the environment rather than assuming it.
+Write-Host "Checking the environment..." -ForegroundColor Yellow
+python tools/check_env.py
+if ($LASTEXITCODE -ne 0) {
+    Write-Host "[X] The environment is not usable. See the FAIL lines above." -ForegroundColor Red
+    exit 1
+}
 
 # 5. Build/Verify Frontend Bundle
 # Build the stylesheet. A stale client/tailwind.min.css silently drops every

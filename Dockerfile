@@ -11,8 +11,12 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     libgdal-dev \
     && rm -rf /var/lib/apt/lists/*
 
-COPY requirements.txt .
-RUN pip install --no-cache-dir --prefix=/install -r requirements.txt
+COPY requirements.txt requirements-nowcast.txt ./
+# The image installs the nowcast extra too: this stage has the C toolchain,
+# so pysteps (source-only on every platform) compiles here and the runtime
+# stage gets it prebuilt. requirements.txt alone stays installable without
+# a compiler, which is what makes a bare-machine `pip install` work.
+RUN pip install --no-cache-dir --prefix=/install -r requirements.txt -r requirements-nowcast.txt
 
 # ─────────────────────────────────────────────
 # Runtime image

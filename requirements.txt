@@ -1,43 +1,44 @@
-# Pinned to the versions this project is tested against.
-# Unpinned ranges meant a rebuild could silently pull a different numpy or
-# scikit-learn than the one the surrogate artefact was trained with.
+# RainDrop core runtime.
 #
-# Full transitive set: requirements.lock.txt
-# Development and test extras: requirements-dev.txt
+# PYTHON 3.11 - 3.14. Not 3.10: numpy, pandas, scipy and scikit-learn all
+# publish cp311 as their lowest wheel, so 3.10 fails at install with a
+# confusing resolver error rather than a clear message.
+#
+# Every pin below ships a prebuilt binary wheel for linux-x86_64,
+# linux-aarch64, macos-arm64, macos-x86_64 and windows-amd64, so installing
+# this file needs no compiler on any supported machine. That property is
+# checked by `python tools/check_env.py --wheels`; keep it true.
+#
+# The nowcast needs pysteps, which is SOURCE-ONLY on every platform and so
+# cannot go here. See requirements-nowcast.txt.
+#
+# Pinned, not ranged: an unpinned rebuild could pull a different numpy or
+# scikit-learn than the one the surrogate artefact was trained against.
+# Full transitive set: requirements.lock.txt   Test extras: requirements-dev.txt
 
-# ── Geospatial and scientific stack ──────────────────────────
-h5py==3.16.0
+# ── Scientific and geospatial ────────────────────────────────
 numpy==2.4.6
-pandas==3.0.6
-scipy==1.17.1
-rasterio==1.4.4
-shapely==2.1.2
-geopandas==1.1.4
-pysteps==1.21.5
-# pysteps treats opencv as OPTIONAL, but dense_lucaskanade fails at runtime
-# without it (MissingOptionalDependency: opencv is required for morphologyEx).
-# Headless build: no GUI libs needed in the container. Pinned to match
-# Dockerfile.nowcast, the image that produced the published nowcast metrics.
-opencv-python-headless==5.0.0.93
+scipy==1.17.1          # required by scikit-learn; pinned so its numerics cannot drift
+h5py==3.16.0           # reads IMERG HDF5 granules
+rasterio==1.4.4        # reads and writes the GeoTIFF rasters
 
 # ── Machine learning ─────────────────────────────────────────
 scikit-learn==1.9.1
-xgboost==3.2.0
 
 # ── Backend and database ─────────────────────────────────────
 fastapi==0.141.1
+pydantic==2.13.5       # imported directly, so pinned here rather than inherited from fastapi
 uvicorn==0.53.0
-requests==2.34.2
 SQLAlchemy==2.0.54
 GeoAlchemy2==0.20.0
-psycopg2-binary==2.9.13
+psycopg2-binary==2.9.13  # the driver behind postgresql+psycopg2:// in DATABASE_URL
 python-dotenv==1.2.3
 
 # ── Optional, enabled when the data is available ─────────────
 # Hydraulic simulation used to generate training labels (models/swmm_labels.py).
-# Install with: pip install pyswmm==2.0.1
-# pyswmm==2.0.1
+# Import is guarded, so the repo works without it.
+#   pip install pyswmm==2.0.1
 #
 # Correct depression filling and D8 flow accumulation (pipeline/process_dem.py
 # falls back to a slower built-in implementation when this is absent).
-# pysheds==0.4
+#   pip install pysheds==0.4

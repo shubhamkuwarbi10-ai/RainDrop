@@ -1,0 +1,38 @@
+# RainDrop nowcast extra. NOT portable. Install only if you need to run the
+# rainfall nowcast locally; the API does not import either package.
+#
+#     pip install -r requirements.txt -r requirements-nowcast.txt
+#
+# WHY THIS IS A SEPARATE FILE
+# ---------------------------
+# pysteps publishes NO binary wheel for any platform: PyPI carries only an
+# sdist, so pip compiles it from source and the install needs a C toolchain
+# and the numpy headers:
+#
+#   Linux    apt-get install build-essential
+#   macOS    xcode-select --install
+#   Windows  Microsoft C++ Build Tools (Visual Studio Build Tools, "Desktop
+#            development with C++"). Note that a machine with Windows
+#            Application Control enabled can block the resulting extension
+#            from loading even after it compiles.
+#
+# Keeping it out of requirements.txt is what lets the core install succeed on
+# a bare machine. If you cannot build it, use Docker, which carries the
+# toolchain and is the supported path:
+#
+#     docker compose up -d                                  # full stack
+#     docker build -f Dockerfile.nowcast -t raindrop-nowcast .   # pipeline only
+#
+# WHY OPENCV IS HERE
+# ------------------
+# pysteps declares opencv OPTIONAL, then fails at runtime inside
+# dense_lucaskanade with MissingOptionalDependency ("opencv is required for
+# the morphologyEx routine"). The nowcast does not work without it, so it is
+# a hard requirement in practice. Pinned to match Dockerfile.nowcast, the
+# image that produced the published CSI metrics.
+#
+# docker/verify_pysteps.py proves optical flow actually works after install:
+# it advects a field by a known +2 px/step and asserts the motion is recovered.
+
+pysteps==1.21.5
+opencv-python-headless==5.0.0.93

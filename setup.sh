@@ -76,9 +76,19 @@ else
     echo "[!] Docker not detected. Proceeding with native Python environment..."
 fi
 
-# 2. Check Python
+# 2. Check Python.
+# The floor is 3.11, not 3.10: numpy, scipy and scikit-learn publish cp311 as
+# their lowest wheel, so 3.10 dies with a resolver error listing every numpy
+# ever released instead of saying "your Python is too old".
 if ! command -v python3 &> /dev/null; then
-    echo "[X] Python 3.10+ is required. Please install Python 3."
+    echo "[X] Python 3.11+ is required. Please install Python 3."
+    exit 1
+fi
+
+if ! python3 -c 'import sys; sys.exit(0 if sys.version_info[:2] >= (3, 11) else 1)'; then
+    echo "[X] Python $(python3 -c 'import sys; print(".".join(map(str, sys.version_info[:3])))') is too old."
+    echo "    RainDrop needs Python 3.11 - 3.14. Install a newer Python, or use Docker:"
+    echo "        docker compose up -d"
     exit 1
 fi
 
@@ -88,13 +98,33 @@ if [ ! -d "venv" ]; then
     python3 -m venv venv
 fi
 
-echo "Activating virtual environment..."
-source venv/bin/activate
+# A venv is venv/bin on Unix and venv/Scripts under Windows (Git Bash, MSYS).
+# Sourcing the wrong one left the system interpreter active and installed
+# every dependency outside the venv.
+if [ -f "venv/bin/activate" ]; then
+    . venv/bin/activate
+elif [ -f "venv/Scripts/activate" ]; then
+    . venv/Scripts/activate
+else
+    echo "[X] Could not find the venv activate script. Delete ./venv and re-run."
+    exit 1
+fi
+echo "Activated $(python -c 'import sys; print(sys.prefix)')"
 
-# 4. Install Dependencies
+# 4. Install Dependencies.
+# requirements.txt is deliberately compiler-free: every pin ships a binary
+# wheel on Linux, macOS and Windows. The nowcast extra is NOT installed here
+# because pysteps is source-only and needs a C toolchain; see below.
 echo "Installing Python dependencies from requirements.txt..."
 pip install --upgrade pip
 pip install -r requirements.txt
+
+# 4b. Verify the environment rather than assuming it.
+echo "Checking the environment..."
+python tools/check_env.py || {
+    echo "[X] The environment is not usable. See the FAIL lines above."
+    exit 1
+}
 
 # 5. Build the stylesheet.
 # Skipping this leaves client/tailwind.min.css stale, and a stale build silently
@@ -123,3 +153,11 @@ echo "    python backend/scripts/manage_operators.py add --username chennai.ops 
 echo ""
 echo "Run the tests:"
 echo "    python -m pytest"
+echo ""
+echo "The rainfall nowcast needs pysteps, which has no binary wheel and must be"
+echo "compiled. It is NOT installed above. To add it on a machine with a C"
+echo "toolchain (Linux: build-essential, macOS: xcode-select --install,"
+echo "Windows: MSVC Build Tools):"
+echo "    pip install -r requirements-nowcast.txt"
+echo "Otherwise run the nowcast in Docker, which carries the toolchain:"
+echo "    docker build -f Dockerfile.nowcast -t raindrop-nowcast ."

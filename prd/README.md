@@ -39,8 +39,7 @@ graph TD
     subgraph "Nginx Reverse Proxy & Static Host"
         Nginx -->|/ | Static[Static Web Client /client]
         Nginx -->|/privacy, /terms| Legal[Legal & Compliance Pages]
-        Nginx -->|/api/*| MLServer[FastAPI ML / GIS Server :8000]
-        Nginx -->|/api/v1/*| BackendAPI[FastAPI PostGIS Backend :8001]
+        Nginx -->|/api/*, /api/v1/*, /api/auth/*| BackendAPI[FastAPI application backend.main:app :8000]
     end
 
     subgraph "Core Processing Engines"
@@ -61,10 +60,9 @@ graph TD
 
 | Container Service | Base Image / Runtime | Port | Responsibility | Healthcheck Probe |
 | :--- | :--- | :---: | :--- | :--- |
-| **`db`** | `postgis/postgis:16-3.4` | `5432` | PostGIS spatial database storing ward boundaries, flooded road segments, drainage networks, and historical rainfall series. | `pg_isready -U postgres` |
-| **`ml-server`** | `python:3.11-slim` | `8000` | ML inference engine, pySTEPS optical flow execution, rasterio GeoTIFF spatial queries, dynamic routing logic. | `GET /health` |
-| **`backend`** | `python:3.11-slim` | `8001` | Enterprise API layer, SQLAlchemy / GeoAlchemy2 spatial queries, data ingestion pipelines, alert subscriptions. | `GET /health` |
-| **`frontend`** | `nginx:1.25-alpine` | `80` | Unified edge proxy, TLS termination, gzip compression, SPA client routing, security header enforcement. | Nginx master process |
+| **`db`** | `postgis/postgis:16-3.4` | `5432` (not published) | PostGIS spatial database storing ward boundaries, flooded road segments, drainage networks, and historical rainfall series. | `pg_isready -U $POSTGRES_USER` |
+| **`backend`** | `python:3.11-slim-trixie` | `8000` (not published) | The single FastAPI application: forecast and terrain endpoints, SQLAlchemy / GeoAlchemy2 spatial queries, operator auth, ingestion. Reachable only on the Docker network. | `GET /health` |
+| **`frontend`** | `nginx:1.27-alpine` | `80` | Unified edge proxy, TLS termination, gzip compression, SPA client routing, security header enforcement. | Nginx master process |
 
 ---
 
@@ -135,71 +133,284 @@ RainDrop GIS models 6 major metropolitan regions using calibrated ISRO Bhuvan Ca
 
 ---
 
-## 5. Machine Learning, Hydrology & Safety Models
+## 5. How the model works
 
-```text
-┌──────────────────────────────────────────────────────────────────────────────────┐
-│                             ATMOSPHERIC NOWCASTING                               │
-│  NASA GPM IMERG / IMD Radar ──> pySTEPS Lucas-Kanade Flow ──> 0-3h Rain Grid     │
-└────────────────────────────────────────┬─────────────────────────────────────────┘
-                                         │ total_rain, peak_intensity
-                                         ▼
-┌──────────────────────────────────────────────────────────────────────────────────┐
-│                             SURFACE HYDROLOGY & DEM                              │
-│  30m ISRO CartoDEM Raster ──> D8 Flow Algorithm ──> Slope, Elevation, Sinks     │
-└────────────────────────────────────────┬─────────────────────────────────────────┘
-                                         │ slope_deg, elevation_m, impermeability
-                                         ▼
-┌──────────────────────────────────────────────────────────────────────────────────┐
-│                       HYDRODYNAMIC SURROGATE INFERENCE                           │
-│  Random Forest / XGBoost Regressor (120 Trees) ──> Street Water Depth cm (<15ms) │
-└────────────────────────────────────────┬─────────────────────────────────────────┘
-                                         │ depth_cm
-                                         ▼
-┌──────────────────────────────────────────────────────────────────────────────────┐
-│                     DUAL-CORRIDOR SAFE ROUTE EVALUATOR                           │
-│  Standard Route (Submerged) vs Highland Bypass Flyover (+Δt Detour Penalty)      │
-└──────────────────────────────────────────────────────────────────────────────────┘
+> **Status, before anything else.** The figures previously printed in this
+> section — R² = 0.9994, RMSE = 0.3989 cm, and a CSI / POD / FAR table — have
+> been **withdrawn**. The R² was measured on training data whose labels were a
+> formula of the same inputs, so it reported how well the model relearned its
+> own formula. The contingency scores were generated with `np.random`. They
+> described nothing. `docs/STATUS.md` records the full list of withdrawn claims
+> and `docs/ISSUES.md` tracks what remains open.
+>
+> What follows is what the system actually computes today.
+
+### 5.0 In plain language
+
+RainDrop answers one question: **"how deep is the water likely to get where I
+am, and can I get through?"**
+
+It does that in four steps.
+
+1. **How much rain is coming?** We take an hourly rainfall forecast for the
+   ward. Separately, an experimental stage can take satellite rainfall images
+   and slide them forward to guess where a storm moves next.
+2. **Where does water collect?** A terrain map tells us which parts of a ward
+   are the dips and hollows. Water runs downhill and pools in the low parts.
+3. **How deep does it get?** Rain lands, some soaks away, some runs off. The
+   storm drains carry away a fixed amount per hour. Whatever the drains cannot
+   take has to go somewhere, and it collects in the low-lying part of the ward.
+   Spread that leftover water over that small area and you get a depth.
+4. **Can you get through?** We compare that depth to what a person, a scooter,
+   a car or a bus can actually pass.
+
+**The one idea that matters most:** flooding is caused by *how fast* rain falls,
+not how much falls in total. 90 mm of rain over three hours floods a street. The
+same 90 mm spread over twelve hours drains away and you would not notice it. The
+worked example in 5.2 shows exactly that, with the system's real numbers.
+
+**What this is not.** The depth is an *estimate from a formula*, not a
+measurement and not a prediction from a model trained on real floods. Nobody has
+told us how wrong it is, because that would require records of real floods to
+check it against, and we do not have them yet. Every screen says so, and every
+API response carries a `data_status` field marking the number as `live`,
+`heuristic`, `demo` or `unavailable`.
+
+---
+
+### 5.1 Model 1 — rainfall nowcast (optional stage)
+
+**Layman.** Satellites photograph rain every half hour. If you have several
+photographs in a row you can see which way the rain is drifting and how fast,
+then slide it forward to guess where it will be in an hour. That is all a
+nowcast is: following the storm, not forecasting new weather.
+
+**Technical.**
+
+| | |
+|---|---|
+| Implementation | `pipeline/nowcast_pysteps.py` |
+| Input | multi-band GeoTIFF of consecutive IMERG frames (`pipeline/ingest_imerg.py`) |
+| Grid | 0.1° (~11 km) cells, 30-minute steps |
+| Motion | dense Lucas-Kanade optical flow, computed on the **last 4 frames only** |
+| Advection | semi-Lagrangian extrapolation |
+| Output | `pysteps_forecast.tif` + `pysteps_forecast.meta.json` + `persistence_baseline.tif` |
+
+Four methods are selectable with `--method`:
+
+| method | what it does |
+|---|---|
+| `extrapolation` *(default)* | motion and advection on raw mm/h |
+| `extrapolation_db` | the same in dB space; rain rates are roughly lognormal |
+| `sprog` | S-PROG: decomposes into spatial scales and lets small scales decay |
+| `blend` | **measured and rejected** — kept so the negative result is not repeated |
+
+**Measured skill**, over 815 forecast launches scored against what was actually
+observed, as Critical Success Index at 30 / 60 / 90 minutes:
+
+| at ≥ 10 mm/h | CSI |
+|---|---|
+| extrapolation | 0.423 / 0.254 / 0.161 |
+| persistence (the baseline) | 0.393 / 0.237 / 0.150 |
+| blend | 0.391 / 0.241 / 0.155 — below persistence at 30 min |
+
+Extrapolation beats persistence at heavy rain at every lead time; S-PROG wins at
+the light-rain threshold. Flood decisions are about heavy rain, so heavy rain
+picks the default. Reproduce with `pipeline/validate_nowcast.py`.
+
+**Two constraints to state before a reviewer asks.** An 11 km cell cannot
+justify street-level anything — the honest unit is the ward. And the IMERG
+*Final* product used for this archive is published months late, so a demo built
+on it is a **replay**, not a live nowcast. Only IMERG Early (~4 h) or radar could
+drive a real one.
+
+**Three lead times is 90 minutes, not three hours**, because the step is 30
+minutes. That step now travels with the raster in a sidecar so the API cannot
+mislabel the bands.
+
+---
+
+### 5.2 Model 2 — flood depth (this is what the product actually serves)
+
+**Layman.** Imagine a bucket. Rain falls into it. A hole in the bottom — the
+storm drains — lets water out at a steady rate. If rain comes in faster than the
+hole lets it out, the bucket fills. The leftover water does not spread evenly
+over the ward; it runs downhill into the low 6–18% of it. Pour the leftover into
+that small area and measure how deep it stands.
+
+**Technical.** This is the **rational method plus a storage deficit** — a
+recognised engineering screening technique, not a fitted model. Implementation:
+`backend/app/services/flood_estimate.py`.
+
+```
+C      = 0.2 + 0.7 × impervious_fraction          runoff coefficient
+excess = Σ(rain over window) × C − drain_rate × window_hours
+depth  = (excess / ponding_fraction) / 10         mm → cm
 ```
 
-### 5.1 Model 1: pySTEPS Optical Flow Nowcasting
-- **Algorithm**: Dense Lucas-Kanade Optical Flow with semi-Lagrangian advection extrapolation.
-- **Input Grids**: 15-minute Doppler radar reflectivity matrices and GPM IMERG calibrated precipitation.
-- **Output GeoTIFF**: Multi-band raster (`data/processed/pysteps_forecast.tif`) yielding 12 discrete 15-minute lead-time intervals ($0\text{--}180\text{ min}$).
+- The **critical window** is found by scanning every window from 1 h to 6 h and
+  keeping the worst. This is the step that makes intensity matter rather than
+  the daily total.
+- **Drain rate** is 12 mm/h. Indian urban drainage is commonly *designed* for
+  12–25 mm/h; 12 is deliberately conservative, with no allowance for drains that
+  are silted, surcharged or tide-locked.
+- **Ponding fraction** runs 0.06 on flat ground (≤ 0.5°) to 0.18 on slopes
+  ≥ 3°. Flat ground ponds over a smaller area and therefore deeper.
 
-### 5.2 Model 2: Hydrodynamic Water Depth ML Surrogate
-- **Algorithm**: Random Forest Regressor ($120$ estimators, max depth $10$, random state $42$).
-- **Features ($X$)**:
-  1. `total_rainfall_mm`: Cumulative forecasted rainfall over lead period ($\text{mm}$).
-  2. `peak_intensity_mm_hr`: Peak hourly rainfall intensity ($\text{mm/hr}$).
-  3. `slope_deg`: 30m CartoDEM topographic slope ($^\circ$).
-  4. `elevation_m`: Elevation above Mean Sea Level ($\text{m MSL}$).
-  5. `impermeability_pct`: Surface runoff coefficient / urbanization factor ($\%$).
-- **Target ($y$)**: `predicted_flood_depth_cm` (Street-level inundation depth in $\text{cm}$).
-- **Evaluation**: $R^2 = 0.9994$, $\text{RMSE} = 0.3989\text{ cm}$, Inference Latency $<15\text{ ms}$.
+#### Worked example
 
-### 5.3 Model 3: Contingency Verification Matrix
-Rigorous validation across standardized rainfall thresholds:
+Every number below is produced by running `heuristic_depth_cm` — not illustrative.
 
-| Rainfall Threshold | Critical Success Index (CSI) | Probability of Detection (POD) | False Alarm Ratio (FAR) | RMSE |
-| :--- | :---: | :---: | :---: | :---: |
-| **$> 0.1 \text{ mm/hr}$ (Light Rain)** | **0.9003** | **0.9348** | **0.0394** | `0.3989 mm/h` |
-| **$> 2.5 \text{ mm/hr}$ (Moderate Rain)** | **0.7948** | **0.9309** | **0.1553** | `0.3989 mm/h` |
-| **$> 10.0 \text{ mm/hr}$ (Heavy Cloudburst)** | **0.8333** | **1.0000** | **0.1667** | `0.3989 mm/h` |
+**Case A — cloudburst over a flat, built-up ward.** Hourly rainfall
+`[5, 30, 35, 25, 3, 1, 0...]` mm, 85% impervious, slope 0.4°.
 
-### 5.4 Model 4: Dual-Corridor Navigation & Vehicle Passability Safety Matrix
+```
+critical window      3 h  (the 30+35+25 burst)
+rain in that window  90.0 mm
+runoff coefficient   0.795          = 0.2 + 0.7 × 0.85
+runoff generated     71.6 mm        = 90.0 × 0.795
+drains remove        36.0 mm        = 12 mm/h × 3 h
+excess               35.6 mm
+ponding fraction     0.06           (flat ground)
+depth                59.2 cm        = (35.6 / 0.06) / 10     ->  SEVERE
+```
 
-| Water Depth Range | Safety Classification | Protocol & Vehicle Impact | Route Recommendation |
-| :--- | :--- | :--- | :--- |
-| **$< 15.0\text{ cm}$** | `CLEAR & PASSABLE` (Green) | Passable for all vehicles (two-wheelers, hatchbacks, sedans, transit buses). | Maintain standard direct navigation. |
-| **$15.0\text{--}29.9\text{ cm}$** | `INUNDATION CAUTION` (Amber) | Exhaust submersion hazard for low-clearance hatchbacks and two-wheelers. High-clearance SUVs and buses may proceed with caution. | Issue route caution advisory; suggest elevated corridor if available. |
-| **$\ge 30.0\text{ cm}$** | `SUBMERGED BOTTLENECK` (Red) | Extreme hazard of engine hydrolock, electrical shorting, vehicle flotation, and road collapse. Road segment closed. | **Mandatory Detour**: Activate High-Elevation Flyover Bypass Corridor ($+\Delta t\text{ min}$). |
+**Case B — the same 90 mm, spread evenly over 12 hours.**
+
+```
+critical window      none: no window generates more runoff than the drains remove
+excess               0.0 mm
+depth                0.0 cm                                   ->  NONE
+```
+
+Same rain. Same ward. **59.2 cm versus nothing**, purely because of how fast it
+arrived. This is the single most important behaviour of the model.
+
+**Case C — the Case A storm on sloping ground (3°).** The ponding fraction
+triples to 0.18, so the same 35.6 mm of excess spreads three times wider:
+
+```
+depth                19.8 cm                                   ->  HIGH
+```
+
+**Case D — the Case A storm on a less built-up ward (45% impervious).** The
+runoff coefficient falls to 0.515, so only 10.35 mm of excess is generated:
+
+```
+depth                17.3 cm                                   ->  HIGH
+```
+
+Together these show the three levers: **intensity** (A vs B), **slope**
+(A vs C) and **how built-up the ward is** (A vs D).
+
+Every API response exposes these intermediates in a `depth_workings` field, so
+the number can be recomputed by hand.
+
+#### The trained surrogate: not in service
+
+`models/train_surrogate.py` exists and is wired, but it **refuses to run until
+EPA-SWMM labels exist**, and they do not. So:
+
+- the API serves the heuristic above, marked `data_status: "heuristic"`;
+- the backend will not load a model artefact unless its SHA-256 matches a model
+  card that reports a held-out score, and will not call the output a model
+  prediction otherwise.
+
+The route to a real model is SWMM (not a 2-D model): urban waterlogging here is
+*pluvial* — rain arrives faster than drains remove it — so a drainage-network
+model has the right primary variables, and a design storm runs in seconds, which
+is what makes thousands of training scenarios feasible. Training holds out a
+whole city and a whole storm type and scores three baselines on the same split.
+Even then the result is validated *against SWMM*, not against reality; that needs
+observed flood extents, and the honest target then becomes **flooded / not
+flooded per cell**, not a depth in centimetres.
+
+---
+
+### 5.3 Model 3 — terrain
+
+**Layman.** A height map of each city, used to find the dips where water
+collects and to trace which way it runs.
+
+**Technical.** `pipeline/process_dem.py` with algorithms in
+`pipeline/terrain_ops.py`: priority-flood depression filling, D8 flow direction
+and accumulation, and slope on a metre grid. Source is 30 m ISRO CartoDEM.
+
+Two corrections that materially change the numbers:
+
+- **Geoid.** CartoDEM ships WGS84-**ellipsoidal** heights. Height above mean sea
+  level is `H = h − N`, where N is the EGM2008 undulation: −92.1 m at Chennai,
+  −68.0 m at Mumbai, −52.1 m at Delhi. Without this Chennai sits ~92 m off.
+- **Sea mask.** CartoDEM flattens the sea to −255. Filling that with the mean
+  land height turns the Bay of Bengal into a plateau and routes flow
+  accumulation into it.
+
+Until a city's tiles are processed, city-wide averages stand in and `dem_source`
+reports `fallback` rather than `cartodem`.
+
+**Resolution honesty.** The rain cell is ~11 km and the terrain cell is 30 m.
+Neither justifies a street-level number. The ward is the honest unit; sector
+depths drawn on the map are modelled from the ward estimate.
+
+---
+
+### 5.4 Model 4 — passability
+
+**Layman.** A depth in centimetres is not a decision. This turns it into one:
+can you walk, ride, drive or should you not try.
+
+**Technical.** Depth bands shared between backend and frontend via one scale
+(`RISK_BANDS` in `flood_estimate.py`, `client/src/lib/riskScale.js`):
+
+| depth | band | meaning |
+|---|---|---|
+| < 0.5 cm | `NONE` | dry |
+| 0.5 – 7 cm | `LOW` | passable |
+| 7 – 15 cm | `MODERATE` | hazard for two-wheelers |
+| 15 – 30 cm | `HIGH` | low-clearance vehicles at risk |
+| ≥ 30 cm | `SEVERE` | do not attempt |
+
+The band is raised one step when rainfall intensity alone is dangerous, even if
+the computed depth is low.
+
+**Advisory, not a guarantee.** Evacuation corridors are a reference table of
+real, named elevated roads. They are **not** routed and not checked against live
+conditions; they are served as `data_status: "demo"`. No route distances or
+travel times are produced, because the earlier ones were generated from offsets
+around the city centre.
+
+---
+
+### 5.5 What is real, at a glance
+
+| component | status | marked as |
+|---|---|---|
+| Hourly rainfall forecast (Open-Meteo) | working | `live` |
+| Flood depth | working, **unvalidated formula** | `heuristic` |
+| Risk band and passability | working | `heuristic` |
+| Terrain statistics | working where tiles are processed | `heuristic`, `dem_source` named |
+| Rainfall nowcast | working, skill measured vs persistence | `heuristic`, replay only |
+| Trained surrogate | **not in service** — no SWMM labels | `unavailable` |
+| River level | estimated from rainfall, **no gauge connected** | `heuristic` |
+| Evacuation corridors | reference table, not routed | `demo` |
+| Ground sensors, radar, pump telemetry | **not connected** | `unavailable` |
 
 ---
 
 ## 6. Comprehensive API Specifications
 
-### 6.1 ML & GIS Server Endpoints (`server/main.py` — Port 8000)
+> **Corrected.** This section used to describe two services on two ports.
+> There is now **one** FastAPI application, `backend.main:app`, listening on
+> 8000 inside the Docker network. `server/main.py` is a thin compatibility
+> shim that re-exports it; the 1064-line duplicate server it used to hold was
+> removed because it served a second, divergent copy of these endpoints.
+> Nothing is published on 8001.
+
+> In deployment the only reachable port is **80**, served by nginx, which
+> applies the rate limits, body-size caps and security headers. The API and
+> the database are not published to the host.
+
+### 6.1 Forecast, terrain and GIS endpoints (`/api/...`)
 
 #### `GET /health`
 System liveness check verifying ML model availability and raster dependencies.
@@ -281,7 +492,7 @@ On-demand trigger to execute IMERG HDF5 ingestion, optical flow nowcasting, and 
 
 ---
 
-### 6.2 Enterprise PostGIS Backend Endpoints (`backend/main.py` — Port 8001)
+### 6.2 Database-backed and health endpoints (same application)
 
 #### `GET /health` & `GET /health/db`
 PostGIS database connection health and query execution verification.
@@ -330,36 +541,60 @@ docker compose logs -f
 ```
 
 - **Frontend Application**: `http://localhost` (Port 80)
-- **ML / GIS Engine**: `http://localhost:8000` (Docs: `http://localhost:8000/docs`)
-- **Backend PostGIS Service**: `http://localhost:8001` (Docs: `http://localhost:8001/docs`)
+- **API**: reached through nginx at `http://localhost/api/...`. Port 8000 is **not**
+  published to the host: publishing it exposed the service and let clients bypass
+  the nginx rate limits. Interactive docs are off by default in production (`ENABLE_API_DOCS`).
 - **PostGIS Database**: `localhost:5432` (`raindrop_pgdata` volume)
 
 ---
 
 ### 8.2 Native Local Development Runbook
 
-#### 1. Setup Virtual Environment
-```powershell
+Full detail, including the supported Python range and the system packages each
+platform needs, is in `docs/ENVIRONMENT.md`.
+
+#### 1. Virtual environment
+
+Python **3.11 - 3.14**. Not 3.10: numpy, scipy and scikit-learn publish cp311 as
+their lowest wheel, so 3.10 fails with a confusing resolver error.
+
+```bash
 python -m venv venv
-.\venv\Scripts\Activate.ps1
-pip install -r requirements.txt
+. venv/bin/activate          # Windows: venv\Scriptsctivate
+pip install --upgrade pip
+pip install -r requirements-dev.txt   # core + test tools, no compiler needed
+python tools/check_env.py             # verify before trusting the environment
+```
+
+`requirements.txt` is deliberately compiler-free: every pin ships a binary wheel
+on Linux, macOS and Windows. The nowcast is a separate, non-portable extra
+because pysteps has no wheel on any platform:
+
+```bash
+pip install -r requirements-nowcast.txt   # needs a C toolchain
+python docker/verify_pysteps.py           # asserts optical flow actually works
 ```
 
 #### 2. Start PostgreSQL / PostGIS
-```powershell
+```bash
 docker compose up -d db
 ```
 
-#### 3. Start ML & GIS Server
-```powershell
-uvicorn server.main:app --host 127.0.0.1 --port 8000 --reload
+#### 3. Start the application
+
+One service, not two:
+
+```bash
+uvicorn backend.main:app --host 127.0.0.1 --port 8000 --reload
 ```
 
-#### 4. Start Enterprise Backend Service
-```powershell
-cd backend
-..\venv\Scripts\Activate.ps1
-uvicorn main:app --host 127.0.0.1 --port 8001 --reload
+#### 4. Create a control-room operator
+
+Everything that commits municipal resources is behind this sign-in.
+
+```bash
+python backend/scripts/manage_operators.py add \
+    --username chennai.ops --name "GCC Control Room" --cities chennai
 ```
 
 #### 5. Frontend Asset Transpilation

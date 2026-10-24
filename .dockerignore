@@ -1,5 +1,10 @@
-# Version control and local tooling
+# Version control and local tooling.
+# .kilo is another agent tool's worktree directory and was 1.1 GB: without
+# this line `COPY . /app` baked all of it into the deployed image.
 .git
+.kilo
+.impeccable
+graphify-out
 .github
 .gitignore
 .agents
