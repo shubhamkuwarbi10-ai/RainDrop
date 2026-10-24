@@ -3,10 +3,13 @@
 Every module must import these constants instead of rebuilding a relative path.
 Mismatched paths were why the pipeline wrote forecasts the API never found.
 """
+import logging
 from pathlib import Path
 
 # .../backend/app/core/paths.py -> parents[3] is the repository root.
 ROOT_DIR = Path(__file__).resolve().parents[3]
+
+_log = logging.getLogger("raindrop.paths")
 
 DATA_DIR = ROOT_DIR / "data"
 RAW_DIR = DATA_DIR / "raw"
@@ -54,6 +57,28 @@ def forecast_file() -> Path:
     return legacy if legacy.exists() else FORECAST_FILE
 
 
+#: Read-only in the deployed image: docker-compose mounts data/processed and
+#: models with :ro so a compromised container cannot rewrite the artefacts it
+#: serves. Missing ones are reported, not created, and the readers already fall
+#: back (see _resolve and forecast_file).
+_READ_ONLY_OK = (PROCESSED_DIR, FORECASTS_DIR, TERRAIN_DIR, ARTIFACTS_DIR, RAW_DIR)
+
+
 def ensure_dirs() -> None:
-    for directory in (RAW_DIR, PROCESSED_DIR, FORECASTS_DIR, TERRAIN_DIR, ARTIFACTS_DIR, REPORTS_DIR, STATE_DIR):
-        directory.mkdir(parents=True, exist_ok=True)
+    """Create the writable directories; tolerate the read-only artefact mounts.
+
+    Startup used to die with "Read-only file system: /app/data/processed/forecasts"
+    because it tried to mkdir inside a :ro bind mount. Only STATE_DIR has to be
+    writable -- it holds operator credentials and is a named volume.
+    """
+    for directory in (RAW_DIR, PROCESSED_DIR, FORECASTS_DIR, TERRAIN_DIR, ARTIFACTS_DIR,
+                      REPORTS_DIR, STATE_DIR):
+        try:
+            directory.mkdir(parents=True, exist_ok=True)
+        except OSError:
+            if directory not in _READ_ONLY_OK:
+                raise
+            _log.warning(
+                "%s is not writable (read-only mount) and does not exist. "
+                "Anything that reads it will report its data as unavailable.", directory,
+            )

@@ -67,13 +67,26 @@ OUTPUT_DIR = ROOT / "data" / "processed" / "terrain"
 
 # Areas of interest. Kept tight: a larger box means a slower fill and little
 # extra signal for a municipal ward.
+# CartoDEM v3 R1 raw values: the sea is flattened to -255 (this matches the
+# Copernicus coastline on 98-99% of AOI pixels); voids are -1024 or lower.
+CARTODEM_SEA = -255
+CARTODEM_VOID_MAX = -1000
+
+# Areas of interest. Kept tight: a larger box means a slower fill and little
+# extra signal for a municipal ward.
+#
+# geoid_n is the EGM2008 geoid undulation N (m), averaged over the AOI. CartoDEM
+# heights are WGS84-ellipsoidal (h); H = h - N gives height above mean sea level.
+# N varies by under 2.5 m inside each box, which is below CartoDEM's own vertical
+# error, so one constant per city is enough. Without this correction Chennai sits
+# ~92 m below its true height and every depth derived from it is wrong.
 CITY_AOIS = {
     "chennai": {"name": "Chennai", "lon_min": 80.10, "lon_max": 80.45, "lat_min": 12.90, "lat_max": 13.30,
-                "fallback_elevation": 12.0, "fallback_relief": 25.0},
+                "fallback_elevation": 12.0, "fallback_relief": 25.0, "geoid_n": -92.1},
     "mumbai": {"name": "Mumbai", "lon_min": 72.75, "lon_max": 73.05, "lat_min": 18.88, "lat_max": 19.28,
-               "fallback_elevation": 8.0, "fallback_relief": 45.0},
+               "fallback_elevation": 8.0, "fallback_relief": 45.0, "geoid_n": -68.0},
     "delhi": {"name": "Delhi", "lon_min": 76.84, "lon_max": 77.35, "lat_min": 28.40, "lat_max": 28.90,
-              "fallback_elevation": 215.0, "fallback_relief": 35.0},
+              "fallback_elevation": 215.0, "fallback_relief": 35.0, "geoid_n": -52.1},
 }
 
 TARGET_RESOLUTION_M = 30.0
@@ -121,8 +134,19 @@ def _load_real_dem(city_key: str, aoi: dict):
         for source in candidates:
             source.close()
 
-    elevation = mosaic[0].astype(np.float32)
-    log.info("Loaded %d DEM tile(s) for %s: %s cells", len(candidates), aoi["name"], elevation.shape)
+    raw = mosaic[0]
+    # CartoDEM ships ellipsoidal heights. Convert to height above mean sea level
+    # before anything downstream treats the numbers as elevations, and mask the
+    # flattened sea so it is not filled with the mean land height: doing that
+    # turns the Bay of Bengal into a plateau and sends flow accumulation into it.
+    elevation = raw.astype(np.float32) - aoi["geoid_n"]
+    sea = raw == CARTODEM_SEA
+    elevation[(raw <= CARTODEM_VOID_MAX)] = np.nan
+    elevation[sea] = 0.0
+    log.info(
+        "Loaded %d DEM tile(s) for %s: %s cells (geoid N=%.1f m applied, %d sea cells masked)",
+        len(candidates), aoi["name"], elevation.shape, aoi["geoid_n"], int(sea.sum()),
+    )
     return elevation, transform, crs
 
 

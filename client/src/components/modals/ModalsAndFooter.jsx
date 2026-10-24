@@ -68,7 +68,7 @@ function DeveloperSocialSection({ isVisible = false, onClose }) {
                     </div>
                     <div className="flex justify-between">
                         <span className="text-slate-500">Elevation Dataset:</span>
-                        <span className="text-slate-200">16-bit Sub-meter High Precision DEM</span>
+                        <span className="text-slate-200">ISRO CartoDEM, 30 m grid</span>
                     </div>
                     <div className="flex justify-between">
                         <span className="text-slate-500">Hydro Inundation Engine:</span>
@@ -88,52 +88,64 @@ function DeveloperSocialSection({ isVisible = false, onClose }) {
 function DataLayersModal({ isOpen, onClose, mapToggles, setMapToggles, pushToast }) {
     if (!isOpen) return null;
 
+    // Each layer states what it actually is. The badge encodes DATA STATUS, not an
+    // authority: this screen is where a sceptic checks us, so a layer that is
+    // hand-written demo geometry has to say so here before anywhere else.
+    //   MODELLED  - computed by our own model, no observation behind the value
+    //   DEMO      - hand-written placeholder, no feed of any kind
+    //   MEASURED  - real third-party data we actually ingest
+    const STATUS_STYLE = {
+        MODELLED: "bg-amber-50 text-amber-800 border-amber-200",
+        DEMO: "bg-slate-100 text-slate-600 border-slate-300",
+        MEASURED: "bg-emerald-50 text-emerald-800 border-emerald-200",
+    };
+
     const layersConfig = [
         {
             id: "hotspots",
-            name: "Critical Flood Hotspots",
-            badge: "CartoDEM 30m Grid",
-            badgeColor: "bg-rose-50 text-rose-700 border-rose-200",
-            source: "ISRO CartoDEM Elevation + Municipal Sump Gauges",
-            frequency: "Continuous (60s cycle)",
-            description: "Real-time surface water depth computed from rainfall accumulation and elevation runoff.",
+            name: "Modelled Flood Depth",
+            badge: "MODELLED",
+            source: "Our RandomForest surrogate over ISRO CartoDEM 30 m, sampled per pixel",
+            frequency: "Recomputed per forecast step",
+            description:
+                "Depth estimated by our own model. It is trained on a parametric equation rather than observed floods, so treat the ordering between locations as informative and the centimetre values as not yet credible. There is no water-level gauge anywhere in this system.",
         },
         {
             id: "pumps",
-            name: "Stormwater Dewatering Pumps",
-            badge: "SCADA Telemetry",
-            badgeColor: "bg-blue-50 text-blue-700 border-blue-200",
-            source: "Municipal Stormwater Drainage Operations (BMC / GCC)",
-            frequency: "Live telemetry (active suction & diesel standby)",
-            description: "High-capacity submersible dewatering pump locations and active capacity percentages.",
+            name: "Dewatering Pumps",
+            badge: "DEMO",
+            source: "Hand-written placeholder locations, not a municipal feed",
+            frequency: "Static — never updates",
+            description:
+                "Illustrative pump markers placed near each sector for layout purposes. Positions, counts and capacity figures are invented. No drainage authority supplies this layer.",
         },
         {
             id: "shelters",
-            name: "Relief & Evacuation Shelters",
-            badge: "Disaster Authority",
-            badgeColor: "bg-indigo-50 text-indigo-700 border-indigo-200",
-            source: "State Disaster Management Authority (SDMA / NDRF)",
-            frequency: "Updated per flood shift",
-            description: "Verified community schools and disaster halls with dry rations, medical kits, and boat staging.",
+            name: "Relief Shelters",
+            badge: "DEMO",
+            source: "Hand-written placeholder locations, not a disaster-authority feed",
+            frequency: "Static — never updates",
+            description:
+                "Illustrative shelter markers. Locations and capacities are invented. Do not route anyone using this layer.",
         },
         {
             id: "metro",
-            name: "Transit & Metro Corridors",
-            badge: "Road Network",
-            badgeColor: "bg-emerald-50 text-emerald-700 border-emerald-200",
-            source: "Metropolitan Transit Police & Rail GIS Feeds",
-            frequency: "Real-time incident updates",
-            description: "Subway gate closure advisories and elevated highway safe-elevation corridors.",
+            name: "Transit Markers",
+            badge: "DEMO",
+            source: "Hand-written placeholder locations, not a transit feed",
+            frequency: "Static — never updates",
+            description:
+                "Illustrative station markers offset from sector coordinates. No closure or incident data is received.",
         },
         {
             id: "boundaries",
-            name: "Municipal Ward Catchments",
-            badge: "Survey of India",
-            badgeColor: "bg-slate-100 text-slate-700 border-slate-200",
-            source: "Municipal Administrative GIS Polygons",
-            frequency: "Static hydro-basin boundaries",
-            description: "Natural drainage basins and administrative municipal ward boundary borders.",
-        }
+            name: "Ward Markers",
+            badge: "DEMO",
+            source: "Ward centroids from our own registry; no official boundary polygons",
+            frequency: "Static — never updates",
+            description:
+                "Approximate ward centre points. These are not surveyed administrative boundaries and no catchment polygons are loaded.",
+        },
     ];
 
     const toggleLayer = (id) => {
@@ -150,13 +162,14 @@ function DataLayersModal({ isOpen, onClose, mapToggles, setMapToggles, pushToast
                 <div className="flex items-start justify-between pb-4 border-b border-slate-100">
                     <div>
                         <div className="flex items-center gap-2">
-                            <span className="text-[10.5px] uppercase font-bold tracking-wider px-2 py-0.5 rounded-full bg-blue-50 text-blue-700">
-                                GIS Telemetry Overlays
+                            <span className="text-[10.5px] uppercase font-bold tracking-wider px-2 py-0.5 rounded-full bg-slate-100 text-slate-600">
+                                Map layers
                             </span>
                         </div>
-                        <h2 className="text-lg font-extrabold text-slate-900 mt-1">Data Layers &amp; Sensor Sources</h2>
-                        <p className="text-xs text-slate-500 mt-0.5">
-                            Toggle live spatial data layers and inspect their verification authorities.
+                        <h2 className="text-lg font-extrabold text-slate-900 mt-1">Where each layer comes from</h2>
+                        <p className="text-xs text-slate-600 mt-1 leading-relaxed">
+                            Four of these five layers are hand-written placeholders with no feed behind them. The fifth is
+                            our own model. Nothing here is a municipal, disaster-authority or sensor feed.
                         </p>
                     </div>
                     <button
@@ -184,16 +197,16 @@ function DataLayersModal({ isOpen, onClose, mapToggles, setMapToggles, pushToast
                                     <div className="flex-1">
                                         <div className="flex items-center gap-2">
                                             <span className="text-xs font-bold text-slate-900">{layer.name}</span>
-                                            <span className={`text-[9.5px] font-bold px-2 py-0.5 rounded-full border ${layer.badgeColor}`}>
+                                            <span className={`text-[11px] font-bold tracking-wide px-2 py-0.5 rounded-full border ${STATUS_STYLE[layer.badge]}`}>
                                                 {layer.badge}
                                             </span>
                                         </div>
                                         <p className="text-xs text-slate-600 mt-1 leading-relaxed">
                                             {layer.description}
                                         </p>
-                                        <div className="flex flex-wrap items-center gap-x-4 gap-y-1 mt-2 text-[10.5px] text-slate-400">
-                                            <span>Authority: <strong className="text-slate-600">{layer.source}</strong></span>
-                                            <span>Frequency: <strong className="text-slate-600">{layer.frequency}</strong></span>
+                                        <div className="flex flex-col gap-0.5 mt-2 text-[11px] text-slate-500">
+                                            <span>Source: <strong className="text-slate-700 font-semibold">{layer.source}</strong></span>
+                                            <span>Updates: <strong className="text-slate-700 font-semibold">{layer.frequency}</strong></span>
                                         </div>
                                     </div>
                                     <button
@@ -299,8 +312,8 @@ warning. Verify before acting.
                         </div>
                         <div>
                             <div className="flex items-center gap-2">
-                                <span className="text-[10px] uppercase font-bold tracking-wider px-2 py-0.5 rounded-full bg-blue-100/80 text-blue-800">
-                                    Official Incident Dispatch · BMC / NDRF
+                                <span className="text-[10px] uppercase font-bold tracking-wider px-2 py-0.5 rounded-full bg-amber-50 text-amber-800 border border-amber-200">
+                                    Model output — not an official dispatch
                                 </span>
                             </div>
                             <h2 className="text-lg font-bold text-slate-900 mt-0.5">

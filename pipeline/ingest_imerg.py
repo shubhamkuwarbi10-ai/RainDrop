@@ -64,10 +64,36 @@ def _granule_time(name: str) -> str | None:
     return f"{date[:4]}-{date[4:6]}-{date[6:]}T{start[:2]}:{start[2:4]}:{start[4:]}Z"
 
 
-def process(input_dir, output_dir, lat_min, lat_max, lon_min, lon_max) -> dict:
+def expand_to_domain(lat_min, lat_max, lon_min, lon_max, domain_deg):
+    """Widen a bbox so it is at least `domain_deg` across, keeping the same centre.
+
+    A city AOI is a few tenths of a degree, which is far too small to run optical
+    flow on. The nowcast needs the upwind region that will advect into the city,
+    so ingest a wide domain and sample the city out of the forecast afterwards.
+    """
+    if not domain_deg:
+        return lat_min, lat_max, lon_min, lon_max
+
+    lat_c, lon_c = (lat_min + lat_max) / 2.0, (lon_min + lon_max) / 2.0
+    half = domain_deg / 2.0
+    return (
+        max(-89.95, min(lat_min, lat_c - half)),
+        min(89.95, max(lat_max, lat_c + half)),
+        max(-179.95, min(lon_min, lon_c - half)),
+        min(179.95, max(lon_max, lon_c + half)),
+    )
+
+
+def process(input_dir, output_dir, lat_min, lat_max, lon_min, lon_max, domain_deg=None) -> dict:
     import h5py
     import rasterio
     from rasterio.transform import from_bounds
+
+    lat_min, lat_max, lon_min, lon_max = expand_to_domain(
+        lat_min, lat_max, lon_min, lon_max, domain_deg
+    )
+    if domain_deg:
+        log.info("Nowcast domain: lat %.2f..%.2f  lon %.2f..%.2f", lat_min, lat_max, lon_min, lon_max)
 
     input_path, output_path = Path(input_dir), Path(output_dir)
     output_path.mkdir(parents=True, exist_ok=True)
@@ -116,9 +142,16 @@ def process(input_dir, output_dir, lat_min, lat_max, lon_min, lon_max) -> dict:
                 lon_slice = slice(lon_index[0], lon_index[-1] + 1)
                 latitudes = latitude[lat_slice]
                 longitudes = longitude[lon_slice]
+                # /Grid/lat and /Grid/lon hold pixel CENTRES, so the raster extent
+                # runs half a cell beyond them on each side. Using the centres as
+                # bounds shrinks the grid and reports the wrong pixel size: a 5-cell
+                # window spans 4 x 0.1 deg and comes out as 0.08 deg/px instead of
+                # 0.1, misregistering every cell by up to half a cell (~5.5 km).
+                half_lat = float(np.abs(np.diff(latitude)).mean()) / 2.0
+                half_lon = float(np.abs(np.diff(longitude)).mean()) / 2.0
                 transform = from_bounds(
-                    float(longitudes.min()), float(latitudes.min()),
-                    float(longitudes.max()), float(latitudes.max()),
+                    float(longitudes.min()) - half_lon, float(latitudes.min()) - half_lat,
+                    float(longitudes.max()) + half_lon, float(latitudes.max()) + half_lat,
                     len(longitudes), len(latitudes),
                 )
 
@@ -186,9 +219,15 @@ def main() -> int:
     parser.add_argument("--lat-max", type=float, required=True)
     parser.add_argument("--lon-min", type=float, required=True)
     parser.add_argument("--lon-max", type=float, required=True)
+    parser.add_argument(
+        "--domain-deg", type=float, default=8.0,
+        help="Widen the bbox to at least this many degrees across, centred on the AOI. "
+             "8 degrees (~880 km) gives optical flow enough grid; 0 disables widening.",
+    )
     args = parser.parse_args()
 
-    process(args.input_dir, args.output_dir, args.lat_min, args.lat_max, args.lon_min, args.lon_max)
+    process(args.input_dir, args.output_dir, args.lat_min, args.lat_max, args.lon_min,
+            args.lon_max, args.domain_deg)
     return 0
 
 

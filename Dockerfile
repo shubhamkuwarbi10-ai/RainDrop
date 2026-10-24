@@ -23,9 +23,15 @@ WORKDIR /app
 
 # Runtime libraries only. libgdal-dev pulled in a compiler toolchain the
 # running container has no use for.
+#
+# libgomp1 is the OpenMP runtime. The builder stage gets it via build-essential,
+# so pysteps compiles there and then dies at import here with
+# "libgomp.so.1: cannot open shared object file" -- which takes the whole
+# nowcast out of the deployed image.
 RUN apt-get update && apt-get install -y --no-install-recommends \
     libpq5 \
     libgdal36 \
+    libgomp1 \
     curl \
     && rm -rf /var/lib/apt/lists/*
 

@@ -73,3 +73,6 @@ client/Landing Page images/
 .DS_Store
 Thumbs.db
 Desktop.ini
+
+# Local test virtualenv (merge verification run)
+.venv*/

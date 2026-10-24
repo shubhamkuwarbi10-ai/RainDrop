@@ -1,0 +1,32 @@
+# Nowcasting pipeline image.
+#
+# pysteps ships no binary wheels and must be compiled, which cannot be done on the
+# Windows host here (Application Control blocks Cython, and there is no MSVC).
+# Linux builds it from source without trouble, so the nowcast stage runs here.
+#
+#   docker build -f Dockerfile.nowcast -t raindrop-nowcast .
+#   docker run --rm -v "%cd%:/app" raindrop-nowcast python pipeline/nowcast_pysteps.py --help
+FROM python:3.11-slim
+
+WORKDIR /app
+
+RUN apt-get update && apt-get install -y --no-install-recommends \
+        build-essential \
+        libgdal-dev \
+    && rm -rf /var/lib/apt/lists/*
+
+# Pinned so a rebuild cannot silently change which version produced published metrics.
+RUN pip install --no-cache-dir \
+        numpy==2.4.6 \
+        scipy==1.17.1 \
+        h5py==3.16.0 \
+        rasterio==1.4.4 \
+        opencv-python-headless==5.0.0.93 \
+        pysteps==1.21.5
+
+# Fail the build rather than ship an image whose optical flow is broken at runtime:
+# pysteps treats opencv as optional, but dense_lucaskanade needs it.
+COPY docker/verify_pysteps.py /tmp/verify_pysteps.py
+RUN python /tmp/verify_pysteps.py && rm /tmp/verify_pysteps.py
+
+ENV PYTHONPATH=/app
